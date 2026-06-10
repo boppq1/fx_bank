@@ -1,0 +1,3 @@
+spring.application.name=fx_bank
+server.servlet.context-path=/thymeleaf
+server.port=8080
