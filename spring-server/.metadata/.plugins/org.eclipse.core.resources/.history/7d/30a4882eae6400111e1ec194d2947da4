@@ -1,0 +1,8 @@
+spring.application.name=fx_bank
+server.servlet.context-path=/
+server.port=8080
+
+spring.datasource.driver-class-name=oracle.jdbc.driver.OracleDriver
+spring.datasource.url=jdbc:oracle:thin:@atqggwdfrrt7kemu_medium?TNS_ADMIN=C:/dev/Wallet_ATQGGWDFRRT7KEMU
+spring.datasource.username=ADMIN
+spring.datasource.password=Secret1234@@
