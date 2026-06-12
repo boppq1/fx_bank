@@ -1,11 +1,10 @@
-
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.3.4' // Gradle 최신 버전과 호환되도록 부트 버전 상향
-	id 'io.spring.dependency-management' version '1.1.6' // 매니지먼트 플러그인 버전도 안전한 조합으로 매칭
+	id 'org.springframework.boot' version '3.3.4'
+	id 'io.spring.dependency-management' version '1.1.6'
 }
 
-group = 'com.example' // 기존 개발자님의 기본 예시 패키지 유지
+group = 'com.example'
 version = '0.0.1-SNAPSHOT'
 description = '부산은행 외환 시스템 개발'
 
@@ -27,35 +26,37 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
 
-	// 2. Database (Oracle & MyBatis) - [JPA 배제, MyBatis 전용 구성]
+	// 2. Database (Oracle & MyBatis)
 	implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3'
-	runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
+	implementation 'com.oracle.database.jdbc:ojdbc11:23.3.0.23.09'
+	implementation 'com.oracle.database.security:oraclepki:23.3.0.23.09'
+	implementation 'com.oracle.database.security:osdt_cert:23.3.0.23.09'
+	implementation 'com.oracle.database.security:osdt_core:23.3.0.23.09'
 
-	// 3. NoSQL (Redis) - [Refresh Token 및 블랙리스트 관리용]
+	// 3. NoSQL (Redis)
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
-	// 4. JWT (Json Web Token) - 최신 0.12.3 버전 사양으로 상향 조정
+	// 4. JWT
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.3'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.3'
 
-	// 5. Lombok & Utilities
+	// 5. Lombok
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
-	
-	// 6. Test Dependencies
+
+	// 6. Test
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testCompileOnly 'org.projectlombok:lombok'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testAnnotationProcessor 'org.projectlombok:lombok'
-	
-	implementation 'com.oracle.database.jdbc:ojdbc11:23.3.0.23.09'
-   implementation 'com.oracle.database.security:oraclepki:23.3.0.23.09'
-   implementation 'com.oracle.database.security:osdt_cert:23.3.0.23.09'
-   implementation 'com.oracle.database.security:osdt_core:23.3.0.23.09'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+tasks.named('bootJar') {
+	requiresUnpack '**/oraclepki-*.jar', '**/osdt_cert-*.jar', '**/osdt_core-*.jar'
 }
