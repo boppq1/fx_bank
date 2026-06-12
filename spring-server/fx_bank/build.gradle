@@ -33,8 +33,6 @@ dependencies {
 	implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3'
 	implementation 'com.oracle.database.jdbc:ojdbc11:23.3.0.23.09'
 	implementation 'com.oracle.database.security:oraclepki:23.3.0.23.09'
-	implementation 'com.oracle.database.security:osdt_cert:21.13.0.0'
-	implementation 'com.oracle.database.security:osdt_core:21.13.0.0'
 
 	// 3. NoSQL (Redis)
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
