@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  spring-boot:
+    build: ./spring-server/fx_bank
+    ports:
+      - "8080:8080"
+    volumes:
+      - /home/ubuntu/application.properties:/config/application.properties
+      - /home/ubuntu/Wallet_ATQGGWDFRRT7KEMU:/wallet
+    restart: always
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - /etc/letsencrypt:/etc/letsencrypt
+    depends_on:
+      - spring-boot
+    restart: always
