@@ -1,10 +1,76 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+﻿<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
-<meta charset="UTF-8">
-<title>Insert title here</title>
+    <meta charset="UTF-8">
+    <title>부산은행 외환 시스템 - 메인</title>
 </head>
 <body>
-	<h1>인덱스</h1>
+
+    <h2>🏦 부산은행 외환 시스템 - 메인 페이지</h2>
+    <p id="welcomeMessage">토큰을 복구하는 중입니다...</p>
+
+    <button onclick="handleLogout()" style="margin-top: 20px; padding: 10px; background-color: #ff4d4d; color: white; border: none; cursor: pointer; border-radius: 5px;">
+        🔒 안전하게 로그아웃
+    </button>
+	<a href='/a'>a페이지로</a>
+    <script>
+        // 1. 메모리에 빈 그릇 준비
+        window.accessToken = null;
+
+        // 2. 화면이 켜지자마자 조용한 재발급(Silent Refresh) API 찌르기
+        window.onload = async function() {
+            try {
+                // 브라우저가 몰래 refreshToken 쿠키를 함께 쏴줍니다.
+                const response = await fetch('/api/auth/refresh', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // 3. 백엔드가 준 새 토큰을 메모리에 예쁘게 담음!
+                    window.accessToken = result.data.accessToken;
+                    
+                    console.log("🎉 [Silent Refresh 성공] Access Token 복구 완료!");
+                    console.log("발급받은 토큰:", window.accessToken);
+                    
+                    // 화면 글씨 변경
+                    document.getElementById('welcomeMessage').innerText = "✅ 토큰 복구 완료! 정상적으로 로그인 유지 중입니다.";
+                } else {
+                    console.warn("쿠키가 만료되었거나 로그인이 안 된 상태입니다.");
+                    document.getElementById('welcomeMessage').innerText = "❌ 로그인 정보가 없습니다. 다시 로그인해주세요.";
+                }
+            } catch (error) {
+                console.error("재발급 통신 에러: ", error);
+            }
+        }
+
+        // 🚨 3. 로그아웃 실행 함수 (블랙리스트 전송 버전)
+        async function handleLogout() {
+            try {
+                // 엑세스 토큰이 있으면 헤더에 담아서 로그아웃 찌르기
+                const headers = { 'Content-Type': 'application/json' };
+                if (window.accessToken) {
+                    headers['Authorization'] = 'Bearer ' + window.accessToken; // 토큰 제출!
+                }
+
+                await fetch('/api/auth/logout', { 
+                    method: 'POST',
+                    headers: headers
+                });
+
+                // 자바스크립트 RAM 메모리 폭파
+                window.accessToken = null;
+
+                alert("블랙리스트 등재 및 안전 로그아웃 완료!");
+                
+                // 미련 없이 로그인 페이지로 쫓아냄
+                location.href = '/'; 
+            } catch (error) {
+                console.error("로그아웃 실패: ", error);
+            }
+        }
+    </script>
 </body>
 </html>

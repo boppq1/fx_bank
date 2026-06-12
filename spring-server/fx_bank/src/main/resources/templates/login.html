@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>부산은행 외환 시스템 - 로그인</title>
+</head>
+<body>
+
+    <h2>🏦 부산은행 외환 시스템 - 로그인 (인메모리 보안 버전)</h2>
+
+    <div>
+        <label for="userId">아이디: </label>
+        <input type="text" id="userId" placeholder='id'><br><br> <label for="secuPw">비밀번호: </label>
+        <input type="password" id="secuPw" placeholder='pw'><br><br>
+        
+        <button onclick="handleLogin()">로그인 요청</button>
+    </div>
+
+    <script>
+        /**
+         * [★핵심 보안 설정] 
+         * 하드디스크(localStorage)가 아닌, 브라우저 탭의 RAM 영역에 변수를 선언합니다.
+         * 이 변수는 자바스크립트 실행 메모리 안에서만 살아 숨 쉽니다.
+         */
+        let accessToken = null;
+
+        async function handleLogin() {
+            const userId = document.getElementById('userId').value;
+            const secuPw = document.getElementById('secuPw').value;
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: userId, secuPw: secuPw })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // [변경 전] localStorage.setItem('accessToken', ...) -> 하드디스크 저장 방식 폐기
+                    // [변경 후] 오직 자바스크립트 RAM 메모리 변수에만 할당 (XSS 원천 차단)
+                    accessToken = result.data.accessToken;
+                    
+                    alert(result.message + " (RAM 메모리에 토큰 안착 완료)");
+
+                    /**
+                     * [주의 및 향후 과제]
+                     * 현재 상태에서 바로 location.href = '/index'로 넘어가면 RAM이 리셋되면서 토큰이 증발합니다.
+                     * 다음 단계에서 시큐리티와 Redis를 구축한 후, index.html이 켜지자마자 
+                     * 쿠키에 담긴 Refresh Token을 이용해 이 'accessToken' 변수를 자동으로 다시 채워넣는 
+                     * [Silent Refresh] API 통신을 붙여서 페이지 이동을 완벽하게 처리할 예정입니다.
+                     */
+                    location.href = '/';
+                    
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                console.error("로그인 요청 실패: ", error);
+            }
+        }
+    </script>
+</body>
+</html>
