@@ -20,6 +20,10 @@ load_dotenv()
 CLOVA_INVOKE_URL = os.getenv("CLOVA_INVOKE_URL")
 CLOVA_SECRET_KEY = os.getenv("CLOVA_SECRET_KEY")
 
+# 개발 중 crop 확인이 꼭 필요할 때만 .env에 KEEP_DEBUG_FILES=true
+# 기본값 false: 원본/crop 이미지 자동 삭제
+KEEP_DEBUG_FILES = os.getenv("KEEP_DEBUG_FILES", "false").lower() == "true"
+
 if not CLOVA_INVOKE_URL:
     raise RuntimeError("CLOVA_INVOKE_URL이 .env에 설정되지 않았습니다.")
 
@@ -49,6 +53,17 @@ def root():
     return {
         "message": "fastapi-ocr server is running"
     }
+
+
+# =========================
+# 파일 삭제 함수
+# =========================
+def safe_delete(file_path):
+    try:
+        if file_path and os.path.exists(file_path):
+            os.remove(file_path)
+    except Exception as e:
+        print("임시 파일 삭제 실패:", str(e))
 
 
 # =========================
@@ -94,8 +109,7 @@ def clova_ocr_image(file_path):
         return {
             "success": False,
             "text": "",
-            "statusCode": response.status_code,
-            "error": response.text
+            "statusCode": response.status_code
         }
 
     result = response.json()
@@ -108,8 +122,7 @@ def clova_ocr_image(file_path):
 
     return {
         "success": True,
-        "text": " ".join(texts),
-        "raw": result
+        "text": " ".join(texts)
     }
 
 
@@ -159,20 +172,20 @@ def clean_address(text):
     if not text:
         return ""
 
-    # 1. 주민번호 패턴 제거
+    # 주민번호 패턴 제거
     text = re.sub(r"\d{6}[-\s]?\d{7}", " ", text)
     text = re.sub(r"\d{6}\s+\d{7}", " ", text)
 
-    # 2. 면허증 배경 영어 문구 제거
+    # 면허증 배경 영어 문구 제거
     text = re.sub(r"[A-Za-z]+(?:'[A-Za-z]+)?", " ", text)
 
-    # 3. 한글, 숫자, 공백, 주소에 필요한 기호만 남김
+    # 한글, 숫자, 공백, 주소에 필요한 기호만 남김
     text = re.sub(r"[^가-힣0-9\s,.\-()]", " ", text)
 
-    # 4. 공백 정리
+    # 공백 정리
     text = re.sub(r"\s+", " ", text).strip()
 
-    # 5. 주소 시작 지점 찾기
+    # 주소 시작 지점 찾기
     region_pattern = (
         r"(서울특별시|부산광역시|대구광역시|인천광역시|광주광역시|"
         r"대전광역시|울산광역시|세종특별자치시|경기도|강원특별자치도|"
@@ -185,7 +198,6 @@ def clean_address(text):
     if match:
         text = text[match.start():]
 
-    # 6. 광역시/도 바로 뒤에 이상하게 끼는 단독 숫자 제거
     # 예: 부산광역시 3 연제구 -> 부산광역시 연제구
     text = re.sub(
         r"(특별시|광역시|특별자치시|특별자치도|도)\s+\d+\s+(?=[가-힣]+[시군구])",
@@ -193,10 +205,85 @@ def clean_address(text):
         text
     )
 
-    # 7. 다시 공백 정리
     text = re.sub(r"\s+", " ", text).strip()
 
     return text
+
+
+# =========================
+# 라벨별 crop padding
+# =========================
+def get_padding(label, id_type, box_w, box_h):
+    if label == "name":
+        if id_type == "driver_license":
+            return {
+                "left": int(box_w * 0.08),
+                "right": int(box_w * 0.35),
+                "top": int(box_h * 0.15),
+                "bottom": int(box_h * 0.15)
+            }
+        else:
+            return {
+                "left": int(box_w * 0.15),
+                "right": int(box_w * 1.20),
+                "top": int(box_h * 0.60),
+                "bottom": int(box_h * 0.60)
+            }
+
+    if label == "address":
+        if id_type == "driver_license":
+            return {
+                "left": int(box_w * 0.05),
+                "right": int(box_w * 0.05),
+                "top": int(box_h * 0.05),
+                "bottom": int(box_h * 0.05)
+            }
+        else:
+            return {
+                "left": int(box_w * 0.08),
+                "right": int(box_w * 0.08),
+                "top": int(box_h * 0.05),
+                "bottom": int(box_h * 0.05)
+            }
+
+    if label == "rrn":
+        if id_type == "driver_license":
+            return {
+                "left": int(box_w * 0.08),
+                "right": int(box_w * 0.08),
+                "top": int(box_h * 0.08),
+                "bottom": int(box_h * 0.08)
+            }
+        else:
+            return {
+                "left": int(box_w * 0.12),
+                "right": int(box_w * 0.12),
+                "top": int(box_h * 0.12),
+                "bottom": int(box_h * 0.12)
+            }
+
+    if label == "issue_date":
+        if id_type == "driver_license":
+            return {
+                "left": int(box_w * 0.08),
+                "right": int(box_w * 0.03),
+                "top": int(box_h * 0.10),
+                "bottom": int(box_h * 0.10)
+            }
+        else:
+            return {
+                "left": int(box_w * 0.15),
+                "right": int(box_w * 0.15),
+                "top": int(box_h * 0.15),
+                "bottom": int(box_h * 0.15)
+            }
+
+    return {
+        "left": int(box_w * 0.10),
+        "right": int(box_w * 0.10),
+        "top": int(box_h * 0.10),
+        "bottom": int(box_h * 0.10)
+    }
 
 
 # =========================
@@ -205,171 +292,136 @@ def clean_address(text):
 @app.post("/ocr/id-card")
 async def ocr_id_card(file: UploadFile = File(...)):
     file_id = str(uuid.uuid4())
-    upload_path = os.path.join(UPLOAD_DIR, f"{file_id}_{file.filename}")
+    safe_filename = os.path.basename(file.filename)
+    upload_path = os.path.join(UPLOAD_DIR, f"{file_id}_{safe_filename}")
 
-    # 업로드 이미지 저장
-    with open(upload_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    temp_crop_paths = []
 
-    # YOLO 탐지
-    results = model.predict(
-        source=upload_path,
-        conf=0.25
-    )
+    try:
+        # 업로드 이미지 임시 저장
+        with open(upload_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
 
-    # 신분증 타입 판단
-    id_type = "unknown"
+        # YOLO 탐지
+        results = model.predict(
+            source=upload_path,
+            conf=0.25
+        )
 
-    for r in results:
-        for box in r.boxes:
-            cls_id = int(box.cls[0])
-            detected_label = model.names[cls_id]
+        # 신분증 타입 판단
+        id_type = "unknown"
 
-            if detected_label == "driver_license":
-                id_type = "driver_license"
-            elif detected_label == "resident_card":
-                id_type = "resident_card"
+        for r in results:
+            for box in r.boxes:
+                cls_id = int(box.cls[0])
+                detected_label = model.names[cls_id]
 
-    print("신분증 타입:", id_type)
+                if detected_label == "driver_license":
+                    id_type = "driver_license"
+                elif detected_label == "resident_card":
+                    id_type = "resident_card"
 
-    target_labels = ["name", "rrn", "address", "issue_date"]
+        print("신분증 타입:", id_type)
 
-    saved_crops = []
-    ocr_results = {}
+        target_labels = ["name", "rrn", "address", "issue_date"]
 
-    for r in results:
-        orig_img = r.orig_img
-        img_h, img_w = orig_img.shape[:2]
+        ocr_results = {}
+        detected_labels = []
 
-        for i, box in enumerate(r.boxes):
-            cls_id = int(box.cls[0])
-            label = model.names[cls_id]
-            conf = float(box.conf[0])
+        for r in results:
+            orig_img = r.orig_img
+            img_h, img_w = orig_img.shape[:2]
 
-            if label not in target_labels:
-                continue
+            for i, box in enumerate(r.boxes):
+                cls_id = int(box.cls[0])
+                label = model.names[cls_id]
+                conf = float(box.conf[0])
 
-            x1, y1, x2, y2 = map(int, box.xyxy[0])
+                if label not in target_labels:
+                    continue
 
-            box_w = x2 - x1
-            box_h = y2 - y1
+                x1, y1, x2, y2 = map(int, box.xyxy[0])
 
-            # =========================
-            # 라벨별 crop 여백 조정
-            # =========================
-            if label == "name":
-                if id_type == "driver_license":
-                    pad_left = int(box_w * 0.08)
-                    pad_right = int(box_w * 0.35)
-                    pad_top = int(box_h * 0.15)
-                    pad_bottom = int(box_h * 0.15)
-                else:
-                    pad_left = int(box_w * 0.15)
-                    pad_right = int(box_w * 1.20)
-                    pad_top = int(box_h * 0.60)
-                    pad_bottom = int(box_h * 0.60)
+                box_w = x2 - x1
+                box_h = y2 - y1
 
-            elif label == "address":
-                if id_type == "driver_license":
-                    pad_left = int(box_w * 0.05)
-                    pad_right = int(box_w * 0.05)
-                    pad_top = int(box_h * 0.05)
-                    pad_bottom = int(box_h * 0.05)
-                else:
-                    pad_left = int(box_w * 0.08)
-                    pad_right = int(box_w * 0.08)
-                    pad_top = int(box_h * 0.05)
-                    pad_bottom = int(box_h * 0.05)
+                padding = get_padding(label, id_type, box_w, box_h)
 
-            elif label == "rrn":
-                if id_type == "driver_license":
-                    pad_left = int(box_w * 0.08)
-                    pad_right = int(box_w * 0.08)
-                    pad_top = int(box_h * 0.08)
-                    pad_bottom = int(box_h * 0.08)
-                else:
-                    pad_left = int(box_w * 0.12)
-                    pad_right = int(box_w * 0.12)
-                    pad_top = int(box_h * 0.12)
-                    pad_bottom = int(box_h * 0.12)
+                crop_x1 = max(0, x1 - padding["left"])
+                crop_y1 = max(0, y1 - padding["top"])
+                crop_x2 = min(img_w, x2 + padding["right"])
+                crop_y2 = min(img_h, y2 + padding["bottom"])
 
-            elif label == "issue_date":
-                if id_type == "driver_license":
-                    pad_left = int(box_w * 0.08)
-                    pad_right = int(box_w * 0.03)
-                    pad_top = int(box_h * 0.10)
-                    pad_bottom = int(box_h * 0.10)
-                else:
-                    pad_left = int(box_w * 0.15)
-                    pad_right = int(box_w * 0.15)
-                    pad_top = int(box_h * 0.15)
-                    pad_bottom = int(box_h * 0.15)
+                if crop_x2 <= crop_x1 or crop_y2 <= crop_y1:
+                    continue
 
-            else:
-                pad_left = int(box_w * 0.10)
-                pad_right = int(box_w * 0.10)
-                pad_top = int(box_h * 0.10)
-                pad_bottom = int(box_h * 0.10)
+                crop = orig_img[crop_y1:crop_y2, crop_x1:crop_x2]
 
-            crop_x1 = max(0, x1 - pad_left)
-            crop_y1 = max(0, y1 - pad_top)
-            crop_x2 = min(img_w, x2 + pad_right)
-            crop_y2 = min(img_h, y2 + pad_bottom)
+                if crop is None or crop.size == 0:
+                    continue
 
-            crop = orig_img[crop_y1:crop_y2, crop_x1:crop_x2]
+                crop_path = os.path.join(CROP_DIR, f"{file_id}_{label}_{i}.jpg")
+                cv2.imwrite(crop_path, crop)
+                temp_crop_paths.append(crop_path)
 
-            crop_path = os.path.join(CROP_DIR, f"{file_id}_{label}_{i}.jpg")
-            cv2.imwrite(crop_path, crop)
+                ocr_response = clova_ocr_image(crop_path)
+                ocr_text = ocr_response.get("text", "")
 
-            # CLOVA OCR 호출
-            ocr_response = clova_ocr_image(crop_path)
-            ocr_text = ocr_response.get("text", "")
+                detected_labels.append({
+                    "label": label,
+                    "confidence": round(conf, 3),
+                    "ocrSuccess": ocr_response.get("success", False)
+                })
 
-            saved_crops.append({
-                "label": label,
-                "confidence": round(conf, 3),
-                "cropPath": crop_path,
-                "ocrText": ocr_text
-            })
+                if label not in ocr_results:
+                    ocr_results[label] = []
 
-            if label not in ocr_results:
-                ocr_results[label] = []
+                if ocr_text:
+                    ocr_results[label].append(ocr_text)
 
-            if ocr_text:
-                ocr_results[label].append(ocr_text)
+        # OCR 결과 정리
+        name_raw = " ".join(ocr_results.get("name", []))
+        rrn_raw = " ".join(ocr_results.get("rrn", []))
+        address_raw = " ".join(ocr_results.get("address", []))
+        issue_date_raw = " ".join(ocr_results.get("issue_date", []))
 
-    # =========================
-    # OCR 결과 정리
-    # =========================
-    name_raw = " ".join(ocr_results.get("name", []))
-    rrn_raw = " ".join(ocr_results.get("rrn", []))
-    address_raw = " ".join(ocr_results.get("address", []))
-    issue_date_raw = " ".join(ocr_results.get("issue_date", []))
+        name_clean = extract_korean_name(name_raw)
+        rrn_normalized = normalize_rrn(rrn_raw)
+        rrn_masked = mask_rrn(rrn_raw)
+        address_clean = clean_address(address_raw)
+        issue_date_clean = clean_issue_date(issue_date_raw)
 
-    name_clean = extract_korean_name(name_raw)
-    rrn_normalized = normalize_rrn(rrn_raw)
-    rrn_masked = mask_rrn(rrn_raw)
-    address_clean = clean_address(address_raw)
-    issue_date_clean = clean_issue_date(issue_date_raw)
+        response_body = {
+            "success": True,
+            "message": "YOLO + CLOVA OCR complete",
+            "idType": id_type,
+            "name": name_clean,
+            "rrnMasked": rrn_masked,
+            "address": address_clean,
+            "issueDate": issue_date_clean,
+            "detectedLabels": detected_labels
+        }
 
-    return {
-        "success": True,
-        "message": "YOLO + CLOVA OCR complete",
-        "idType": id_type,
+        # 개발 중 확인이 필요할 때만 .env에 KEEP_DEBUG_FILES=true 설정
+        # 운영에서는 false 유지
+        if KEEP_DEBUG_FILES:
+            response_body["debug"] = {
+                "uploadPath": upload_path,
+                "cropPaths": temp_crop_paths,
+                "rawOcr": {
+                    "name": name_raw,
+                    "rrn": rrn_raw,
+                    "rrnNormalized": rrn_normalized,
+                    "address": address_raw,
+                    "issueDate": issue_date_raw
+                }
+            }
 
-        "name": name_clean,
-        "rrnMasked": rrn_masked,
-        "address": address_clean,
-        "issueDate": issue_date_clean,
+        return response_body
 
-        "raw": {
-            "name": name_raw,
-            "rrn": rrn_raw,
-            "rrnNormalized": rrn_normalized,
-            "address": address_raw,
-            "issueDate": issue_date_raw
-        },
+    finally:
+        if not KEEP_DEBUG_FILES:
+            safe_delete(upload_path)
 
-        "uploadPath": upload_path,
-        "crops": saved_crops
-    }
+            for crop_path in temp_crop_paths:
+                safe_delete(crop_path)

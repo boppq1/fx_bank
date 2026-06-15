@@ -2,6 +2,8 @@
 *.class
 .env
 *.env
+uploads/
+crops/
 
 # Log file
 *.log
