@@ -24,7 +24,7 @@ public class ViewController {
         return "login"; // templates/login.html 파일명과 매칭됨
     }
  
-    @GetMapping("/")
+    //@GetMapping("/")
     public String mainPage() {
         // templates 폴더 안에 있는 "index.html" 파일을 화면에 그려라!
         return "index"; 

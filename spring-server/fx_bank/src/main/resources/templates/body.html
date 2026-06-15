@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>body</title>
+<link rel="stylesheet" th:href="@{/css/fx-home.css}">
+</head>
+<body>
+<main th:fragment="body" class="fx-main">
+ 
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner">
+ 
+      <div class="hero-left">
+        <span class="hero-badge">● 2025년 상반기 베스트 금융 플랫폼 수상</span>
+        <h1 class="hero-title">
+          스마트한 자산 관리의<br>
+          <span class="hero-accent">새로운 기준</span>
+        </h1>
+        <p class="hero-desc">
+          최고 금리 상품 비교, 실시간 환율 조회, AI 금융 상담까지.<br>
+          하나의 플랫폼에서 나의 금융 목표를 실현하세요.
+        </p>
+        <div class="hero-actions">
+          <a href="#" class="btn btn-primary">지금 시작하기 →</a>
+          <a href="#" class="btn btn-ghost">서비스 둘러보기</a>
+        </div>
+      </div>
+ 
+      <!-- 오늘의 주요 환율 -->
+      <div class="rate-panel">
+        <div class="rate-head">
+          <span class="rate-title">오늘의 주요 환율</span>
+          <a href="#" class="rate-all">전체 보기 →</a>
+        </div>
+ 
+        <ul class="rate-list">
+          <li class="rate-row">
+            <div class="rate-flag">US</div>
+            <div class="rate-name">
+              <strong>환율 정보 1</strong>
+              <span>미국 달러</span>
+            </div>
+            <div class="rate-value">
+              <strong>1,342.50원</strong>
+              <span class="up">▲ +5.30</span>
+            </div>
+          </li>
+ 
+          <li class="rate-row">
+            <div class="rate-flag">EU</div>
+            <div class="rate-name">
+              <strong>환율 정보 2</strong>
+              <span>유로</span>
+            </div>
+            <div class="rate-value">
+              <strong>1,458.20원</strong>
+              <span class="down">▼ -3.10</span>
+            </div>
+          </li>
+ 
+          <li class="rate-row">
+            <div class="rate-flag">JP</div>
+            <div class="rate-name">
+              <strong>환율 정보 3</strong>
+              <span>일본 엔</span>
+            </div>
+            <div class="rate-value">
+              <strong>8.92원</strong>
+              <span class="up">▲ +0.04</span>
+            </div>
+          </li>
+ 
+          <li class="rate-row">
+            <div class="rate-flag">CN</div>
+            <div class="rate-name">
+              <strong>환율 정보 4</strong>
+              <span>중국 위안</span>
+            </div>
+            <div class="rate-value">
+              <strong>185.30원</strong>
+              <span class="up">▲ +1.20</span>
+            </div>
+          </li>
+        </ul>
+ 
+        <a href="#" class="btn btn-primary btn-block">환전하기</a>
+      </div>
+ 
+    </div>
+  </section>
+ 
+  <!-- 추천 상품 -->
+  <section class="section products">
+    <div class="section-inner">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">추천 상품</span>
+          <h2 class="section-title">나에게 딱 맞는 금융상품</h2>
+        </div>
+        <a href="#" class="section-more">전체 상품 보기 ›</a>
+      </div>
+ 
+      <div class="product-grid">
+ 
+        <article class="product-card">
+          <div class="product-top">
+            <span class="product-ico">💎</span>
+            <span class="tag tag-purple">인기</span>
+          </div>
+          <span class="product-cat">적금</span>
+          <h3 class="product-name">프리미엄 적금</h3>
+          <p class="product-rate">4.5%</p>
+          <p class="product-sub">연 금리 · 12개월</p>
+          <div class="product-foot">
+            <span class="product-score">★ 4.8</span>
+            <a href="#" class="product-link">가입하기 →</a>
+          </div>
+        </article>
+ 
+        <article class="product-card">
+          <div class="product-top">
+            <span class="product-ico">🌐</span>
+            <span class="tag tag-green">신규</span>
+          </div>
+          <span class="product-cat">펀드</span>
+          <h3 class="product-name">글로벌 ETF 펀드</h3>
+          <p class="product-rate">7.2%</p>
+          <p class="product-sub">연 금리 · 자유</p>
+          <div class="product-foot">
+            <span class="product-score">★ 4.5</span>
+            <a href="#" class="product-link">가입하기 →</a>
+          </div>
+        </article>
+ 
+        <article class="product-card">
+          <div class="product-top">
+            <span class="product-ico">📗</span>
+          </div>
+          <span class="product-cat">외화예금</span>
+          <h3 class="product-name">달러 예금</h3>
+          <p class="product-rate">3.8%</p>
+          <p class="product-sub">연 금리 · 6개월</p>
+          <div class="product-foot">
+            <span class="product-score">★ 4.6</span>
+            <a href="#" class="product-link">가입하기 →</a>
+          </div>
+        </article>
+ 
+        <article class="product-card">
+          <div class="product-top">
+            <span class="product-ico">📊</span>
+            <span class="tag tag-red">추천</span>
+          </div>
+          <span class="product-cat">펀드</span>
+          <h3 class="product-name">혼합형 중위험 펀드</h3>
+          <p class="product-rate">5.9%</p>
+          <p class="product-sub">연 금리 · 24개월</p>
+          <div class="product-foot">
+            <span class="product-score">★ 4.7</span>
+            <a href="#" class="product-link">가입하기 →</a>
+          </div>
+        </article>
+ 
+      </div>
+    </div>
+  </section>
+ 
+  <!-- AI 배너 -->
+  <section class="section ai-section">
+    <div class="section-inner">
+      <div class="ai-banner">
+        <div class="ai-left">
+          <span class="ai-ico">💬</span>
+          <div class="ai-text">
+            <span class="ai-eyebrow">AI 금융 도우미</span>
+            <h3 class="ai-title">금융 고민, AI에게 바로 물어보세요</h3>
+            <p class="ai-sub">한국어 · English · 日本語 · 中文 등 5개 언어 지원 · RAG 기반 정확한 답변</p>
+          </div>
+        </div>
+        <a href="#" class="btn btn-light">챗봇 상담 시작</a>
+      </div>
+    </div>
+  </section>
+ 
+</main>
+</body>
+</html>

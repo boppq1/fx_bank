@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Controller
 public class FxMainController {
 
-	//@GetMapping("/")
+	@GetMapping("/")
 	public String fxHome() {
 		
 		return "fx-home";
