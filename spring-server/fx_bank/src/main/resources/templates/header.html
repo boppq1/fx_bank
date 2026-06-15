@@ -2,14 +2,95 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
 <meta charset="UTF-8">
-<title>Header</title>
+<title>header</title>
+<link rel="stylesheet" th:href="@{/css/fx-home.css}">
 </head>
 <body>
-	<header th:fragment="header">
-		<h1>FX Bank</h1>
-		<nav>
-			<a th:href="@{/}">홈</a>
-		</nav>
-	</header>
+<header th:fragment="header" class="site-header">
+ 
+  <!-- 상단 유틸리티 바 : 묵직한 네이비, 신뢰감 강조 -->
+  <div class="util-bar">
+    <div class="util-inner">
+      <ul class="util-left">
+        <li><a href="#">개인뱅킹</a></li>
+        <li><a href="#">기업뱅킹</a></li>
+        <li><a href="#">자산관리</a></li>
+      </ul>
+      <ul class="util-right">
+        <li><a href="#" class="util-lang">🌐 KOR</a></li>
+        <li><a href="#">로그인</a></li>
+        <li><a href="#">회원가입</a></li>
+      </ul>
+    </div>
+  </div>
+ 
+  <!-- 메인 GNB -->
+  <div class="gnb-bar">
+    <div class="gnb-inner">
+ 
+      <a href="#" class="brand">
+        <span class="brand-mark">B</span>
+        <span class="brand-name">BNK 부산은행</span>
+      </a>
+ 
+      <nav class="gnb">
+        <ul class="gnb-menu">
+ 
+          <li class="gnb-item">
+            <a href="#" class="gnb-link">금융상품</a>
+            <div class="gnb-dropdown">
+              <a href="#">예금·적금</a>
+              <a href="#">펀드·ETF</a>
+              <a href="#">외화예금</a>
+              <a href="#">MMF</a>
+            </div>
+          </li>
+ 
+          <li class="gnb-item">
+            <a href="#" class="gnb-link is-active">환율·환전</a>
+            <div class="gnb-dropdown">
+              <a href="#">실시간 환율</a>
+              <a href="#">환전 신청</a>
+              <a href="#">환전 내역</a>
+              <a href="#">환율 알림</a>
+            </div>
+          </li>
+ 
+          <li class="gnb-item">
+            <a href="#" class="gnb-link">투자정보</a>
+            <div class="gnb-dropdown">
+              <a href="#">시장 동향</a>
+              <a href="#">투자 리포트</a>
+              <a href="#">금리 정보</a>
+              <a href="#">경제 캘린더</a>
+            </div>
+          </li>
+ 
+          <li class="gnb-item">
+            <a href="#" class="gnb-link">고객지원</a>
+            <div class="gnb-dropdown">
+              <a href="#">공지사항</a>
+              <a href="#">FAQ</a>
+              <a href="#">1:1 문의</a>
+              <a href="#">챗봇 상담</a>
+            </div>
+          </li>
+ 
+        </ul>
+      </nav>
+ 
+      <div class="gnb-tools">
+        <div class="gnb-search">
+          <span class="gnb-search-ico">🔍</span>
+          <input type="text" placeholder="상품 검색...">
+        </div>
+        <button type="button" class="gnb-bell" aria-label="알림">🔔</button>
+        <a href="#" class="gnb-login">로그인</a>
+      </div>
+ 
+    </div>
+  </div>
+ 
+</header>
 </body>
 </html>
