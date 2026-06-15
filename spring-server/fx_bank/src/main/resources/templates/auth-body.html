@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>body</title>
+<link rel="stylesheet" th:href="@{/css/fx-auth.css}">
+</head>
+<body>
+<main th:fragment="authBody" class="auth-main">
+  <div class="auth-wrap">
+
+    <!-- 좌측 소개 -->
+    <aside class="auth-intro">
+      <span class="intro-logo">BNK 부산은행</span>
+      <h1 class="intro-title">외환 거래, 더 쉽고 안전하게</h1>
+    </aside>
+
+    <!-- 우측 카드 -->
+    <section class="auth-card">
+
+      <!-- 탭 -->
+      <div class="auth-tabs" data-active="login">
+        <span class="tab-pill"></span>
+        <button type="button" class="tab-btn is-active" data-tab="login">로그인</button>
+        <button type="button" class="tab-btn" data-tab="register">회원가입</button>
+      </div>
+
+      <!-- 패널 영역 -->
+      <div class="panel-area">
+
+        <!-- ===== 로그인 패널 ===== -->
+        <div class="panel panel-login is-active" data-panel="login">
+          <div class="field">
+            <label for="loginId">아이디 (이메일)</label>
+            <div class="input-box">
+              <span class="in-ico">👤</span>
+              <input type="text" id="loginId" placeholder="user@example.com" autocomplete="username">
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="loginPw">비밀번호</label>
+            <div class="input-box">
+              <span class="in-ico">🔒</span>
+              <input type="password" id="loginPw" placeholder="••••••••" autocomplete="current-password">
+              <button type="button" class="pw-toggle" data-target="loginPw" aria-label="비밀번호 표시">👁</button>
+            </div>
+          </div>
+
+          <div class="login-meta">
+            <label class="checkbox">
+              <input type="checkbox" id="keepLogin">
+              <span>로그인 상태 유지</span>
+            </label>
+            <a href="#" class="link-find">비밀번호 찾기</a>
+          </div>
+
+          <button type="button" id="loginBtn" class="btn btn-primary btn-block">로그인</button>
+
+          <div class="divider"><span>간편 로그인</span></div>
+
+          <div class="social-row">
+            <button type="button" class="social social-kakao">카카오</button>
+            <button type="button" class="social social-naver">네이버</button>
+            <button type="button" class="social social-apple">애플</button>
+          </div>
+
+          <p class="switch-line">
+            계정이 없으신가요? <button type="button" class="switch-link" data-tab="register">회원가입</button>
+          </p>
+        </div>
+
+        <!-- ===== 회원가입 패널 ===== -->
+        <div class="panel panel-register" data-panel="register">
+          <form id="registerForm" class="reg-form" autocomplete="off">
+
+            <div class="field">
+              <label for="userId">아이디</label>
+              <div class="input-box has-btn">
+                <span class="in-ico">👤</span>
+                <input type="text" id="userId" placeholder="아이디 입력" required>
+                <button type="button" class="inline-btn" onclick="checkDuplicateId()">중복 확인</button>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="secuPw">비밀번호</label>
+              <div class="input-box">
+                <span class="in-ico">🔒</span>
+                <input type="password" id="secuPw" placeholder="비밀번호 입력" required>
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="field">
+                <label for="nameKo">한글 성명</label>
+                <div class="input-box">
+                  <input type="text" id="nameKo" placeholder="홍길동" required>
+                </div>
+              </div>
+              <div class="field">
+                <label for="nameEn">영문 성명</label>
+                <div class="input-box">
+                  <input type="text" id="nameEn" placeholder="HONG GILDONG">
+                </div>
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="field">
+                <label for="rrn">주민등록번호</label>
+                <div class="input-box">
+                  <input type="text" id="rrn" placeholder="901122-1111111" required>
+                </div>
+              </div>
+              <div class="field">
+                <label for="phone">휴대폰 번호</label>
+                <div class="input-box">
+                  <input type="text" id="phone" placeholder="010-1234-5678" required>
+                </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="email">이메일 주소</label>
+              <div class="input-box">
+                <span class="in-ico">✉️</span>
+                <input type="email" id="email" placeholder="hong@example.com" required>
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="field">
+                <label for="gender">성별</label>
+                <div class="input-box">
+                  <select id="gender" required>
+                    <option value="">-- 선택 --</option>
+                    <option value="MALE">남성 (MALE)</option>
+                    <option value="FEMALE">여성 (FEMALE)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field">
+                <label for="userTendency">투자 성향</label>
+                <div class="input-box">
+                  <input type="text" id="userTendency" placeholder="예: 적극적 참여형">
+                </div>
+              </div>
+            </div>
+
+            <!-- 주소 -->
+            <div class="field">
+              <div class="addr-head">
+                <label>자택 주소</label>
+                <button type="button" class="inline-btn ghost" onclick="executeDaumPostcode()">우편번호 검색</button>
+              </div>
+
+              <div class="addr-block">
+                <span class="addr-tag">국문 주소</span>
+                <div class="addr-row">
+                  <div class="input-box sm">
+                    <input type="text" id="postcode" placeholder="우편번호" readonly>
+                  </div>
+                  <div class="input-box grow">
+                    <input type="text" id="address" placeholder="기본 한글 주소" readonly>
+                  </div>
+                </div>
+                <div class="input-box">
+                  <input type="text" id="address_detail" placeholder="상세 주소 입력">
+                </div>
+              </div>
+
+              <div class="addr-block">
+                <span class="addr-tag">영문 주소</span>
+                <div class="addr-row">
+                  <div class="input-box sm">
+                    <input type="text" id="postcode_en" placeholder="Zip Code" readonly>
+                  </div>
+                  <div class="input-box grow">
+                    <input type="text" id="address_en" placeholder="English Street Address" readonly>
+                  </div>
+                </div>
+                <div class="input-box">
+                  <input type="text" id="address_detail_en" placeholder="English Detail Address">
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">회원가입 완료</button>
+
+            <p class="switch-line">
+              이미 계정이 있으신가요? <button type="button" class="switch-link" data-tab="login">로그인</button>
+            </p>
+          </form>
+        </div>
+
+      </div>
+    </section>
+
+  </div>
+
+  <!-- 스크립트는 fragment(<main>) 안에 둬야 th:replace 시 함께 포함됨 -->
+  <script src="//t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+  <script th:src="@{/js/auth.js}"></script>
+</main>
+</body>
+</html>

@@ -18,8 +18,8 @@
       </ul>
       <ul class="util-right">
         <li><a href="#" class="util-lang">🌐 KOR</a></li>
-        <li><a href="#">로그인</a></li>
-        <li><a href="#">회원가입</a></li>
+        <li><a th:href="@{/login}">로그인</a></li>
+        <li><a th:href="@{/register}">회원가입</a></li>
       </ul>
     </div>
   </div>
@@ -28,8 +28,7 @@
   <div class="gnb-bar">
     <div class="gnb-inner">
  
-      <a href="#" class="brand">
-        <span class="brand-mark">B</span>
+      <a href="/" class="brand">
         <span class="brand-name">BNK 부산은행</span>
       </a>
  
@@ -47,7 +46,7 @@
           </li>
  
           <li class="gnb-item">
-            <a href="#" class="gnb-link is-active">환율·환전</a>
+            <a href="#" class="gnb-link">환율·환전</a>
             <div class="gnb-dropdown">
               <a href="#">실시간 환율</a>
               <a href="#">환전 신청</a>
@@ -85,7 +84,7 @@
           <input type="text" placeholder="상품 검색...">
         </div>
         <button type="button" class="gnb-bell" aria-label="알림">🔔</button>
-        <a href="#" class="gnb-login">로그인</a>
+        <a th:href="@{/login}" class="gnb-login">로그인</a>
       </div>
  
     </div>

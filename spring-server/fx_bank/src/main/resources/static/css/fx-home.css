@@ -86,7 +86,7 @@ ul{list-style:none;margin:0;padding:0;}
   display:flex;align-items:center;justify-content:center;
   box-shadow:0 4px 12px rgba(109,63,232,.35);
 }
-.brand-name{font-size:18px;font-weight:800;color:var(--navy);letter-spacing:-.3px;}
+.brand-name{font-size:18px;font-weight:800;color:var(--purple);letter-spacing:-.3px;}
  
 /* 메뉴 */
 .gnb{flex:1;}
