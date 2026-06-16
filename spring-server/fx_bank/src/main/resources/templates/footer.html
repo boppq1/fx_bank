@@ -2,11 +2,103 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
 <meta charset="UTF-8">
-<title>Footer</title>
+<title>footer</title>
+<link rel="stylesheet" th:href="@{/css/fx-home.css}">
 </head>
 <body>
-	<footer th:fragment="footer">
-		<p>© 2026 부산은행 외환 시스템</p>
-	</footer>
+<footer th:fragment="footer" class="site-footer">
+ 
+  <!-- 정책 링크 줄 -->
+  <div class="footer-policy">
+    <div class="footer-inner">
+      <nav class="policy-links">
+        <a href="#" class="policy-strong">개인정보처리방침</a>
+        <a href="#">경영공시</a>
+        <a href="#">고객정보취급방침</a>
+        <a href="#">상품공시실</a>
+        <a href="#">전자민원접수</a>
+        <a href="#">전자금융이용자보호수칙</a>
+        <a href="#">전자금융사기피해금환급제도</a>
+        <a href="#">위치기반서비스 이용약관</a>
+      </nav>
+    </div>
+  </div>
+ 
+  <!-- 본문 -->
+  <div class="footer-main">
+    <div class="footer-inner footer-grid">
+ 
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <span class="footer-mark">B</span>
+          <span class="footer-bname">BNK 부산은행</span>
+        </div>
+        <p class="footer-bdesc">
+          고객의 소중한 자산을 함께 키워가는<br>
+          디지털 금융 플랫폼입니다.
+        </p>
+        <div class="footer-call">
+          <div class="call-line">
+            <span class="call-label">고객상담</span>
+            <span class="call-num">1588-6200 · 1544-6200</span>
+          </div>
+          <div class="call-line">
+            <span class="call-label">해외에서</span>
+            <span class="call-num">82-2-1588-6200</span>
+          </div>
+        </div>
+      </div>
+ 
+      <div class="footer-col">
+        <h4>금융상품</h4>
+        <a href="#">예금·적금</a>
+        <a href="#">펀드·ETF</a>
+        <a href="#">외화예금</a>
+        <a href="#">MMF</a>
+      </div>
+ 
+      <div class="footer-col">
+        <h4>환율·환전</h4>
+        <a href="#">실시간 환율</a>
+        <a href="#">환전 신청</a>
+        <a href="#">환전 내역</a>
+        <a href="#">환율 알림</a>
+      </div>
+ 
+      <div class="footer-col">
+        <h4>고객지원</h4>
+        <a href="#">공지사항</a>
+        <a href="#">FAQ</a>
+        <a href="#">1:1 문의</a>
+        <a href="#">챗봇 상담</a>
+      </div>
+ 
+      <div class="footer-col">
+        <h4>회사</h4>
+        <a href="#">소개</a>
+        <a href="#">이용약관</a>
+        <a href="#">개인정보처리방침</a>
+        <a href="#">채용</a>
+      </div>
+ 
+    </div>
+  </div>
+ 
+  <!-- 카피라이트 -->
+  <div class="footer-bottom">
+    <div class="footer-inner footer-bottom-inner">
+      <span class="copyright">COPYRIGHT ⓒ 2025 BUSANBANK ALL RIGHTS RESERVED</span>
+      <select class="family-site" name="select">
+        <option value="site1">FAMILY SITE</option>
+        <option value="site2">행복한 BNK</option>
+        <option value="site3">부산은행금융역사관</option>
+        <option value="site4">BNK부산은행갤러리</option>
+        <option value="site5">BNK부산은행조은극장</option>
+        <option value="site6">부은동우회</option>
+      </select>
+    </div>
+  </div>
+ 
+</footer>
 </body>
 </html>
