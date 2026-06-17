@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>부산은행 외환 시스템 - 신분증 재인증</title>
+<link rel="stylesheet" th:href="@{/css/fx-home.css}">
+<link rel="stylesheet" th:href="@{/css/fx-auth.css}">
+</head>
+<body>
+  <div th:replace="~{header :: header}"></div>
+
+  <main class="auth-main">
+    <div class="auth-wrap" style="grid-template-columns:1fr;max-width:520px;">
+      <section class="auth-card">
+        <h1 class="intro-title" style="font-size:24px;margin-bottom:8px;">신분증 재인증</h1>
+        <p class="field-hint" style="margin-bottom:20px;">
+          개인정보 보관기한(3일)이 지나 주민등록번호가 자동 파기되었습니다.<br>
+          서비스 이용을 위해 신분증을 다시 인증해 주세요.
+        </p>
+
+        <form id="reauthForm" autocomplete="off">
+          <!-- 신분증 OCR -->
+          <div class="field">
+            <label>신분증 인증</label>
+            <div class="idcard-uploader">
+              <input type="file" id="idCardFile" accept="image/*" capture="environment" hidden>
+              <button type="button" class="idcard-drop" id="idCardDrop">
+                <span class="idcard-ico">🪪</span>
+                <span class="idcard-text" id="idCardText">신분증을 촬영하거나 이미지를 업로드하세요</span>
+                <span class="idcard-hint">탭하여 카메라/파일 선택 · 주민번호가 자동 입력됩니다</span>
+              </button>
+              <div class="idcard-status" id="idCardStatus" hidden></div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="rrn">주민등록번호</label>
+            <div class="input-box">
+              <input type="text" id="rrn" placeholder="901122-1111111" required>
+            </div>
+            <span class="field-hint">신분증 인식 후 가려진 뒷자리를 직접 입력해 주세요. (앞6 + 뒤7)</span>
+            <input type="hidden" id="rrnMasked">
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">재인증 완료</button>
+        </form>
+      </section>
+    </div>
+  </main>
+
+  <div th:replace="~{footer :: footer}"></div>
+
+  <script th:src="@{/js/reauth.js}"></script>
+</body>
+</html>
