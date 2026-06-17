@@ -3,16 +3,18 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.example.bank.personal.dao.IUser">
+
+	<!-- 로그인/조회: users 테이블 (rrn 컬럼 없음) -->
 	<select id="findByUserId" resultType="com.example.bank.personal.dto.UserEntity">
-	SELECT 
+		SELECT
             user_no,
             user_id,
             secu_pw,
             name_ko,
             name_en,
-            rrn,
             phone,
             email,
+            birth_date,
             addr_ko,
             addr_detail_ko,
             zip_code_ko,
@@ -21,25 +23,30 @@
             zip_code_en,
             gender,
             user_tendency,
+            sentiment_score,
             created_dt,
             updated_dt,
             last_login_at
         FROM users
         WHERE user_id = #{userId}
 	</select>
-	
+
+	<!-- 회원가입: users INSERT. rrn 은 절대 넣지 않는다.
+	     <selectKey> 로 시퀀스 채번값을 userNo 에 먼저 담아, sensitive INSERT 에 재사용한다. -->
 	<insert id="insertUser" parameterType="com.example.bank.personal.dto.RegisterRequestDto">
+        <selectKey keyProperty="userNo" resultType="long" order="BEFORE">
+            SELECT seq_users.NEXTVAL FROM DUAL
+        </selectKey>
         INSERT INTO users (
-            user_no, user_id, secu_pw, name_ko, name_en, rrn, phone, email,
+            user_no, user_id, secu_pw, name_ko, name_en, phone, email,
             addr_ko, addr_detail_ko, zip_code_ko, addr_en, addr_detail_en, zip_code_en,
             gender, user_tendency, created_dt
         ) VALUES (
-            seq_users.NEXTVAL,
+            #{userNo},
             #{userId},
             #{secuPw},
             #{nameKo},
             #{nameEn},
-            #{rrn},
             #{phone},
             #{email},
             #{addrKo},
@@ -53,4 +60,52 @@
             SYSDATE
         )
     </insert>
+
+    <!-- 로그인 성공 시 마지막 로그인 시각 갱신 -->
+    <update id="updateLastLoginAt">
+        UPDATE users
+           SET last_login_at = SYSTIMESTAMP,
+               updated_dt    = SYSDATE
+         WHERE user_no = #{userNo}
+    </update>
+
+    <!-- ============ user_sensitive_infos (주민번호 전용) ============ -->
+
+    <!-- 회원가입/재인증: 민감정보 INSERT. retention_until_dt = 인증시점 + 3일 -->
+    <insert id="insertUserSensitiveInfo" parameterType="com.example.bank.personal.dto.UserSensitiveInfoEntity">
+        INSERT INTO user_sensitive_infos (
+            sensitive_no, user_no, rrn_enc, rrn_masked, retention_until_dt
+        ) VALUES (
+            seq_user_sensitive_infos.NEXTVAL,
+            #{userNo},
+            #{rrnEnc},
+            #{rrnMasked},
+            SYSDATE + 3
+        )
+    </insert>
+
+    <!-- 만료 체크/조회용 -->
+    <select id="findSensitiveByUserNo" resultType="com.example.bank.personal.dto.UserSensitiveInfoEntity">
+        SELECT
+            sensitive_no,
+            user_no,
+            rrn_enc,
+            rrn_masked,
+            retention_until_dt
+        FROM user_sensitive_infos
+        WHERE user_no = #{userNo}
+    </select>
+
+    <!-- 특정 사용자 민감정보 삭제 (레이지 만료 정리 / 재인증 전 정리) -->
+    <delete id="deleteSensitiveByUserNo">
+        DELETE FROM user_sensitive_infos
+        WHERE user_no = #{userNo}
+    </delete>
+
+    <!-- 스케줄러: 보관기한 지난 민감정보 일괄 삭제 -->
+    <delete id="deleteExpiredSensitiveInfos">
+        DELETE FROM user_sensitive_infos
+        WHERE retention_until_dt &lt; SYSTIMESTAMP
+    </delete>
+
 </mapper>

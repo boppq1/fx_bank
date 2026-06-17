@@ -23,6 +23,11 @@ public class ViewController {
     public String loginPage() {
         return "login"; // templates/login.html 파일명과 매칭됨
     }
+
+    @GetMapping("/reauth")
+    public String reauthPage() {
+        return "reauth"; // 주민번호 보관 만료 후 OCR 재인증 화면 (templates/reauth.html)
+    }
  
     //@GetMapping("/")
     public String mainPage() {
