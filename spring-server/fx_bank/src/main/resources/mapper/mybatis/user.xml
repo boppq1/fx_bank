@@ -37,7 +37,7 @@
             SELECT seq_users.NEXTVAL FROM DUAL
         </selectKey>
         INSERT INTO users (
-            user_no, user_id, secu_pw, name_ko, name_en, phone, email,
+            user_no, user_id, secu_pw, name_ko, name_en, phone, email, birth_date,
             addr_ko, addr_detail_ko, zip_code_ko, addr_en, addr_detail_en, zip_code_en,
             gender, user_tendency, created_dt
         ) VALUES (
@@ -48,6 +48,7 @@
             #{nameEn},
             #{phone},
             #{email},
+            #{birthDate},
             #{addrKo},
             #{addrDetailKo},
             #{zipCodeKo},

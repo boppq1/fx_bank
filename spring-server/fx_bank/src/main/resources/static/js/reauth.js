@@ -57,11 +57,12 @@ async function uploadIdCard(file) {
 
     const data = result.data || {};
     if (data.rrnMasked) {
-      document.getElementById("rrn").value = data.rrnMasked;
+      // 마스킹값에서 가려지지 않은 앞부분만 채우고, 별표 저장 방지
+      document.getElementById("rrn").value = data.rrnMasked.split("*")[0];
       document.getElementById("rrnMasked").value = data.rrnMasked;
     }
     document.getElementById("idCardText").textContent = "✅ 신분증 인식 완료";
-    setOcrStatus("주민번호 가려진 뒷자리(뒤 7자리)를 직접 입력해 주세요.", "ok");
+    setOcrStatus("주민번호 가려진 뒷자리(뒤 6자리)를 직접 입력해 주세요.", "ok");
   } catch (err) {
     console.error("OCR 요청 실패:", err);
     setOcrStatus("❌ OCR 서버 통신 오류가 발생했습니다.", "error");
@@ -86,8 +87,9 @@ async function handleReauth(e) {
   e.preventDefault();
 
   const rrn = document.getElementById("rrn").value.trim();
-  if (!rrn) {
-    alert("주민등록번호를 입력해 주세요.");
+  const rrnDigits = rrn.replace(/[^0-9]/g, "");
+  if (!rrn || rrn.includes("*") || rrnDigits.length !== 13) {
+    alert("주민등록번호 가려진 뒷자리를 정확히 입력해 주세요. (앞6 + 뒤7)");
     return;
   }
   if (!window.accessToken) {

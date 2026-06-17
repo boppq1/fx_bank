@@ -15,6 +15,7 @@ import com.example.bank.util.JwtUtil;
 import com.example.bank.util.RedisUtil;
 import com.fasterxml.jackson.databind.ObjectMapper; // 🚨 JSON 변환기 추가
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Map;
 
@@ -58,6 +59,16 @@ public class UserService {
         if (registerRequest.getRrn() == null || registerRequest.getRrn().trim().isEmpty()) {
             throw new IllegalArgumentException("주민등록번호(신분증 인증)가 필요합니다.");
         }
+        // 마스킹(*) 이 남아있으면 가려진 뒷자리를 보정하지 않은 것 → 가입 불가
+        String rrn = registerRequest.getRrn().trim();
+        String rrnDigits = rrn.replaceAll("[^0-9]", "");
+        if (rrn.contains("*") || rrnDigits.length() != 13) {
+            throw new IllegalArgumentException("주민등록번호 13자리(앞6 + 뒤7)를 정확히 입력해 주세요.");
+        }
+        registerRequest.setRrn(rrn);
+
+        // ①-2 주민번호 앞 7자리로 생년월일 계산하여 채움
+        registerRequest.setBirthDate(parseBirthDate(rrnDigits));
 
         // ② 비밀번호 BCrypt 인코딩
         String rawPassword = registerRequest.getSecuPw().trim();
@@ -80,6 +91,33 @@ public class UserService {
      * 주민번호를 AES 암호화하여 user_sensitive_infos 에 INSERT (retention_until_dt = SYSDATE + 3, XML 에서 처리).
      * 회원가입과 OCR 재인증에서 공통으로 사용한다.
      */
+    /**
+     * 주민번호 13자리(YYMMDD + 성별/세기코드 + ...)에서 생년월일(LocalDate) 추출.
+     * 7번째 자리(성별코드)로 출생 세기를 판별한다.
+     *   1,2,5,6 → 1900년대 / 3,4,7,8 → 2000년대 / 9,0 → 1800년대
+     */
+    private LocalDate parseBirthDate(String rrnDigits) {
+        try {
+            int yy = Integer.parseInt(rrnDigits.substring(0, 2));
+            int mm = Integer.parseInt(rrnDigits.substring(2, 4));
+            int dd = Integer.parseInt(rrnDigits.substring(4, 6));
+            char genderCode = rrnDigits.charAt(6);
+
+            int century;
+            switch (genderCode) {
+                case '1': case '2': case '5': case '6': century = 1900; break;
+                case '3': case '4': case '7': case '8': century = 2000; break;
+                case '9': case '0': century = 1800; break;
+                default: throw new IllegalArgumentException("주민등록번호 형식이 올바르지 않습니다.");
+            }
+            return LocalDate.of(century + yy, mm, dd);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("주민등록번호로 생년월일을 확인할 수 없습니다. 번호를 확인해 주세요.");
+        } catch (Exception e) {
+            throw new IllegalArgumentException("주민등록번호 형식이 올바르지 않습니다.");
+        }
+    }
+
     private void saveSensitiveInfo(Long userNo, String rawRrn, String rrnMasked) {
         UserSensitiveInfoEntity sensitive = new UserSensitiveInfoEntity();
         sensitive.setUserNo(userNo);
@@ -255,8 +293,12 @@ public class UserService {
         if (rawRrn == null || rawRrn.trim().isEmpty()) {
             throw new IllegalArgumentException("주민등록번호(신분증 인증)가 필요합니다.");
         }
+        String rrn = rawRrn.trim();
+        if (rrn.contains("*") || rrn.replaceAll("[^0-9]", "").length() != 13) {
+            throw new IllegalArgumentException("주민등록번호 13자리(앞6 + 뒤7)를 정확히 입력해 주세요.");
+        }
         // 만료/잔존 데이터 정리 후 재삽입 (한 사용자당 1건 유지)
         iUser.deleteSensitiveByUserNo(user.getUserNo());
-        saveSensitiveInfo(user.getUserNo(), rawRrn.trim(), rrnMasked);
+        saveSensitiveInfo(user.getUserNo(), rrn, rrnMasked);
     }
 }

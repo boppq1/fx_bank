@@ -18,8 +18,12 @@
       </ul>
       <ul class="util-right">
         <li><a href="#" class="util-lang">🌐 KOR</a></li>
-        <li><a th:href="@{/login}">로그인</a></li>
-        <li><a th:href="@{/register}">회원가입</a></li>
+        <!-- 비로그인 상태 -->
+        <li class="auth-guest"><a th:href="@{/login}">로그인</a></li>
+        <li class="auth-guest"><a th:href="@{/register}">회원가입</a></li>
+        <!-- 로그인 상태 (기본 숨김, JS 가 토글) -->
+        <li class="auth-user" hidden><span id="userGreeting" class="util-greeting"></span></li>
+        <li class="auth-user" hidden><a href="#" id="logoutLink">로그아웃</a></li>
       </ul>
     </div>
   </div>
@@ -84,12 +88,16 @@
           <input type="text" placeholder="상품 검색...">
         </div>
         <button type="button" class="gnb-bell" aria-label="알림">🔔</button>
-        <a th:href="@{/login}" class="gnb-login">로그인</a>
+        <a th:href="@{/login}" class="gnb-login auth-guest">로그인</a>
+        <button type="button" class="gnb-login auth-user" id="gnbLogout" hidden>로그아웃</button>
       </div>
- 
+
     </div>
   </div>
- 
+
+  <!-- 로그인 상태에 따라 헤더 표시 토글 + 사용자 이름 인사 -->
+  <script th:src="@{/js/header-auth.js}"></script>
+
 </header>
 </body>
 </html>

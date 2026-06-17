@@ -65,7 +65,10 @@ ul{list-style:none;margin:0;padding:0;}
 }
 .util-bar a:hover{color:#fff;}
 .util-lang{color:#fff !important;}
- 
+.util-greeting{color:#fff;font-size:12.5px;font-weight:600;}
+/* gnb-login 이 button 으로도 쓰일 때 a 와 동일하게 보이도록 */
+button.gnb-login{border:0;cursor:pointer;font-family:inherit;}
+
 /* 메인 GNB */
 .gnb-bar{
   background:var(--surface);
