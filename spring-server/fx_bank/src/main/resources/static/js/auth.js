@@ -19,6 +19,8 @@ document.addEventListener("DOMContentLoaded", function () {
   initPasswordToggle();
   initLogin();
   initRegister();
+  initIdCardOcr();
+  initTermsAgreement();
 });
 
 /* ============================================================
@@ -113,6 +115,13 @@ async function handleLogin() {
       // 오직 RAM 메모리 변수에만 할당 (localStorage 사용 안 함)
       window.accessToken = result.data.accessToken;
 
+      // 주민번호 보관 만료(3일 경과)/부재 시 OCR 재인증 화면으로 유도
+      if (result.data.reauthRequired === "true") {
+        alert("개인정보 보관기한(3일)이 지나 신분증 재인증이 필요합니다.");
+        location.href = "/reauth";
+        return;
+      }
+
       // index 진입 시 /api/auth/refresh 로 access token 을 복구하므로 바로 이동
       location.href = "/";
     } else {
@@ -179,6 +188,12 @@ function handleRegister(e) {
     return;
   }
 
+  // 개인정보 동의 검증 (서버에서도 재검증됨)
+  if (!document.getElementById("privacyAgreed").checked) {
+    alert("개인정보 수집 및 이용에 동의해 주세요.");
+    return;
+  }
+
   // 백엔드 RegisterRequestDto 필드명과 일치
   const payload = {
     userId: currentUserId,
@@ -186,6 +201,8 @@ function handleRegister(e) {
     nameKo: document.getElementById("nameKo").value,
     nameEn: document.getElementById("nameEn").value,
     rrn: document.getElementById("rrn").value,
+    rrnMasked: document.getElementById("rrnMasked").value,
+    privacyAgreed: document.getElementById("privacyAgreed").checked,
     phone: document.getElementById("phone").value,
     email: document.getElementById("email").value,
     addrKo: document.getElementById("address").value,
@@ -254,4 +271,81 @@ function executeDaumPostcode() {
       document.getElementById("address_detail").focus();
     },
   }).open();
+}
+
+/* ============================================================
+   6) 신분증 OCR (FastAPI 중계) — 이름/주소/주민번호 자동 채움
+   - 백엔드가 CLOVA 키를 숨긴 채 프록시하므로 프론트엔 키가 없음
+   ============================================================ */
+function initIdCardOcr() {
+  const drop = document.getElementById("idCardDrop");
+  const fileInput = document.getElementById("idCardFile");
+  if (!drop || !fileInput) return;
+
+  drop.addEventListener("click", () => fileInput.click());
+  fileInput.addEventListener("change", () => {
+    if (fileInput.files && fileInput.files[0]) {
+      uploadIdCard(fileInput.files[0]);
+    }
+  });
+}
+
+async function uploadIdCard(file) {
+  const statusEl = document.getElementById("idCardStatus");
+  const textEl = document.getElementById("idCardText");
+
+  setOcrStatus("⏳ 신분증을 인식하는 중입니다...", "loading");
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch("/api/auth/ocr/id-card", {
+      method: "POST",
+      body: formData, // Content-Type 은 브라우저가 boundary 와 함께 자동 설정
+    });
+    const result = await response.json();
+
+    if (!result.success) {
+      setOcrStatus("❌ 인식 실패: " + result.message, "error");
+      return;
+    }
+
+    const data = result.data || {};
+    // 자동 채움 (사용자가 이후 직접 수정 가능)
+    if (data.name) document.getElementById("nameKo").value = data.name;
+    if (data.address) document.getElementById("address").value = data.address;
+    if (data.rrnMasked) {
+      document.getElementById("rrn").value = data.rrnMasked;
+      document.getElementById("rrnMasked").value = data.rrnMasked;
+    }
+
+    if (textEl) textEl.textContent = "✅ 신분증 인식 완료 (필요 시 직접 수정하세요)";
+    setOcrStatus("주민번호 가려진 뒷자리(뒤 7자리)를 직접 입력해 주세요.", "ok");
+  } catch (err) {
+    console.error("OCR 요청 실패:", err);
+    setOcrStatus("❌ OCR 서버 통신 오류가 발생했습니다.", "error");
+  }
+}
+
+function setOcrStatus(msg, type) {
+  const statusEl = document.getElementById("idCardStatus");
+  if (!statusEl) return;
+  statusEl.hidden = false;
+  statusEl.textContent = msg;
+  statusEl.className = "idcard-status is-" + type;
+}
+
+/* ============================================================
+   7) 개인정보 동의 체크 → 가입 버튼 활성/비활성
+   ============================================================ */
+function initTermsAgreement() {
+  const checkbox = document.getElementById("privacyAgreed");
+  const submitBtn = document.getElementById("registerSubmit");
+  if (!checkbox || !submitBtn) return;
+
+  const sync = () => {
+    submitBtn.disabled = !checkbox.checked;
+  };
+  checkbox.addEventListener("change", sync);
+  sync();
 }
