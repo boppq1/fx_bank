@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>외화 상품 목록</title>
+</head>
+<body>
+
+<h1>외화 상품 목록</h1>
+
+<p>
+    총 <strong th:text="${#lists.size(products)}">0</strong>개 상품
+</p>
+
+<table border="1" cellpadding="10">
+    <thead>
+    <tr>
+        <th>상품번호</th>
+        <th>상품명</th>
+        <th>유형</th>
+        <th>통화</th>
+        <th>기본금리</th>
+        <th>최고금리</th>
+        <th>가입기간</th>
+        <th>최소금액</th>
+        <th>평점</th>
+        <th>상세</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr th:each="product : ${products}">
+        <td th:text="${product.productNo}">900001</td>
+        <td th:text="${product.productName}">프리미엄 달러 외화예금</td>
+        <td th:text="${product.productType}">외화예금</td>
+        <td th:text="${product.currencyCodes}">USD</td>
+        <td th:text="${product.baseRate} + '%'">3.20%</td>
+        <td th:text="${product.maxRate} + '%'">4.50%</td>
+        <td>
+            <span th:text="${product.minPeriodMonth}">6</span>개월 ~
+            <span th:text="${product.maxPeriodMonth}">12</span>개월
+        </td>
+        <td th:text="${#numbers.formatInteger(product.minAmount, 0, 'COMMA')} + '원'">
+            500,000원
+        </td>
+        <td>
+            <span th:text="${product.avgRating}">4.8</span>
+            (<span th:text="${product.reviewCount}">0</span>)
+        </td>
+        <td>
+            <a th:href="@{/product/detail/{productNo}(productNo=${product.productNo})}">
+                상세보기
+            </a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>

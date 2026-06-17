@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>외화 상품 상세</title>
+</head>
+<body>
+
+<p>
+    <a th:href="@{/product/list}">← 목록으로</a>
+</p>
+
+<h1 th:text="${product.productName}">상품명</h1>
+
+<h2>기본 정보</h2>
+
+<table border="1" cellpadding="10">
+    <tr>
+        <th>상품번호</th>
+        <td th:text="${product.productNo}">900001</td>
+    </tr>
+    <tr>
+        <th>상품유형</th>
+        <td th:text="${product.productType}">외화예금</td>
+    </tr>
+    <tr>
+        <th>기본금리</th>
+        <td th:text="${product.baseRate} + '%'">3.20%</td>
+    </tr>
+    <tr>
+        <th>최고금리</th>
+        <td th:text="${product.maxRate} + '%'">4.50%</td>
+    </tr>
+    <tr>
+        <th>가입기간</th>
+        <td>
+            <span th:text="${product.minPeriodMonth}">6</span>개월 ~
+            <span th:text="${product.maxPeriodMonth}">12</span>개월
+        </td>
+    </tr>
+    <tr>
+        <th>최소금액</th>
+        <td th:text="${#numbers.formatInteger(product.minAmount, 0, 'COMMA')} + '원'">
+            500,000원
+        </td>
+    </tr>
+    <tr>
+        <th>최대금액</th>
+        <td th:text="${product.maxAmount == null ? '제한없음' : #numbers.formatInteger(product.maxAmount, 0, 'COMMA') + '원'}">
+            제한없음
+        </td>
+    </tr>
+    <tr>
+        <th>이자지급방식</th>
+        <td th:text="${product.interestPaymentType}">만기일시지급</td>
+    </tr>
+    <tr>
+        <th>평점</th>
+        <td>
+            <span th:text="${product.avgRating}">4.8</span>
+            (<span th:text="${product.reviewCount}">0</span>개 리뷰)
+        </td>
+    </tr>
+    <tr>
+        <th>설명</th>
+        <td th:text="${product.description}">상품 설명</td>
+    </tr>
+</table>
+
+<hr>
+
+<h2>가입 가능 통화</h2>
+
+<ul>
+    <li th:each="currency : ${currencies}">
+        <span th:text="${currency.currencyCode}">USD</span>
+        -
+        <span th:text="${currency.currencyName}">미국 달러</span>
+    </li>
+</ul>
+
+<hr>
+
+<h2>기간별 금리</h2>
+
+<table border="1" cellpadding="10">
+    <thead>
+    <tr>
+        <th>가입기간</th>
+        <th>금리</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="rate : ${rates}">
+        <td th:text="${rate.periodMonth} + '개월'">12개월</td>
+        <td th:text="${rate.interestRate} + '%'">4.50%</td>
+    </tr>
+    </tbody>
+</table>
+
+<hr>
+
+<h2>우대금리</h2>
+
+<table border="1" cellpadding="10">
+    <thead>
+    <tr>
+        <th>우대 조건</th>
+        <th>우대 금리</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="pref : ${preferentialRates}">
+        <td th:text="${pref.preferentialCondition}">급여이체</td>
+        <td th:text="'+' + ${pref.preferentialRate} + '%'">+0.50%</td>
+    </tr>
+    </tbody>
+</table>
+
+<hr>
+
+<h2>약관</h2>
+
+<table border="1" cellpadding="10">
+    <thead>
+    <tr>
+        <th>필수여부</th>
+        <th>약관명</th>
+        <th>구분</th>
+        <th>내용</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="term : ${terms}">
+        <td th:text="${term.requiredYn == 'Y' ? '필수' : '선택'}">필수</td>
+        <td th:text="${term.termsTitle}">이용약관</td>
+        <td th:text="${term.termsType}">이용약관</td>
+        <td th:text="${term.termsText}">약관 내용</td>
+    </tr>
+    </tbody>
+</table>
+
+<hr>
+
+<h2>리뷰</h2>
+
+<div th:if="${#lists.isEmpty(reviews)}">
+    아직 리뷰가 없습니다.
+</div>
+
+<div th:each="review : ${reviews}">
+    <p>
+        <strong th:text="${review.userName}">작성자</strong>
+        /
+        <span th:text="${review.rating}">4.8</span>점
+        /
+        <span th:text="${#dates.format(review.createdDt, 'yyyy-MM-dd')}">2026-06-16</span>
+    </p>
+    <p th:text="${review.reviewText}">리뷰 내용</p>
+    <hr>
+</div>
+
+<hr>
+
+<p>
+    <a th:href="@{/product/join/{productNo}/terms(productNo=${product.productNo})}">
+        가입하기
+    </a>
+</p>
+
+</body>
+</html>
