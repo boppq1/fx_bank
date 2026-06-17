@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.bank.product.dao.IProductDao">
+
+    <!-- 외화 상품 목록 -->
+    <select id="selectForeignProductList"
+            resultType="com.example.bank.product.dto.ProductListDto">
+
+        SELECT
+            p.product_no,
+            p.product_name,
+            p.product_type,
+            p.base_rate,
+            p.max_rate,
+            p.min_period_month,
+            p.max_period_month,
+            p.min_amount,
+            p.max_amount,
+            p.target_large,
+            p.target_detail,
+            p.description,
+            p.product_tendency,
+
+            (
+                SELECT LISTAGG(pc.currency_code, ', ')
+                       WITHIN GROUP (ORDER BY pc.currency_code)
+                FROM product_currencies pc
+                WHERE pc.product_no = p.product_no
+            ) AS currency_codes,
+
+            (
+                SELECT NVL(ROUND(AVG(r.rating), 1), 0)
+                FROM product_reviews r
+                WHERE r.product_no = p.product_no
+            ) AS avg_rating,
+
+            (
+                SELECT COUNT(*)
+                FROM product_reviews r
+                WHERE r.product_no = p.product_no
+            ) AS review_count
+
+        FROM products p
+        WHERE p.active = 'Y'
+          AND p.product_type LIKE '외화%'
+        ORDER BY p.max_rate DESC NULLS LAST, p.product_no DESC
+
+    </select>
+
+
+    <!-- 상품 상세 기본 정보 -->
+    <select id="selectProductDetail"
+            resultType="com.example.bank.product.dto.ProductDetailDto">
+
+        SELECT
+            p.product_no,
+            p.active,
+            p.product_name,
+            p.product_type,
+            p.base_rate,
+            p.max_rate,
+            p.min_period_month,
+            p.max_period_month,
+            p.min_amount,
+            p.max_amount,
+            p.target_large,
+            p.target_detail,
+            p.description,
+            p.interest_payment_type,
+            p.product_tendency,
+            p.status,
+            p.product_start_dt,
+            p.product_end_dt,
+
+            (
+                SELECT NVL(ROUND(AVG(r.rating), 1), 0)
+                FROM product_reviews r
+                WHERE r.product_no = p.product_no
+            ) AS avg_rating,
+
+            (
+                SELECT COUNT(*)
+                FROM product_reviews r
+                WHERE r.product_no = p.product_no
+            ) AS review_count
+
+        FROM products p
+        WHERE p.product_no = #{productNo}
+
+    </select>
+
+
+    <!-- 상품별 통화 -->
+    <select id="selectProductCurrencies"
+            resultType="com.example.bank.product.dto.ProductCurrencyDto">
+
+        SELECT
+            product_currency_no,
+            product_no,
+            currency_code,
+            currency_name
+        FROM product_currencies
+        WHERE product_no = #{productNo}
+        ORDER BY currency_code
+
+    </select>
+
+
+    <!-- 상품별 금리 -->
+    <select id="selectProductRates"
+            resultType="com.example.bank.product.dto.ProductRateDto">
+
+        SELECT
+            rate_no,
+            product_no,
+            period_month,
+            interest_rate
+        FROM product_rates
+        WHERE product_no = #{productNo}
+        ORDER BY period_month
+
+    </select>
+
+
+    <!-- 상품별 우대금리 -->
+    <select id="selectProductPreferentialRates"
+            resultType="com.example.bank.product.dto.ProductPreferentialRateDto">
+
+        SELECT
+            preferential_rate_no,
+            product_no,
+            preferential_condition,
+            preferential_rate
+        FROM product_preferential_rates
+        WHERE product_no = #{productNo}
+        ORDER BY preferential_rate_no
+
+    </select>
+
+
+    <!-- 상품별 약관 -->
+    <select id="selectProductTerms"
+            resultType="com.example.bank.product.dto.ProductTermDto">
+
+        SELECT
+            terms_code,
+            product_no,
+            terms_title,
+            terms_type,
+            required_yn,
+            pdf_path,
+            terms_text,
+            use_yn
+        FROM product_terms
+        WHERE product_no = #{productNo}
+          AND use_yn = 'Y'
+        ORDER BY required_yn DESC, terms_code
+
+    </select>
+
+
+    <!-- 상품별 리뷰 -->
+    <select id="selectProductReviews"
+            resultType="com.example.bank.product.dto.ProductReviewDto">
+
+        SELECT
+            r.review_no,
+            r.user_no,
+            r.product_no,
+            u.name_ko AS user_name,
+            r.review_text,
+            r.rating,
+            r.created_dt,
+            r.updated_dt
+        FROM product_reviews r
+        JOIN users u
+          ON r.user_no = u.user_no
+        WHERE r.product_no = #{productNo}
+        ORDER BY r.created_dt DESC
+
+    </select>
+
+</mapper>

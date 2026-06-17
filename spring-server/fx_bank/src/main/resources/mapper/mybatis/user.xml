@@ -23,7 +23,6 @@
             zip_code_en,
             gender,
             user_tendency,
-            sentiment_score,
             created_dt,
             updated_dt,
             last_login_at
