@@ -188,6 +188,14 @@ function handleRegister(e) {
     return;
   }
 
+  // 주민등록번호: 마스킹(*) 보정 여부 및 13자리 검증
+  const rrnValue = document.getElementById("rrn").value.trim();
+  const rrnDigits = rrnValue.replace(/[^0-9]/g, "");
+  if (rrnValue.includes("*") || rrnDigits.length !== 13) {
+    alert("주민등록번호 가려진 뒷자리를 정확히 입력해 주세요. (앞6 + 뒤7)");
+    return;
+  }
+
   // 개인정보 동의 검증 (서버에서도 재검증됨)
   if (!document.getElementById("privacyAgreed").checked) {
     alert("개인정보 수집 및 이용에 동의해 주세요.");
@@ -315,12 +323,15 @@ async function uploadIdCard(file) {
     if (data.name) document.getElementById("nameKo").value = data.name;
     if (data.address) document.getElementById("address").value = data.address;
     if (data.rrnMasked) {
-      document.getElementById("rrn").value = data.rrnMasked;
+      // 마스킹값(예: 030830-4******)에서 가려지지 않은 앞부분만 입력란에 채운다.
+      // 별표(*)가 그대로 저장되지 않도록 사용자가 뒷자리를 직접 입력하게 유도.
+      const visiblePrefix = data.rrnMasked.split("*")[0]; // "030830-4"
+      document.getElementById("rrn").value = visiblePrefix;
       document.getElementById("rrnMasked").value = data.rrnMasked;
     }
 
     if (textEl) textEl.textContent = "✅ 신분증 인식 완료 (필요 시 직접 수정하세요)";
-    setOcrStatus("주민번호 가려진 뒷자리(뒤 7자리)를 직접 입력해 주세요.", "ok");
+    setOcrStatus("주민번호 가려진 뒷자리(뒤 6자리)를 직접 입력해 주세요.", "ok");
   } catch (err) {
     console.error("OCR 요청 실패:", err);
     setOcrStatus("❌ OCR 서버 통신 오류가 발생했습니다.", "error");

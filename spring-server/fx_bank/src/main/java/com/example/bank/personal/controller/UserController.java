@@ -62,7 +62,10 @@ public class UserController {
         if (userId == null || userId.trim().isEmpty()) {
             return ApiResponse.error("아이디를 입력해 주세요.");
         }
-        return ApiResponse.success("아이디 확인 완료", userService.isUserIdDuplicated(userId));
+        boolean duplicated = userService.isUserIdDuplicated(userId);
+        // 중복 여부에 따라 메시지를 구분해 내려준다 (프론트가 res.message 를 그대로 노출하므로)
+        String message = duplicated ? "이미 사용 중인 아이디입니다." : "사용 가능한 아이디입니다.";
+        return ApiResponse.success(message, duplicated);
     }
 
     @PostMapping("/register")

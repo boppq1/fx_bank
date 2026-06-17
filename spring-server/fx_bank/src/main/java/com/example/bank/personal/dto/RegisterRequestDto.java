@@ -1,5 +1,7 @@
 package com.example.bank.personal.dto;
 
+import java.time.LocalDate;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -31,6 +33,7 @@ public class RegisterRequestDto {
     private String zipCodeEn;
     private String gender;
     private String userTendency;
+    private LocalDate birthDate; // 주민번호 앞 7자리로 서버에서 계산하여 채움 (users.birth_date)
 
     // ===== 민감정보 (user_sensitive_infos 로 분리 저장) =====
     @ToString.Exclude
