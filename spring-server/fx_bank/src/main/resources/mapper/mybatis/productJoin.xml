@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.bank.product.dao.IProductJoinDao">
+
+    <!-- =====================================================
+         1. 시퀀스 조회
+         ===================================================== -->
+
+    <!-- OCR 인증 번호 미리 뽑기 -->
+    <select id="selectNextVerificationNo" resultType="java.lang.Long">
+        SELECT seq_id_verifications.NEXTVAL
+        FROM dual
+    </select>
+
+    <!-- 상품 가입 번호 미리 뽑기 -->
+    <select id="selectNextSubscriptionNo" resultType="java.lang.Long">
+        SELECT seq_product_subscriptions.NEXTVAL
+        FROM dual
+    </select>
+
+    <!-- 전자서명 번호 미리 뽑기 -->
+    <select id="selectNextSignatureNo" resultType="java.lang.Long">
+        SELECT seq_electronic_signatures.NEXTVAL
+        FROM dual
+    </select>
+
+
+    <!-- =====================================================
+         2. 상품 가입 전 검증용 조회
+         ===================================================== -->
+
+    <!-- 가입할 상품 정보 조회 -->
+    <select id="selectProductForJoin"
+            resultType="com.example.bank.product.dto.ProductDetailDto">
+
+        SELECT
+            product_no,
+            active,
+            product_name,
+            product_type,
+            base_rate,
+            max_rate,
+            min_period_month,
+            max_period_month,
+            min_amount,
+            max_amount,
+            target_large,
+            target_detail,
+            description,
+            interest_payment_type,
+            product_tendency,
+            status,
+            product_start_dt,
+            product_end_dt
+        FROM products
+        WHERE product_no = #{productNo}
+          AND active = 'Y'
+
+    </select>
+
+
+    <!-- 선택한 통화가 해당 상품에서 지원되는지 확인 -->
+    <select id="countProductCurrency" resultType="int">
+
+        SELECT COUNT(*)
+        FROM product_currencies
+        WHERE product_no = #{productNo}
+          AND currency_code = #{currencyCode}
+
+    </select>
+
+
+    <!-- 선택한 금리/기간이 해당 상품의 금리 정보와 일치하는지 확인 -->
+    <select id="countProductRate" resultType="int">
+
+        SELECT COUNT(*)
+        FROM product_rates
+        WHERE product_no = #{productNo}
+          AND rate_no = #{rateNo}
+          AND period_month = #{periodMonth}
+
+    </select>
+
+
+    <!-- =====================================================
+         3. 약관 조회 / 약관 검증
+         ===================================================== -->
+
+    <!-- 가입 약관 목록 조회 -->
+    <select id="selectJoinTerms"
+            resultType="com.example.bank.product.dto.ProductTermDto">
+
+        SELECT
+            terms_code,
+            product_no,
+            terms_title,
+            terms_type,
+            required_yn,
+            pdf_path,
+            terms_text,
+            use_yn
+        FROM product_terms
+        WHERE product_no = #{productNo}
+          AND use_yn = 'Y'
+        ORDER BY required_yn DESC, terms_code
+
+    </select>
+
+
+    <!-- 해당 상품의 필수 약관 총 개수 -->
+    <select id="countRequiredTerms" resultType="int">
+
+        SELECT COUNT(*)
+        FROM product_terms
+        WHERE product_no = #{productNo}
+          AND required_yn = 'Y'
+          AND use_yn = 'Y'
+
+    </select>
+
+
+    <!-- 사용자가 체크한 필수 약관 코드가 실제 필수 약관과 일치하는지 확인 -->
+    <select id="countMatchedRequiredTerms" resultType="int">
+
+        SELECT COUNT(*)
+        FROM product_terms
+        WHERE product_no = #{productNo}
+          AND required_yn = 'Y'
+          AND use_yn = 'Y'
+
+        <choose>
+            <when test="requiredTermsCodes != null and requiredTermsCodes.size() > 0">
+                AND terms_code IN
+                <foreach collection="requiredTermsCodes"
+                         item="termsCode"
+                         open="("
+                         separator=","
+                         close=")">
+                    #{termsCode}
+                </foreach>
+            </when>
+            <otherwise>
+                AND 1 = 0
+            </otherwise>
+        </choose>
+
+    </select>
+
+
+    <!-- 약관 코드로 약관 제목 조회 -->
+    <select id="selectTermsTitle" resultType="string">
+
+        SELECT terms_title
+        FROM product_terms
+        WHERE terms_code = #{termsCode}
+
+    </select>
+
+
+    <!-- =====================================================
+         4. OCR 인증 저장 / 검증
+         ===================================================== -->
+
+    <!-- OCR 인증 결과 저장 -->
+    <insert id="insertIdVerification"
+            parameterType="com.example.bank.product.dto.IdVerificationDto">
+
+        INSERT INTO id_verifications (
+            verification_no,
+            user_no,
+            product_no,
+            verification_status,
+            verification_method,
+            ocr_provider,
+            matched_name_yn,
+            matched_birth_yn,
+            fail_reason,
+            verified_dt,
+            expired_dt,
+            created_dt
+        ) VALUES (
+            #{verificationNo},
+            #{userNo},
+            #{productNo},
+            #{verificationStatus},
+            #{verificationMethod},
+            #{ocrProvider},
+            #{matchedNameYn},
+            #{matchedBirthYn},
+            #{failReason},
+            #{verifiedDt},
+            #{expiredDt},
+            SYSDATE
+        )
+
+    </insert>
+
+
+    <!-- 최종 가입 전 OCR 인증 유효성 확인 -->
+    <select id="countValidVerification" resultType="int">
+
+        SELECT COUNT(*)
+        FROM id_verifications
+        WHERE verification_no = #{verificationNo}
+          AND user_no = #{userNo}
+          AND product_no = #{productNo}
+          AND verification_status = '성공'
+          AND matched_name_yn = 'Y'
+          AND matched_birth_yn = 'Y'
+          AND (expired_dt IS NULL OR expired_dt > SYSDATE)
+
+    </select>
+
+
+    <!-- =====================================================
+         5. 상품 가입 저장
+         ===================================================== -->
+
+    <!-- 최종 상품 가입 정보 저장 -->
+    <insert id="insertProductSubscription"
+            parameterType="com.example.bank.product.dto.ProductSubscriptionInsertDto">
+
+        INSERT INTO product_subscriptions (
+            subscription_no,
+            product_no,
+            user_no,
+            rate_no,
+            type,
+            acnt_no,
+            currency_code,
+            amount,
+            period_month,
+            verification_no,
+            subscription_status,
+            subscribed_dt,
+            maturity_dt,
+            applied_rate,
+            rate_changed_dt
+        ) VALUES (
+            #{subscriptionNo},
+            #{productNo},
+            #{userNo},
+            #{rateNo},
+            #{type},
+            #{acntNo},
+            #{currencyCode},
+            #{amount},
+            #{periodMonth},
+            #{verificationNo},
+            #{subscriptionStatus},
+            SYSDATE,
+            #{maturityDt},
+            #{appliedRate},
+            SYSDATE
+        )
+
+    </insert>
+
+
+    <!-- =====================================================
+         6. 약관 동의 저장
+         ===================================================== -->
+
+    <!-- 필수 약관 동의 저장 -->
+    <insert id="insertRequiredTermsAgreement">
+
+        INSERT INTO required_terms_agreements (
+            required_agreement_no,
+            subscription_no,
+            terms_code,
+            agreed_yn,
+            agreed_at
+        ) VALUES (
+            seq_req_terms_agr.NEXTVAL,
+            #{subscriptionNo},
+            #{termsCode},
+            'Y',
+            SYSDATE
+        )
+
+    </insert>
+
+
+    <!-- 선택 약관 동의 저장 -->
+    <insert id="insertOptionalTermsAgreement">
+
+        INSERT INTO optional_terms_agreements (
+            optional_agreement_no,
+            subscription_no,
+            terms_code,
+            terms_title,
+            agreed_yn,
+            agreed_dt
+        ) VALUES (
+            seq_opt_terms_agr.NEXTVAL,
+            #{subscriptionNo},
+            #{termsCode},
+            #{termsTitle},
+            'Y',
+            SYSDATE
+        )
+
+    </insert>
+
+
+    <!-- =====================================================
+         7. 전자서명 저장
+         ===================================================== -->
+
+    <!-- 전자서명 저장 -->
+    <insert id="insertElectronicSignature"
+            parameterType="com.example.bank.product.dto.ElectronicSignatureDto">
+
+        INSERT INTO electronic_signatures (
+            signature_no,
+            subscription_no,
+            user_no,
+            verification_no,
+            signature_path,
+            signed_content,
+            signed_dt
+        ) VALUES (
+            #{signatureNo},
+            #{subscriptionNo},
+            #{userNo},
+            #{verificationNo},
+            #{signaturePath},
+            #{signedContent},
+            SYSDATE
+        )
+
+    </insert>
+
+
+    <!-- =====================================================
+         8. 가입 완료 화면 조회
+         ===================================================== -->
+
+    <!-- 가입 완료 화면 정보 조회 -->
+    <select id="selectJoinComplete"
+            resultType="com.example.bank.product.dto.ProductJoinCompleteDto">
+
+        SELECT
+            ps.subscription_no,
+            p.product_name,
+            u.name_ko AS user_name,
+            ps.acnt_no,
+            ps.currency_code,
+            ps.amount,
+            ps.period_month,
+            ps.applied_rate,
+            ps.subscribed_dt,
+            ps.maturity_dt,
+            ps.subscription_status
+        FROM product_subscriptions ps
+        JOIN products p
+          ON ps.product_no = p.product_no
+        JOIN users u
+          ON ps.user_no = u.user_no
+        WHERE ps.subscription_no = #{subscriptionNo}
+
+    </select>
+
+</mapper>
