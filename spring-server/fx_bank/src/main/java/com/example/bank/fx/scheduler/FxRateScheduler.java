@@ -21,7 +21,7 @@ public class FxRateScheduler {
 	private FxDataDao fxDataDao;
 	
 	
-	@Scheduled(cron = "0 0 0 * * *")
+	@Scheduled(cron = "0 30 1 * * *")
 	public void insertRate() {
 		
 		String url = "https://oapi.koreaexim.go.kr/site/program/financial/exchangeJSON?authkey=\" + auth_key + \"&searchdate=\" + searchdate + \"&data=AP01";

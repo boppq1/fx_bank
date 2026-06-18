@@ -7,10 +7,10 @@ import org.apache.ibatis.annotations.Param;
 public interface FxDataDao {
 	
 	void insertRate(
-			@Param("cur_nm") String cur_nm,
-			@Param("ttb") Double ttb,
-			@Param("tts") Double tts,
-			@Param("deal_bas_r") Double deal_bas_r
+			@Param("currency_code") String currency_code,
+			@Param("buy_rate") Double ttb,
+			@Param("sell_rate") Double tts,
+			@Param("base_rate") Double deal_bas_r
 			);
 
 }

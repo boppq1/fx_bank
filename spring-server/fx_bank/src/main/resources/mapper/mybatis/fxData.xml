@@ -3,17 +3,22 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        
 <mapper namespace="com.example.bank.fx.dao.FxDataDao">
 
 	<insert id="insertRate">
 		INSERT INTO exchange_rates (rate_no, cur_nm, ttb, tts, deal_bas_r, ntc_dt)
 		VALUES (
 			SEQ_EXCHANGE_RATES.NEXTVAL,
-			#{cur_nm},
-			#{ttb},
-			#{tts},
-			#{deal_bas_r},
+			#{currency_code},
+			#{buy_rate},
+			#{sell_rate},
+			#{base_rate},
 			SYSDATE
 		)
 	</insert>
+	
+	
+	
+	
 </mapper>
