@@ -69,12 +69,17 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ApiResponse<Void> register(@RequestBody RegisterRequestDto registerRequest) throws IllegalArgumentException {
+    public ApiResponse<Void> register(@RequestBody RegisterRequestDto registerRequest) {
         try {
             userService.registerUser(registerRequest);
             return ApiResponse.success("회원가입이 성공적으로 완료되었습니다.", null);
-        } catch (RuntimeException e) {
-            return ApiResponse.error(e.getMessage());
+        } catch (Exception e) {
+            // 서버 콘솔에 전체 스택트레이스 출력 (원인 파악용)
+            e.printStackTrace();
+            // 메시지가 없는 예외(NPE 등)는 예외 클래스명이라도 내려준다
+            String msg = (e.getMessage() != null) ? e.getMessage()
+                    : "회원가입 처리 중 오류가 발생했습니다. (" + e.getClass().getSimpleName() + ")";
+            return ApiResponse.error(msg);
         }
     }
 

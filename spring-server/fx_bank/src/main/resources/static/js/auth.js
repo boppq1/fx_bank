@@ -21,7 +21,24 @@ document.addEventListener("DOMContentLoaded", function () {
   initRegister();
   initIdCardOcr();
   initTermsAgreement();
+  initPhoneHyphen();
 });
+
+/* 휴대폰 번호 입력 시 자동 하이픈 (010-1234-5678 형식) */
+function initPhoneHyphen() {
+  const phone = document.getElementById("phone");
+  if (!phone) return;
+  phone.addEventListener("input", () => {
+    let d = phone.value.replace(/[^0-9]/g, "").slice(0, 11); // 숫자만, 최대 11자리
+    if (d.length < 4) {
+      phone.value = d;
+    } else if (d.length < 8) {
+      phone.value = d.slice(0, 3) + "-" + d.slice(3);
+    } else {
+      phone.value = d.slice(0, 3) + "-" + d.slice(3, 7) + "-" + d.slice(7);
+    }
+  });
+}
 
 /* ============================================================
    1) 탭 전환
@@ -188,6 +205,18 @@ function handleRegister(e) {
     return;
   }
 
+  // 비밀번호 정책: 영문 + 숫자 + 특수문자 포함, 8자 이상
+  const pw = document.getElementById("secuPw").value;
+  const pwOk =
+    pw.length >= 8 &&
+    /[A-Za-z]/.test(pw) &&
+    /[0-9]/.test(pw) &&
+    /[^A-Za-z0-9]/.test(pw);
+  if (!pwOk) {
+    alert("비밀번호는 영문, 숫자, 특수문자를 모두 포함하여 8자 이상이어야 합니다.");
+    return;
+  }
+
   // 주민등록번호: 마스킹(*) 보정 여부 및 13자리 검증
   const rrnValue = document.getElementById("rrn").value.trim();
   const rrnDigits = rrnValue.replace(/[^0-9]/g, "");
@@ -220,7 +249,7 @@ function handleRegister(e) {
     addrDetailEn: document.getElementById("address_detail_en").value,
     zipCodeEn: document.getElementById("postcode_en").value,
     gender: document.getElementById("gender").value,
-    userTendency: document.getElementById("userTendency").value,
+    // userTendency(투자 성향)는 가입 시 받지 않고, 추후 AI 에이전트가 측정/저장
   };
 
   fetch("/api/auth/register", {

@@ -1,7 +1,7 @@
 package com.example.bank.personal.dto;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 import lombok.Data;
 
@@ -20,7 +20,7 @@ public class UserEntity {
     private String nameEn;         // NAME_EN (VARCHAR2)
     private String phone;          // PHONE (VARCHAR2)
     private String email;          // EMAIL (VARCHAR2)
-    private LocalDate birthDate;   // BIRTH_DATE (DATE)
+    private Date birthDate;        // BIRTH_DATE (DATE)
     private String addrKo;         // ADDR_KO (VARCHAR2)
     private String addrDetailKo;   // ADDR_DETAIL_KO (VARCHAR2)
     private String zipCodeKo;      // ZIP_CODE_KO (VARCHAR2)
