@@ -1,12 +1,14 @@
 package com.example.bank.admin.etc;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
+import technology.tabula.*;
+import technology.tabula.extractors.SpreadsheetExtractionAlgorithm;
+import technology.tabula.extractors.BasicExtractionAlgorithm;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,38 +18,24 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.UUID;
 
-/**
- * 약관 PDF 파일 저장 + 텍스트 추출 담당
- *
- * 흐름:
- *  1) 업로드된 PDF를 지정 폴더(기본: /data/terms-pdf)에 저장
- *  2) 저장된 PDF에서 PDFBox로 텍스트 추출
- *  3) (경로, 추출 텍스트)를 호출부에 반환 -> AdminTermsDto.pdfPath / termsText 에 세팅
- *
- * 약관코드(termsCode)별로 하위 폴더를 만들고, 버전이 바뀔 때마다(수정/재제출 등)
- * 새 파일명으로 저장하여 이전 버전 파일이 덮어써지지 않도록 한다.
- */
 @Slf4j
 @Component
 public class PdfTermsFileHandler {
 
-    // TODO: 운영 환경에서는 application.yml의 외부 설정값으로 분리 권장
-    // 예: @Value("${terms.upload.base-dir}")
-    // macOS 로컬 테스트용 경로 (홈 디렉터리 하위 - 권한 문제 없음)
     private static final String BASE_DIR = System.getProperty("user.home") + "/terms-pdf";
-
-    private static final long MAX_FILE_SIZE = 20L * 1024 * 1024; // 20MB
+    private static final long MAX_FILE_SIZE = 20L * 1024 * 1024;
 
     public PdfSaveResult saveAndExtract(String termsCode, MultipartFile file) {
         validate(file);
-
         Path savedPath = saveFile(termsCode, file);
-        String extractedText = extractText(savedPath);
-
+        String extractedText = extractTextWithTables(savedPath);
         return new PdfSaveResult(savedPath.toString(), extractedText);
     }
+
+    // ── 검증 / 저장 (기존 코드 동일) ───────────────────────────────────────
 
     private void validate(MultipartFile file) {
         if (file == null || file.isEmpty()) {
@@ -56,12 +44,10 @@ public class PdfTermsFileHandler {
         if (file.getSize() > MAX_FILE_SIZE) {
             throw new IllegalArgumentException("PDF 파일 크기는 20MB를 초과할 수 없습니다.");
         }
-
         String originalFilename = file.getOriginalFilename();
         if (!StringUtils.hasText(originalFilename) || !originalFilename.toLowerCase().endsWith(".pdf")) {
             throw new IllegalArgumentException("PDF 파일만 업로드할 수 있습니다.");
         }
-
         String contentType = file.getContentType();
         if (contentType != null && !contentType.equalsIgnoreCase("application/pdf")) {
             throw new IllegalArgumentException("PDF 형식의 파일만 업로드할 수 있습니다.");
@@ -72,17 +58,13 @@ public class PdfTermsFileHandler {
         try {
             Path dirPath = Paths.get(BASE_DIR, termsCode);
             Files.createDirectories(dirPath);
-
             String datePart = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
             String randomPart = UUID.randomUUID().toString().substring(0, 8);
             String fileName = termsCode + "_" + datePart + "_" + randomPart + ".pdf";
-
             Path targetPath = dirPath.resolve(fileName);
-
             try (InputStream is = file.getInputStream()) {
                 Files.copy(is, targetPath, StandardCopyOption.REPLACE_EXISTING);
             }
-
             log.info("[약관 PDF 저장] termsCode={}, path={}", termsCode, targetPath);
             return targetPath;
         } catch (IOException e) {
@@ -90,24 +72,102 @@ public class PdfTermsFileHandler {
         }
     }
 
-    private String extractText(Path pdfPath) {
-        try (PDDocument document = Loader.loadPDF(pdfPath.toFile())) {
+    // ── 핵심: 페이지별로 텍스트 + 표 통합 추출 ─────────────────────────────
+
+    private String extractTextWithTables(Path pdfPath) {
+        try (PDDocument document = PDDocument.load(pdfPath.toFile())) {
             if (document.isEncrypted()) {
                 throw new IllegalStateException("암호화된 PDF는 텍스트를 추출할 수 없습니다.");
             }
 
-            PDFTextStripper stripper = new PDFTextStripper();
-            stripper.setSortByPosition(true);
+            ObjectExtractor extractor = new ObjectExtractor(document);
+            SpreadsheetExtractionAlgorithm sea = new SpreadsheetExtractionAlgorithm();
+            BasicExtractionAlgorithm bea = new BasicExtractionAlgorithm();
+            StringBuilder result = new StringBuilder();
+            int totalPages = document.getNumberOfPages();
 
-            String text = stripper.getText(document);
-            log.info("[약관 PDF 텍스트 추출 완료] path={}, length={}", pdfPath, text.length());
-            return text;
+            for (int pageNum = 1; pageNum <= totalPages; pageNum++) {
+                Page page = extractor.extract(pageNum);
+
+                // 1) 해당 페이지에서 표 감지
+                List<Table> tables = sea.extract(page); // 격자형 표 (선이 있는 표)
+                if (tables.isEmpty()) {
+                    tables = bea.extract(page);         // 선 없는 표 (공백 기반)
+                }
+
+                if (!tables.isEmpty()) {
+                    // 2) 표가 있는 페이지 → 텍스트 + 표 병합
+                    String pageText = extractPageText(document, pageNum);
+                    String tableText = tablesToText(tables);
+
+                    result.append(postProcess(pageText));
+                    result.append("\n\n[표]\n").append(tableText).append("\n");
+                } else {
+                    // 3) 표 없는 페이지 → 일반 텍스트 추출
+                    String pageText = extractPageText(document, pageNum);
+                    result.append(postProcess(pageText));
+                }
+
+                result.append("\n\n");
+            }
+
+            extractor.close();
+            String finalText = result.toString().strip();
+            log.info("[약관 PDF 추출 완료] path={}, length={}", pdfPath, finalText.length());
+            return finalText;
+
         } catch (IOException e) {
             throw new RuntimeException("PDF 텍스트 추출 중 오류가 발생했습니다.", e);
         }
     }
 
-    /** PDF 저장 경로 + 추출된 텍스트를 담는 결과 객체 */
-    public record PdfSaveResult(String pdfPath, String extractedText) {
+    /** 특정 페이지 텍스트만 추출 */
+    private String extractPageText(PDDocument document, int pageNum) throws IOException {
+        PDFTextStripper stripper = new PDFTextStripper();
+        stripper.setSortByPosition(true);
+        stripper.setSpacingTolerance(0.4f);
+        stripper.setAverageCharTolerance(0.3f);
+        stripper.setLineSeparator("\n");
+        stripper.setParagraphEnd("\n\n");
+        stripper.setStartPage(pageNum);
+        stripper.setEndPage(pageNum);
+        return stripper.getText(document);
     }
+
+    /** Tabula Table → 텍스트 변환 (컬럼을 | 로 구분) */
+    private String tablesToText(List<Table> tables) {
+        StringBuilder sb = new StringBuilder();
+
+        for (Table table : tables) {
+            List<List<RectangularTextContainer>> rows = table.getRows();
+            for (List<RectangularTextContainer> row : rows) {
+                StringBuilder rowSb = new StringBuilder();
+                for (RectangularTextContainer cell : row) {
+                    String cellText = cell.getText().trim().replaceAll("\\s+", " ");
+                    rowSb.append(cellText).append(" | ");
+                }
+                // 마지막 " | " 제거
+                if (rowSb.length() > 3) {
+                    rowSb.setLength(rowSb.length() - 3);
+                }
+                sb.append(rowSb).append("\n");
+            }
+            sb.append("\n"); // 표 사이 구분
+        }
+
+        return sb.toString();
+    }
+
+    /** 약관 텍스트 후처리 */
+    private String postProcess(String raw) {
+        return raw
+                .replace("\t", " ")
+                .replaceAll("[ ]{2,}", " ")
+                .replaceAll("(\n\\s*){3,}", "\n\n")
+                .replaceAll("(?m)(?<!\n)(제\\d+조|\\d+\\.\\s|[①-⑳]|[가-힣]\\s*\\.)", "\n$1")
+                .replaceAll("-\n([가-힣a-zA-Z])", "$1")
+                .strip();
+    }
+
+    public record PdfSaveResult(String pdfPath, String extractedText) {}
 }
