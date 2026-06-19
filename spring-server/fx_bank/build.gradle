@@ -53,10 +53,22 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testAnnotationProcessor 'org.projectlombok:lombok'
 
-	// pdf 텍스트 추출
-	implementation 'org.apache.pdfbox:pdfbox:3.0.3'
+	// 7. PDF 처리
+	implementation('technology.tabula:tabula:1.0.5') {
+		exclude group: 'org.apache.pdfbox'
+		exclude group: 'org.slf4j', module: 'slf4j-simple'  // ✅ 이 줄 추가
+	}
+	implementation 'org.apache.pdfbox:pdfbox:2.0.31'
+	implementation 'org.apache.commons:commons-csv:1.10.0'
+}
 
-
+// ✅ 전이 의존성까지 PDFBox 버전 강제 고정
+configurations.all {
+	resolutionStrategy {
+		force 'org.apache.pdfbox:pdfbox:2.0.31'
+		force 'org.apache.pdfbox:fontbox:2.0.31'
+		force 'org.apache.pdfbox:pdfbox-tools:2.0.31'
+	}
 }
 
 tasks.named('test') {
