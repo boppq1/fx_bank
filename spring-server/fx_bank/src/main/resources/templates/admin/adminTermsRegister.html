@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>약관 등록 - 약관 관리</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --border: #e2e5ea;
+      --text: #1c2230;
+      --text-dim: #6b7280;
+      --primary: #2255d6;
+      --primary-dim: #e8edfc;
+      --ok-bg: #e6f6ec; --ok-text: #167a3f;
+      --err-bg: #fdeaea; --err-text: #c0392b;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); }
+
+    header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 28px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .back { color: var(--text-dim); font-size: 13px; text-decoration: none; }
+    .back:hover { color: var(--text); }
+    header h1 { font-size: 16px; margin: 0; }
+
+    main {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 28px 28px 60px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px 26px;
+    }
+
+    .mode-tag {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--primary-dim);
+      color: var(--primary);
+      margin-bottom: 16px;
+    }
+
+    .current-version-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 13px 15px;
+      margin-bottom: 18px;
+      font-size: 12.5px;
+      color: var(--text-dim);
+      line-height: 1.7;
+    }
+    .current-version-box b { color: var(--text); }
+
+    label {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+      margin-top: 18px;
+    }
+    label:first-of-type { margin-top: 0; }
+
+    input[type="text"], input[type="number"], select, textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 13.5px;
+      font-family: inherit;
+      background: #fff;
+    }
+    input:disabled, select:disabled { background: #f3f4f6; color: var(--text-dim); }
+    textarea { resize: vertical; min-height: 70px; }
+
+    .file-drop {
+      border: 1.5px dashed var(--border);
+      border-radius: 10px;
+      padding: 26px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .12s, background .12s;
+    }
+    .file-drop:hover, .file-drop.drag { border-color: var(--primary); background: var(--primary-dim); }
+    .file-drop .icon { font-size: 26px; margin-bottom: 6px; }
+    .file-drop .hint { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+    .file-drop .filename { font-size: 13.5px; font-weight: 600; color: var(--primary); }
+    input[type="file"] { display: none; }
+
+    .mini-btn {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      border-radius: 8px;
+      padding: 0 12px;
+      font-size: 12.5px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .mini-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+    .submit-btn {
+      width: 100%;
+      border: none;
+      background: var(--primary);
+      color: white;
+      border-radius: 9px;
+      padding: 13px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 24px;
+    }
+    .submit-btn:hover { background: #1a44ad; }
+    .submit-btn:disabled { background: #b9c6e8; cursor: not-allowed; }
+
+    .result {
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: 9px;
+      font-size: 13px;
+      line-height: 1.6;
+      display: none;
+    }
+    .result.show { display: block; }
+    .result.ok { background: var(--ok-bg); color: var(--ok-text); }
+    .result.err { background: var(--err-bg); color: var(--err-text); white-space: pre-wrap; }
+
+    .field-hint { font-size: 11.5px; color: #9aa1ab; margin-top: 5px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="back" id="backLink" href="/admin/pro/list">← 상품 목록</a>
+  <h1>약관 등록</h1>
+</header>
+
+<main>
+  <div class="panel">
+    <span class="mode-tag" id="modeTag">신규 약관 등록</span>
+
+    <div class="current-version-box" id="currentVersionBox" style="display:none;"></div>
+
+    <label>상품명</label>
+    <input type="text" id="productNameDisplay" disabled />
+
+    <label>약관 종류</label>
+    <div style="display:flex; gap:6px;">
+      <select id="typeNo"></select>
+      <button type="button" id="addTypeBtn" class="mini-btn" title="새 약관 종류 추가">+ 종류 추가</button>
+    </div>
+    <div class="field-hint" id="typeHint">약관 종류 목록을 불러오는 중...</div>
+
+    <label>약관명</label>
+    <input type="text" id="termsTitle" placeholder="예: 예금거래기본약관" />
+
+    <label id="requiredYnLabel">필수 가입 여부</label>
+    <select id="requiredYn">
+      <option value="Y">필수(Y)</option>
+      <option value="N">선택(N)</option>
+    </select>
+
+    <label>변경/등록 사유</label>
+    <textarea id="changeReason" placeholder="예: 신규 약관 최초 등록 / 이자율 조항 변경 등"></textarea>
+
+    <label>약관 PDF 파일</label>
+    <div class="file-drop" id="fileDrop">
+      <div class="icon">📄</div>
+      <div id="fileDropText">클릭해서 PDF 선택 (또는 끌어다 놓기)</div>
+      <div class="hint">PDF만 가능 · 최대 20MB</div>
+    </div>
+    <input type="file" id="pdfFile" accept="application/pdf" />
+
+    <button class="submit-btn" id="submitBtn">약관 버전 등록</button>
+
+    <div class="result" id="result"></div>
+  </div>
+</main>
+
+<script>
+  const $ = (sel) => document.querySelector(sel);
+
+  function getApiBase() {
+    return (localStorage.getItem('apiBase') || 'http://localhost:8080').replace(/\/$/, '');
+  }
+
+  function getParams() {
+    const params = new URLSearchParams(location.search);
+    return {
+      productNo: params.get('productNo'),
+      termsNo: params.get('termsNo'),
+    };
+  }
+
+  function escapeHtml(str) {
+    return String(str ?? '').replace(/[&<>"']/g, (m) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[m]));
+  }
+
+  const { productNo, termsNo } = getParams();
+  $('#backLink').href = productNo ? `/admin/pro/detail?productNo=${productNo}` : '/admin/pro/list';
+
+  let selectedFile = null;
+
+  async function init() {
+    const base = getApiBase();
+
+    if (!productNo) {
+      $('#result').className = 'result err show';
+      $('#result').textContent = 'productNo가 없습니다. 상품 목록에서 다시 진입해주세요.';
+      $('#submitBtn').disabled = true;
+      return;
+    }
+
+    try {
+      const res = await fetch(`${base}/admin/terms/products/${productNo}`);
+      if (res.ok) {
+        const p = await res.json();
+        $('#productNameDisplay').value = `${p.productName} (상품번호 ${p.productNo})`;
+      }
+    } catch (e) { /* 표시 실패는 등록 진행에 영향 없음 */ }
+
+    await loadTermsTypeList();
+
+    if (termsNo) {
+      $('#modeTag').textContent = '기존 약관에 새 버전 추가';
+      $('#typeNo').disabled = true;
+      $('#requiredYnLabel').textContent = '필수 가입 여부 (변경 불가)';
+      $('#requiredYn').disabled = true;
+
+      try {
+        const res = await fetch(`${base}/admin/terms/${termsNo}/current`);
+        if (res.ok) {
+          const v = await res.json();
+          if (v && v.termVersionNo) {
+            $('#termsTitle').value = v.termsTitle || '';
+            const box = $('#currentVersionBox');
+            box.style.display = 'block';
+            box.innerHTML = `현재 시행중 버전: <b>v${v.majorVersion}.${v.minorVersion}</b> · 시행일 ${escapeHtml(v.effectiveDt)}<br>
+            새로 등록하면 이 버전은 만료 처리되고, 새 버전이 시행중으로 바뀝니다. (이전 버전은 이력에서 계속 조회 가능)`;
+          }
+        }
+      } catch (e) { /* 현재 버전 없을 수도 있음 */ }
+    }
+  }
+
+  async function loadTermsTypeList() {
+    const base = getApiBase();
+    const sel = $('#typeNo');
+    const hint = $('#typeHint');
+    try {
+      const res = await fetch(`${base}/admin/terms-type`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const types = await res.json();
+
+      sel.innerHTML = types.map(t => `<option value="${t.typeNo}">${escapeHtml(t.typeName)}</option>`).join('');
+      hint.textContent = types.length > 0
+              ? '목록에 없는 종류는 "+ 종류 추가"로 새로 만들 수 있어요.'
+              : '등록된 약관 종류가 없습니다. "+ 종류 추가"로 새로 만들어주세요.';
+    } catch (err) {
+      hint.textContent = `약관 종류 목록을 불러오지 못했습니다 (${err.message}).`;
+    }
+  }
+
+  $('#addTypeBtn').addEventListener('click', async () => {
+    const typeName = prompt('추가할 약관 종류명을 입력하세요 (예: 신탁약관)');
+    if (!typeName || !typeName.trim()) return;
+
+    try {
+      const base = getApiBase();
+      const res = await fetch(`${base}/admin/terms-type`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ typeName: typeName.trim() }),
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.message || `HTTP ${res.status}`);
+
+      await loadTermsTypeList();
+      $('#typeNo').value = body.typeNo;
+      $('#typeHint').textContent = `"${typeName.trim()}" 종류가 추가되어 선택되었습니다.`;
+    } catch (err) {
+      alert(`종류 추가 실패: ${err.message}`);
+    }
+  });
+
+  function setFile(file) {
+    if (!file) return;
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      alert('PDF 파일만 선택할 수 있습니다.');
+      return;
+    }
+    selectedFile = file;
+    $('#fileDropText').innerHTML = `<span class="filename">📎 ${escapeHtml(file.name)}</span>`;
+  }
+
+  $('#fileDrop').addEventListener('click', () => $('#pdfFile').click());
+  $('#pdfFile').addEventListener('change', (e) => setFile(e.target.files[0]));
+
+  ['dragover', 'dragleave', 'drop'].forEach(evt => {
+    $('#fileDrop').addEventListener(evt, (e) => {
+      e.preventDefault();
+      if (evt === 'dragover') $('#fileDrop').classList.add('drag');
+      if (evt === 'dragleave') $('#fileDrop').classList.remove('drag');
+      if (evt === 'drop') {
+        $('#fileDrop').classList.remove('drag');
+        setFile(e.dataTransfer.files[0]);
+      }
+    });
+  });
+
+  $('#submitBtn').addEventListener('click', async () => {
+    const result = $('#result');
+    result.className = 'result';
+    result.textContent = '';
+
+    const termsTitle = $('#termsTitle').value.trim();
+    if (!termsTitle) { alert('약관명을 입력해주세요.'); return; }
+    if (!selectedFile) { alert('PDF 파일을 선택해주세요.'); return; }
+    if (!termsNo && !$('#typeNo').value) { alert('약관 종류를 선택해주세요.'); return; }
+
+    const dto = {
+      termsTitle,
+      changeReason: $('#changeReason').value.trim() || null,
+    };
+
+    if (termsNo) {
+      dto.termsNo = Number(termsNo);
+    } else {
+      dto.productNo = Number(productNo);
+      dto.typeNo = Number($('#typeNo').value);
+      dto.requiredYn = $('#requiredYn').value;
+    }
+
+    const formData = new FormData();
+    formData.append('terms', new Blob([JSON.stringify(dto)], { type: 'application/json' }));
+    formData.append('file', selectedFile);
+
+    $('#submitBtn').disabled = true;
+    $('#submitBtn').textContent = '등록 중...';
+
+    try {
+      const base = getApiBase();
+      const res = await fetch(`${base}/admin/terms/register/file`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      const text = await res.text();
+      let body;
+      try { body = JSON.parse(text); } catch { body = { message: text }; }
+
+      if (!res.ok) {
+        throw new Error(body.message || `HTTP ${res.status}`);
+      }
+
+      result.className = 'result ok show';
+      result.innerHTML = `✅ ${escapeHtml(body.message || '등록 완료')}<br>약관 슬롯 번호(termsNo): ${escapeHtml(body.termsNo)}<br><br><a href="/admin/pro/detail?productNo=${productNo}">상품 상세로 돌아가기 →</a>`;
+    } catch (err) {
+      result.className = 'result err show';
+      result.textContent = `오류: ${err.message}`;
+    } finally {
+      $('#submitBtn').disabled = false;
+      $('#submitBtn').textContent = '약관 버전 등록';
+    }
+  });
+
+  init();
+</script>
+
+</body>
+</html>

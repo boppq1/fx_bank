@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상품 목록 - 약관 관리</title>
+    <style>
+        :root {
+            --bg: #f6f7f9;
+            --panel: #ffffff;
+            --border: #e2e5ea;
+            --text: #1c2230;
+            --text-dim: #6b7280;
+            --primary: #2255d6;
+            --primary-dim: #e8edfc;
+            --ok-bg: #e6f6ec;
+            --ok-text: #167a3f;
+            --draft-bg: #fff4e0;
+            --draft-text: #946400;
+            --none-bg: #f0f1f3;
+            --none-text: #6b7280;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+        }
+        header {
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            padding: 18px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        header h1 {
+            font-size: 17px;
+            margin: 0;
+            letter-spacing: -0.01em;
+        }
+        header .sub {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+        .api-base {
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+        .api-base input {
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 5px 8px;
+            font-size: 12px;
+            width: 180px;
+            margin-left: 6px;
+        }
+        main {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 24px 28px 60px;
+        }
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+        .toolbar input, .toolbar select {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 9px 12px;
+            font-size: 13px;
+            background: var(--panel);
+        }
+        .toolbar input { flex: 1; }
+        .toolbar button {
+            border: none;
+            background: var(--primary);
+            color: white;
+            border-radius: 8px;
+            padding: 9px 16px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .toolbar button:hover { background: #1a44ad; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        thead th {
+            text-align: left;
+            font-size: 12px;
+            color: var(--text-dim);
+            font-weight: 600;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            background: #fafbfc;
+        }
+        tbody td {
+            padding: 13px 16px;
+            font-size: 13.5px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr:hover { background: #fafcff; cursor: pointer; }
+
+        .pname { font-weight: 600; }
+        .ptype {
+            display: inline-block;
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 999px;
+        }
+        .badge.registered { background: var(--ok-bg); color: var(--ok-text); }
+        .badge.draft { background: var(--draft-bg); color: var(--draft-text); }
+        .badge.none { background: var(--none-bg); color: var(--none-text); }
+        .badge::before {
+            content: "";
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .empty, .error, .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-dim);
+            font-size: 13.5px;
+        }
+        .error { color: #b3261e; }
+
+        .row-link { color: var(--primary); font-size: 12.5px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div>
+        <h1>약관 관리 · 상품 목록</h1>
+        <div class="sub">상품을 선택하면 약관 등록/조회 화면으로 이동합니다</div>
+    </div>
+    <div class="api-base">
+        서버 주소
+        <input id="apiBase" value="http://localhost:8080" />
+    </div>
+</header>
+
+<main>
+    <div class="toolbar">
+        <input id="keyword" type="text" placeholder="상품명 검색" />
+        <select id="productType">
+            <option value="">전체 상품유형</option>
+            <option value="예금">예금</option>
+            <option value="적금">적금</option>
+            <option value="대출">대출</option>
+            <option value="펀드">펀드</option>
+        </select>
+        <button id="searchBtn">검색</button>
+    </div>
+
+    <div id="listWrap">
+        <div class="loading">불러오는 중...</div>
+    </div>
+</main>
+
+<script>
+    const $ = (sel) => document.querySelector(sel);
+
+    function getApiBase() {
+        const v = $('#apiBase').value.trim();
+        localStorage.setItem('apiBase', v);
+        return v.replace(/\/$/, '');
+    }
+
+    (function restoreApiBase() {
+        const saved = localStorage.getItem('apiBase');
+        if (saved) $('#apiBase').value = saved;
+    })();
+
+    function statusBadge(state) {
+        if (state === 'registered') return '<span class="badge registered">등록됨</span>';
+        if (state === 'draft') return '<span class="badge draft">슬롯만 생성됨</span>';
+        return '<span class="badge none">미등록</span>';
+    }
+
+    // 약관 슬롯 목록을 받아서 상품의 종합 상태를 계산
+    // - 하나라도 latestVersion(현재 시행중 버전)이 있으면 '등록됨'
+    // - 슬롯은 있지만 버전이 하나도 없으면 '슬롯만 생성됨'
+    // - 슬롯 자체가 없으면 '미등록'
+    function computeStatus(termsList) {
+        if (!termsList || termsList.length === 0) return 'none';
+        const hasAnyVersion = termsList.some(t => t.latestVersion && t.latestVersion.termVersionNo);
+        if (hasAnyVersion) return 'registered';
+        return 'draft';
+    }
+
+    async function loadProducts() {
+        const base = getApiBase();
+        const keyword = $('#keyword').value.trim();
+        const productType = $('#productType').value;
+
+        const listWrap = $('#listWrap');
+        listWrap.innerHTML = '<div class="loading">불러오는 중...</div>';
+
+        try {
+            const params = new URLSearchParams();
+            if (productType) params.set('productType', productType);
+            if (keyword) params.set('keyword', keyword);
+
+            const res = await fetch(`${base}/admin/terms/products?${params.toString()}`);
+            if (!res.ok) throw new Error(`상품 목록 조회 실패 (HTTP ${res.status})`);
+            const products = await res.json();
+
+            if (!products || products.length === 0) {
+                listWrap.innerHTML = '<div class="empty">등록된 상품이 없습니다.</div>';
+                return;
+            }
+
+            // 각 상품별 약관 목록을 병렬로 조회해서 상태 계산
+            const withStatus = await Promise.all(products.map(async (p) => {
+                try {
+                    const tRes = await fetch(`${base}/admin/terms/products/${p.productNo}/terms`);
+                    const terms = tRes.ok ? await tRes.json() : [];
+                    return { ...p, _status: computeStatus(terms), _termsCount: terms.length };
+                } catch (e) {
+                    return { ...p, _status: 'none', _termsCount: 0 };
+                }
+            }));
+
+            renderTable(withStatus);
+        } catch (err) {
+            listWrap.innerHTML = `<div class="error">오류: ${err.message}<br><span style="font-size:12px">서버 주소(CORS 포함)와 백엔드 실행 여부를 확인하세요.</span></div>`;
+        }
+    }
+
+    function renderTable(products) {
+        const listWrap = $('#listWrap');
+        const rows = products.map(p => `
+            <tr onclick="location.href='/admin/pro/detail?productNo=${p.productNo}'">
+      <td>
+        <div class="pname">${escapeHtml(p.productName ?? '-')}</div>
+        <div class="ptype">${escapeHtml(p.productType ?? '')}</div>
+      </td>
+      <td>${p.productNo}</td>
+      <td>${escapeHtml(p.targetLarge ?? '-')}</td>
+      <td>${statusBadge(p._status)} <span style="color:#9aa1ab;font-size:11.5px;margin-left:4px">(${p._termsCount}건)</span></td>
+      <td><span class="row-link">상세보기 →</span></td>
+    </tr>
+  `).join('');
+
+        listWrap.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>상품명</th>
+          <th>상품번호</th>
+          <th>대상</th>
+          <th>약관 상태</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+    }
+
+    function escapeHtml(str) {
+        return String(str).replace(/[&<>"']/g, (m) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[m]));
+    }
+
+    $('#searchBtn').addEventListener('click', loadProducts);
+    $('#keyword').addEventListener('keydown', (e) => { if (e.key === 'Enter') loadProducts(); });
+    $('#apiBase').addEventListener('change', loadProducts);
+
+    loadProducts();
+</script>
+
+</body>
+</html>

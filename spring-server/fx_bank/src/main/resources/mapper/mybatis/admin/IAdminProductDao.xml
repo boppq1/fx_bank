@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.bank.admin.dao.IAdminProductDao">
+
+    <resultMap id="ProductResultMap" type="com.example.bank.admin.dto.ProductDto">
+        <id     property="productNo"           column="product_no"/>
+        <result property="active"              column="active"/>
+        <result property="productName"         column="product_name"/>
+        <result property="productType"         column="product_type"/>
+        <result property="baseRate"            column="base_rate"/>
+        <result property="maxRate"             column="max_rate"/>
+        <result property="minPeriodMonth"      column="min_period_month"/>
+        <result property="maxPeriodMonth"      column="max_period_month"/>
+        <result property="minAmount"           column="min_amount"/>
+        <result property="maxAmount"           column="max_amount"/>
+        <result property="targetLarge"         column="target_large"/>
+        <result property="targetDetail"        column="target_detail"/>
+        <result property="description"         column="description"/>
+        <result property="interestPaymentType" column="interest_payment_type"/>
+        <result property="productTendency"     column="product_tendency"/>
+        <result property="status"              column="status"/>
+        <result property="productStartDt"      column="product_start_dt"/>
+        <result property="productEndDt"        column="product_end_dt"/>
+        <result property="createdBy"           column="created_by"/>
+        <result property="createdByName"       column="created_by_name"/>
+        <result property="createdDt"           column="created_dt"/>
+        <result property="updatedBy"           column="updated_by"/>
+        <result property="updatedDt"           column="updated_dt"/>
+        <result property="approvedBy"          column="approved_by"/>
+        <result property="approvedByName"      column="approved_by_name"/>
+        <result property="termsCount"          column="terms_count"/>
+        <result property="pendingCount"        column="pending_count"/>
+    </resultMap>
+
+    <!--
+        상품 목록 조회 (약관팀용)
+        - terms_count   : 이 상품에 연결된 약관 슬롯(product_terms) 수
+        - pending_count : 슬롯은 있지만 현재 시행중 버전(product_term_versions.is_current='Y')이 아직 없는 슬롯 수
+                          (= PDF 미등록 상태의 슬롯. 예전 '승인요청 대기' 의미를 새 스키마에 맞게 재정의)
+    -->
+    <select id="selectProductListForTerms" resultMap="ProductResultMap">
+        SELECT
+        p.product_no,
+        p.active,
+        p.product_name,
+        p.product_type,
+        p.target_large,
+        p.target_detail,
+        p.status,
+        p.product_start_dt,
+        p.product_end_dt,
+        p.created_by,
+        p.created_dt,
+        ca.admin_name                                                AS created_by_name,
+        aa.admin_name                                                AS approved_by_name,
+        COUNT(pt.terms_no)                                           AS terms_count,
+        SUM(CASE WHEN ptv.term_version_no IS NULL THEN 1 ELSE 0 END) AS pending_count
+        FROM products p
+        LEFT JOIN admins ca  ON p.created_by  = ca.admin_no
+        LEFT JOIN admins aa  ON p.approved_by = aa.admin_no
+        LEFT JOIN product_terms pt ON p.product_no = pt.product_no
+        LEFT JOIN product_term_versions ptv
+        ON ptv.terms_no = pt.terms_no
+        AND ptv.is_current = 'Y'
+        WHERE p.active = 'Y'
+        <if test="productType != null and productType != ''">
+            AND p.product_type = #{productType}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND p.product_name LIKE '%' || #{keyword} || '%'
+        </if>
+        GROUP BY
+        p.product_no, p.active, p.product_name, p.product_type,
+        p.target_large, p.target_detail, p.status,
+        p.product_start_dt, p.product_end_dt,
+        p.created_by, p.created_dt,
+        ca.admin_name, aa.admin_name
+        ORDER BY p.created_dt DESC
+    </select>
+
+    <!-- 상품 단건 상세 조회 -->
+    <select id="selectProductDetail" resultMap="ProductResultMap">
+        SELECT
+        p.product_no,
+        p.active,
+        p.product_name,
+        p.product_type,
+        p.base_rate,
+        p.max_rate,
+        p.min_period_month,
+        p.max_period_month,
+        p.min_amount,
+        p.max_amount,
+        p.target_large,
+        p.target_detail,
+        p.description,
+        p.interest_payment_type,
+        p.product_tendency,
+        p.status,
+        p.product_start_dt,
+        p.product_end_dt,
+        p.created_by,
+        p.created_dt,
+        p.updated_by,
+        p.updated_dt,
+        p.approved_by,
+        ca.admin_name AS created_by_name,
+        aa.admin_name AS approved_by_name
+        FROM products p
+        LEFT JOIN admins ca ON p.created_by  = ca.admin_no
+        LEFT JOIN admins aa ON p.approved_by = aa.admin_no
+        WHERE p.product_no = #{productNo}
+    </select>
+
+</mapper>

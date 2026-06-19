@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>버전 이력 - 약관 관리</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --border: #e2e5ea;
+      --text: #1c2230;
+      --text-dim: #6b7280;
+      --primary: #2255d6;
+      --primary-dim: #e8edfc;
+      --ok-bg: #e6f6ec; --ok-text: #167a3f;
+      --past-bg: #f0f1f3; --past-text: #6b7280;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); }
+
+    header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 28px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .back { color: var(--text-dim); font-size: 13px; text-decoration: none; }
+    .back:hover { color: var(--text); }
+    header h1 { font-size: 16px; margin: 0; }
+
+    main {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 24px 28px 60px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 22px;
+      margin-bottom: 22px;
+    }
+    .panel h2 { font-size: 14px; margin: 0 0 14px 0; color: var(--text-dim); font-weight: 600; }
+
+    .lookup-row { display: flex; gap: 8px; align-items: center; }
+    .lookup-row input[type="date"] {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 13px;
+    }
+    .lookup-row button {
+      border: none;
+      background: var(--primary);
+      color: white;
+      border-radius: 8px;
+      padding: 9px 16px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .lookup-row button:hover { background: #1a44ad; }
+
+    .lookup-result {
+      margin-top: 14px;
+      padding: 13px 15px;
+      border-radius: 9px;
+      background: var(--bg);
+      font-size: 13px;
+      line-height: 1.7;
+      display: none;
+    }
+    .lookup-result.show { display: block; }
+
+    .version-list { display: flex; flex-direction: column; gap: 10px; }
+    .version-card {
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 14px 16px;
+    }
+    .version-card.current { border-color: var(--primary); background: var(--primary-dim); }
+    .v-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .v-title { font-weight: 700; font-size: 14px; }
+    .v-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: var(--ok-bg);
+      color: var(--ok-text);
+    }
+    .v-badge.past { background: var(--past-bg); color: var(--past-text); }
+    .v-meta { font-size: 12px; color: var(--text-dim); line-height: 1.6; }
+    .v-reason { font-size: 12.5px; margin-top: 6px; color: var(--text); }
+
+    .empty, .error, .loading {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-dim);
+      font-size: 13.5px;
+    }
+    .error { color: #b3261e; }
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="back" id="backLink" href="/admin/pro/list">← 상품으로</a>
+  <h1>약관 버전 이력</h1>
+</header>
+
+<main>
+  <div class="panel">
+    <h2>특정 시점에 적용됐던 버전 조회 (가입 당시 약관 추적)</h2>
+    <div class="lookup-row">
+      <input type="date" id="lookupDate" />
+      <button id="lookupBtn">조회</button>
+    </div>
+    <div class="lookup-result" id="lookupResult"></div>
+  </div>
+
+  <div class="panel">
+    <h2>전체 버전 이력 (최신순)</h2>
+    <div id="historyWrap"><div class="loading">불러오는 중...</div></div>
+  </div>
+</main>
+
+<script>
+  const $ = (sel) => document.querySelector(sel);
+
+  function getApiBase() {
+    return (localStorage.getItem('apiBase') || 'http://localhost:8080').replace(/\/$/, '');
+  }
+
+  function getTermsNo() {
+    return new URLSearchParams(location.search).get('termsNo');
+  }
+
+  function escapeHtml(str) {
+    return String(str ?? '').replace(/[&<>"']/g, (m) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[m]));
+  }
+
+  const termsNo = getTermsNo();
+  const productNo = new URLSearchParams(location.search).get('productNo');
+  if (productNo) $('#backLink').href = `/admin/pro/detail?productNo=${productNo}`;
+
+  $('#lookupDate').value = new Date().toISOString().slice(0, 10);
+
+  async function loadHistory() {
+    const wrap = $('#historyWrap');
+    if (!termsNo) {
+      wrap.innerHTML = '<div class="error">termsNo가 없습니다.</div>';
+      return;
+    }
+
+    try {
+      const base = getApiBase();
+      const res = await fetch(`${base}/admin/terms/${termsNo}/versions`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const versions = await res.json();
+
+      if (!versions || versions.length === 0) {
+        wrap.innerHTML = '<div class="empty">등록된 버전이 없습니다.</div>';
+        return;
+      }
+
+      wrap.innerHTML = `<div class="version-list">${versions.map(v => `
+      <div class="version-card ${v.isCurrent === 'Y' ? 'current' : ''}">
+        <div class="v-head">
+          <span class="v-title">v${v.majorVersion}.${v.minorVersion} · ${escapeHtml(v.termsTitle)}</span>
+          <span class="v-badge ${v.isCurrent === 'Y' ? '' : 'past'}">${v.isCurrent === 'Y' ? '현재 시행중' : '과거 버전'}</span>
+        </div>
+        <div class="v-meta">
+          시행 ${escapeHtml(v.effectiveDt)} ~ ${v.expiredDt ? escapeHtml(v.expiredDt) : '현재'}
+          ${v.pdfPath ? `<br>PDF: ${escapeHtml(v.pdfPath)}` : ''}
+        </div>
+        ${v.changeReason ? `<div class="v-reason">사유: ${escapeHtml(v.changeReason)}</div>` : ''}
+      </div>
+    `).join('')}</div>`;
+    } catch (err) {
+      wrap.innerHTML = `<div class="error">오류: ${err.message}</div>`;
+    }
+  }
+
+  $('#lookupBtn').addEventListener('click', async () => {
+    const date = $('#lookupDate').value;
+    const result = $('#lookupResult');
+    if (!date) { alert('날짜를 선택해주세요.'); return; }
+
+    result.className = 'lookup-result show';
+    result.textContent = '조회 중...';
+
+    try {
+      const base = getApiBase();
+      const res = await fetch(`${base}/admin/terms/${termsNo}/version-at?date=${date}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const v = await res.json();
+
+      if (!v || !v.termVersionNo) {
+        result.innerHTML = `${escapeHtml(date)} 시점에 유효했던 버전을 찾을 수 없습니다.`;
+        return;
+      }
+
+      result.innerHTML = `
+      <b>${escapeHtml(date)}</b> 시점에 적용 중이었던 버전:<br>
+      <b>v${v.majorVersion}.${v.minorVersion}</b> · ${escapeHtml(v.termsTitle)}<br>
+      시행기간: ${escapeHtml(v.effectiveDt)} ~ ${v.expiredDt ? escapeHtml(v.expiredDt) : '현재'}
+      ${v.pdfPath ? `<br>PDF: ${escapeHtml(v.pdfPath)}` : ''}
+    `;
+    } catch (err) {
+      result.innerHTML = `오류: ${err.message}`;
+    }
+  });
+
+  loadHistory();
+</script>
+
+</body>
+</html>
