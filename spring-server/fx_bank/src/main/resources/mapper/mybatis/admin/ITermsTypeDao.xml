@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.bank.admin.dao.ITermsTypeDao">
+
+    <resultMap id="TermsTypeResultMap" type="com.example.bank.admin.dto.TermsTypeDto">
+        <id     property="typeNo"    column="type_no"/>
+        <result property="typeName"  column="type_name"/>
+        <result property="createdDt" column="created_dt"/>
+    </resultMap>
+
+    <select id="selectTypeList" resultMap="TermsTypeResultMap">
+        SELECT type_no, type_name, created_dt
+        FROM terms_types
+        ORDER BY type_no ASC
+    </select>
+
+    <select id="countByTypeName" resultType="int">
+        SELECT COUNT(*)
+        FROM terms_types
+        WHERE type_name = #{typeName}
+    </select>
+
+    <insert id="insertType" parameterType="com.example.bank.admin.dto.TermsTypeDto">
+        <selectKey keyProperty="typeNo" resultType="long" order="BEFORE">
+            SELECT seq_terms_types.NEXTVAL FROM dual
+        </selectKey>
+        INSERT INTO terms_types (type_no, type_name, created_dt)
+        VALUES (#{typeNo}, #{typeName}, SYSDATE)
+    </insert>
+
+</mapper>

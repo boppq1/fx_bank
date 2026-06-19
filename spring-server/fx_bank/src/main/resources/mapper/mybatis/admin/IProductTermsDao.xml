@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.bank.admin.dao.IProductTermsDao">
+
+    <resultMap id="ProductTermsResultMap" type="com.example.bank.admin.dto.ProductTermsDto">
+        <id     property="termsNo"    column="terms_no"/>
+        <result property="productNo"  column="product_no"/>
+        <result property="typeNo"     column="type_no"/>
+        <result property="typeName"   column="type_name"/>
+        <result property="requiredYn" column="required_yn"/>
+        <result property="useYn"      column="use_yn"/>
+        <result property="createdDt"  column="created_dt"/>
+        <association property="latestVersion" javaType="com.example.bank.admin.dto.ProductTermVersionDto">
+            <id     property="termVersionNo" column="term_version_no"/>
+            <result property="majorVersion"  column="major_version"/>
+            <result property="minorVersion"  column="minor_version"/>
+            <result property="termsTitle"    column="terms_title"/>
+            <result property="pdfPath"       column="pdf_path"/>
+            <result property="changeReason"  column="change_reason"/>
+            <result property="effectiveDt"   column="effective_dt"/>
+            <result property="expiredDt"     column="expired_dt"/>
+            <result property="isCurrent"     column="is_current"/>
+        </association>
+    </resultMap>
+
+    <!--
+        상품의 약관 슬롯 목록 + 각 슬롯의 "현재 버전" 정보를 함께 조회.
+        terms_text(CLOB)는 목록 화면에서 불필요하게 무거우므로 제외 (상세 조회 시에만 별도 조회)
+    -->
+    <select id="selectTermsListByProduct" resultMap="ProductTermsResultMap">
+        SELECT
+        pt.terms_no,
+        pt.product_no,
+        pt.type_no,
+        tt.type_name,
+        pt.required_yn,
+        pt.use_yn,
+        pt.created_dt,
+        ptv.term_version_no,
+        ptv.major_version,
+        ptv.minor_version,
+        ptv.terms_title,
+        ptv.pdf_path,
+        ptv.change_reason,
+        ptv.effective_dt,
+        ptv.expired_dt,
+        ptv.is_current
+        FROM product_terms pt
+        JOIN terms_types tt ON tt.type_no = pt.type_no
+        LEFT JOIN product_term_versions ptv
+        ON ptv.terms_no = pt.terms_no
+        AND ptv.is_current = 'Y'
+        WHERE pt.product_no = #{productNo}
+        ORDER BY pt.terms_no ASC
+    </select>
+
+    <select id="selectSlotByProductAndType" resultMap="ProductTermsResultMap">
+        SELECT terms_no, product_no, type_no, required_yn, use_yn, created_dt
+        FROM product_terms
+        WHERE product_no = #{productNo}
+        AND type_no = #{typeNo}
+    </select>
+
+    <select id="selectSlotByTermsNo" resultMap="ProductTermsResultMap">
+        SELECT terms_no, product_no, type_no, required_yn, use_yn, created_dt
+        FROM product_terms
+        WHERE terms_no = #{termsNo}
+    </select>
+
+    <insert id="insertSlot" parameterType="com.example.bank.admin.dto.ProductTermsDto">
+        <selectKey keyProperty="termsNo" resultType="long" order="BEFORE">
+            SELECT seq_product_terms.NEXTVAL FROM dual
+        </selectKey>
+        INSERT INTO product_terms (
+        terms_no, product_no, type_no, required_yn, use_yn, created_dt
+        ) VALUES (
+        #{termsNo}, #{productNo}, #{typeNo}, #{requiredYn},
+        NVL(#{useYn}, 'Y'), SYSDATE
+        )
+    </insert>
+
+</mapper>
