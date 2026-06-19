@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.bank.admin.dao.IProductTermVersionDao">
+
+    <resultMap id="VersionResultMap" type="com.example.bank.admin.dto.ProductTermVersionDto">
+        <id     property="termVersionNo" column="term_version_no"/>
+        <result property="termsNo"       column="terms_no"/>
+        <result property="majorVersion"  column="major_version"/>
+        <result property="minorVersion"  column="minor_version"/>
+        <result property="termsTitle"    column="terms_title"/>
+        <result property="pdfPath"       column="pdf_path"/>
+        <result property="termsText"     column="terms_text"/>
+        <result property="changeReason"  column="change_reason"/>
+        <result property="effectiveDt"   column="effective_dt"/>
+        <result property="expiredDt"     column="expired_dt"/>
+        <result property="isCurrent"     column="is_current"/>
+        <result property="createdDt"     column="created_dt"/>
+        <result property="createdBy"     column="created_by"/>
+    </resultMap>
+
+    <!-- 목록/조회용: terms_text(CLOB) 제외하여 가볍게 -->
+    <resultMap id="VersionListResultMap" type="com.example.bank.admin.dto.ProductTermVersionDto" extends="VersionResultMap">
+    </resultMap>
+
+    <select id="selectCurrentVersion" resultMap="VersionResultMap">
+        SELECT *
+        FROM product_term_versions
+        WHERE terms_no = #{termsNo}
+        AND is_current = 'Y'
+    </select>
+
+    <!-- 특정 시점(asOfDate, 'YYYY-MM-DD')에 유효했던 버전: 가입 당시 적용 약관 추적용 -->
+    <select id="selectVersionAt" resultMap="VersionResultMap">
+        SELECT *
+        FROM product_term_versions
+        WHERE terms_no = #{termsNo}
+        AND effective_dt &lt;= TO_DATE(#{asOfDate}, 'YYYY-MM-DD')
+        AND (expired_dt IS NULL OR expired_dt &gt; TO_DATE(#{asOfDate}, 'YYYY-MM-DD'))
+    </select>
+
+    <select id="selectVersionByNo" resultMap="VersionResultMap">
+        SELECT *
+        FROM product_term_versions
+        WHERE term_version_no = #{termVersionNo}
+    </select>
+
+    <!-- 전체 버전 이력 (최신순). 본문(CLOB)은 제외하고 메타정보만 -->
+    <select id="selectVersionHistory" resultMap="VersionListResultMap">
+        SELECT
+        term_version_no, terms_no, major_version, minor_version,
+        terms_title, pdf_path, change_reason,
+        effective_dt, expired_dt, is_current, created_dt, created_by
+        FROM product_term_versions
+        WHERE terms_no = #{termsNo}
+        ORDER BY major_version DESC, minor_version DESC
+    </select>
+
+    <!-- 새 버전번호 산정을 위해 가장 최근 행(번호 최대) 조회 -->
+    <select id="selectLatestVersionRow" resultMap="VersionResultMap">
+        SELECT *
+        FROM product_term_versions
+        WHERE terms_no = #{termsNo}
+        AND term_version_no = (
+        SELECT MAX(term_version_no)
+        FROM product_term_versions
+        WHERE terms_no = #{termsNo}
+        )
+    </select>
+
+    <update id="expireCurrentVersion">
+        UPDATE product_term_versions
+        SET is_current = 'N',
+        expired_dt = SYSDATE
+        WHERE terms_no = #{termsNo}
+        AND is_current = 'Y'
+    </update>
+
+    <insert id="insertVersion" parameterType="com.example.bank.admin.dto.ProductTermVersionDto">
+        <selectKey keyProperty="termVersionNo" resultType="long" order="BEFORE">
+            SELECT seq_product_term_versions.NEXTVAL FROM dual
+        </selectKey>
+        INSERT INTO product_term_versions (
+        term_version_no, terms_no, major_version, minor_version,
+        terms_title, pdf_path, terms_text, change_reason,
+        effective_dt, expired_dt, is_current, created_dt, created_by
+        ) VALUES (
+        #{termVersionNo}, #{termsNo}, #{majorVersion}, #{minorVersion},
+        #{termsTitle}, #{pdfPath}, #{termsText}, #{changeReason},
+        SYSDATE, NULL, 'Y', SYSDATE, #{createdBy}
+        )
+    </insert>
+
+</mapper>

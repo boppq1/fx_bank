@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>상품 상세 - 약관 관리</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --border: #e2e5ea;
+      --text: #1c2230;
+      --text-dim: #6b7280;
+      --primary: #2255d6;
+      --primary-dim: #e8edfc;
+      --draft-bg: #fff4e0; --draft-text: #946400;
+      --submitted-bg: #e8edfc; --submitted-text: #2255d6;
+      --live-bg: #e6f6ec; --live-text: #167a3f;
+      --rejected-bg: #fdeaea; --rejected-text: #c0392b;
+      --discarded-bg: #f0f1f3; --discarded-text: #6b7280;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); }
+
+    header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 28px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .back { color: var(--text-dim); font-size: 13px; text-decoration: none; }
+    .back:hover { color: var(--text); }
+    header h1 { font-size: 16px; margin: 0; }
+
+    main {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 24px 28px 60px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 22px;
+      margin-bottom: 22px;
+    }
+    .panel h2 {
+      font-size: 14px;
+      margin: 0 0 14px 0;
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+
+    .pname-row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; }
+    .pname-row .pname { font-size: 19px; font-weight: 700; }
+    .pname-row .ptype { font-size: 12px; color: var(--text-dim); background: var(--bg); padding: 3px 8px; border-radius: 6px; }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 16px;
+    }
+    .meta-item .label { font-size: 11px; color: var(--text-dim); margin-bottom: 3px; }
+    .meta-item .value { font-size: 13.5px; }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .section-head h2 { margin: 0; }
+    .new-btn {
+      border: none;
+      background: var(--primary);
+      color: white;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .new-btn:hover { background: #1a44ad; }
+
+    .terms-list { display: flex; flex-direction: column; gap: 10px; }
+    .terms-card {
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 14px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: border-color .12s;
+    }
+    .terms-card:hover { border-color: var(--primary); }
+    .terms-left .title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+    .terms-left .sub { font-size: 12px; color: var(--text-dim); }
+    .terms-left .code { font-family: ui-monospace, monospace; font-size: 11.5px; color: #9aa1ab; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .badge.s-draft { background: var(--draft-bg); color: var(--draft-text); }
+    .badge.s-submitted { background: var(--submitted-bg); color: var(--submitted-text); }
+    .badge.s-live { background: var(--live-bg); color: var(--live-text); }
+    .badge.s-rejected { background: var(--rejected-bg); color: var(--rejected-text); }
+    .badge.s-discarded { background: var(--discarded-bg); color: var(--discarded-text); }
+
+    .terms-actions { display: flex; gap: 8px; align-items: center; }
+    .link-btn {
+      font-size: 12px;
+      color: var(--primary);
+      text-decoration: none;
+      border: 1px solid var(--primary-dim);
+      padding: 6px 10px;
+      border-radius: 7px;
+    }
+    .link-btn:hover { background: var(--primary-dim); }
+
+    .empty, .error, .loading {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-dim);
+      font-size: 13.5px;
+    }
+    .error { color: #b3261e; }
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="back" href="/admin/pro/list">← 상품 목록</a>
+  <h1>상품 상세 / 약관 관리</h1>
+</header>
+
+<main>
+  <div class="panel" id="productPanel">
+    <div class="loading">상품 정보를 불러오는 중...</div>
+  </div>
+
+  <div class="panel">
+    <div class="section-head">
+      <h2>이 상품에 등록된 약관</h2>
+      <a class="new-btn" id="newTermsBtn" href="#">+ 새 약관 등록(PDF)</a>
+    </div>
+    <div id="termsWrap">
+      <div class="loading">불러오는 중...</div>
+    </div>
+  </div>
+</main>
+
+<script>
+  const $ = (sel) => document.querySelector(sel);
+
+  function getApiBase() {
+    return (localStorage.getItem('apiBase') || 'http://localhost:8080').replace(/\/$/, '');
+  }
+
+  function getProductNo() {
+    const params = new URLSearchParams(location.search);
+    return params.get('productNo');
+  }
+
+  function escapeHtml(str) {
+    return String(str ?? '').replace(/[&<>"']/g, (m) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[m]));
+  }
+
+  function productStatusBadge(status) {
+    if (!status) return '';
+    const map = {
+      '판매중': 's-live',
+      '판매대기': 's-submitted',
+      '판매종료': 's-discarded',
+    };
+    const cls = map[status] || 's-draft';
+    return `<span class="badge ${cls}">${escapeHtml(status)}</span>`;
+  }
+
+  function formatAmount(n) {
+    if (n === null || n === undefined) return '-';
+    return Number(n).toLocaleString('ko-KR');
+  }
+
+  async function loadProduct() {
+    const base = getApiBase();
+    const productNo = getProductNo();
+    const panel = $('#productPanel');
+
+    if (!productNo) {
+      panel.innerHTML = '<div class="error">productNo가 없습니다. 상품 목록에서 다시 진입해주세요.</div>';
+      return;
+    }
+
+    $('#newTermsBtn').href = `/admin/terms/register?productNo=${productNo}`;
+
+    try {
+      const res = await fetch(`${base}/admin/terms/products/${productNo}`);
+      if (!res.ok) throw new Error(`상품 상세 조회 실패 (HTTP ${res.status})`);
+      const p = await res.json();
+
+      panel.innerHTML = `
+      <div class="pname-row">
+        <span class="pname">${escapeHtml(p.productName)}</span>
+        <span class="ptype">${escapeHtml(p.productType)}</span>
+        ${productStatusBadge(p.status)}
+        ${p.active === 'N' ? '<span class="ptype" style="color:#c0392b">비활성</span>' : ''}
+      </div>
+      <div style="color:#9aa1ab;font-size:12.5px">상품번호 ${p.productNo}</div>
+      <div class="meta-grid">
+        <div class="meta-item"><div class="label">기본 금리</div><div class="value">${p.baseRate ?? '-'}%</div></div>
+        <div class="meta-item"><div class="label">최고 금리</div><div class="value">${p.maxRate ?? '-'}%</div></div>
+        <div class="meta-item"><div class="label">가입 기간</div><div class="value">${p.minPeriodMonth ?? '-'} ~ ${p.maxPeriodMonth ?? '-'}개월</div></div>
+        <div class="meta-item"><div class="label">가입 금액</div><div class="value">${formatAmount(p.minAmount)} ~ ${formatAmount(p.maxAmount)}</div></div>
+        <div class="meta-item"><div class="label">판매 대상</div><div class="value">${escapeHtml(p.targetLarge)} / ${escapeHtml(p.targetDetail)}</div></div>
+        <div class="meta-item"><div class="label">판매 기간</div><div class="value">${escapeHtml(p.productStartDt)} ~ ${escapeHtml(p.productEndDt)}</div></div>
+        <div class="meta-item"><div class="label">이자 지급 방식</div><div class="value">${escapeHtml(p.interestPaymentType) || '-'}</div></div>
+        <div class="meta-item"><div class="label">상품 성향</div><div class="value">${escapeHtml(p.productTendency) || '-'}</div></div>
+      </div>
+      ${p.description ? `<div style="margin-top:16px; padding-top:14px; border-top:1px solid var(--border); font-size:13px; color:var(--text-dim); line-height:1.6;">${escapeHtml(p.description)}</div>` : ''}
+    `;
+    } catch (err) {
+      panel.innerHTML = `<div class="error">오류: ${err.message}</div>`;
+    }
+  }
+
+  async function loadTerms() {
+    const base = getApiBase();
+    const productNo = getProductNo();
+    const wrap = $('#termsWrap');
+
+    if (!productNo) return;
+
+    try {
+      const res = await fetch(`${base}/admin/terms/products/${productNo}/terms`);
+      if (!res.ok) throw new Error(`약관 목록 조회 실패 (HTTP ${res.status})`);
+      const slots = await res.json();
+
+      if (!slots || slots.length === 0) {
+        wrap.innerHTML = '<div class="empty">등록된 약관이 없습니다. 새 약관을 등록해보세요.</div>';
+        return;
+      }
+
+      wrap.innerHTML = `<div class="terms-list">${slots.map(s => {
+        const v = s.latestVersion;
+        const hasVersion = v && v.termVersionNo;
+        return `
+      <div class="terms-card">
+        <div class="terms-left">
+          <div class="title">
+            ${escapeHtml(hasVersion ? v.termsTitle : s.typeName)}
+            <span style="color:#9aa1ab;font-weight:400;font-size:12px">(${escapeHtml(s.typeName)})</span>
+          </div>
+          <div class="sub">
+            필수여부: ${s.requiredYn === 'Y' ? '필수' : '선택'}
+            ${hasVersion ? ` · 현재 버전 v${v.majorVersion}.${v.minorVersion} · 시행일 ${escapeHtml(v.effectiveDt)}` : ' · 등록된 버전 없음'}
+          </div>
+          <div class="code">termsNo: ${s.termsNo}</div>
+        </div>
+        <div class="terms-actions">
+          ${hasVersion ? '<span class="badge s-live">버전 있음</span>' : '<span class="badge s-discarded">미등록</span>'}
+          <a class="link-btn" href="/admin/terms/register?productNo=${productNo}&termsNo=${s.termsNo}">${hasVersion ? '새 버전 등록' : 'PDF 등록'}</a>
+          <a class="link-btn" href="/admin/terms/version?termsNo=${s.termsNo}&productNo=${productNo}">이력 보기</a>
+        </div>
+      </div>
+    `;
+      }).join('')}</div>`;
+    } catch (err) {
+      wrap.innerHTML = `<div class="error">오류: ${err.message}</div>`;
+    }
+  }
+
+  loadProduct();
+  loadTerms();
+</script>
+
+</body>
+</html>
