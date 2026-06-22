@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>BNK 이벤트</title>
+    <link rel="stylesheet" th:href="@{/css/event.css}">
+</head>
+<body>
+
+<div class="event-container">
+    <h1>BNK 글자를 찾아라! 이벤트</h1>
+
+    <div class="event-info">
+        <p>일상 속에서 B, N, K 글자를 찾아 인증하세요!</p>
+        <p>B, N, K 모두 인증 완료 시 <strong>우대금리 혜택</strong>을 드립니다.</p>
+
+        <div class="event-steps">
+            <div class="step">
+                <span class="step-letter">B</span>
+                <p>B 글자 찾아 인증</p>
+            </div>
+            <div class="step">
+                <span class="step-letter">N</span>
+                <p>N 글자 찾아 인증</p>
+            </div>
+            <div class="step">
+                <span class="step-letter">K</span>
+                <p>K 글자 찾아 인증</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 앱일 때만 참여 버튼 노출 -->
+    <div th:if="${isApp}">
+        <button id="joinBtn" onclick="joinEvent()">이벤트 참여하기</button>
+    </div>
+    <div th:unless="${isApp}" class="app-only-msg">
+        <p>📱 이벤트 참여는 앱에서만 가능합니다.</p>
+    </div>
+</div>
+
+<script th:src="@{/js/event.js}"></script>
+</body>
+</html>
