@@ -14,6 +14,7 @@ import com.example.bank.product.dto.ProductJoinCompleteDto;
 import com.example.bank.product.dto.ProductMySubscriptionDto;
 import com.example.bank.product.dto.ProductSubscriptionInsertDto;
 import com.example.bank.product.dto.ProductTermDto;
+import com.example.bank.product.dto.WithdrawableForeignAccountDto;
 
 // 상품 가입 과정에서 DB랑 직접 연결되는 메서드 모음
 @Mapper
@@ -24,6 +25,8 @@ public interface IProductJoinDao {
     // =====================================================
 
     Long selectNextVerificationNo(); // OCR 인증 번호 미리 뽑기
+
+    void disableParallelDml();
 
     Long selectNextSubscriptionNo(); // 상품 가입 번호 미리 뽑기
 
@@ -82,6 +85,18 @@ public interface IProductJoinDao {
     java.util.Date selectLatestFinancialProductActivity(@Param("userNo") Long userNo);
 
     int countWithdrawableSourceAccounts(@Param("userNo") Long userNo);
+
+    List<WithdrawableForeignAccountDto> selectWithdrawableForeignAccounts(
+            @Param("userNo") Long userNo,
+            @Param("currencyCode") String currencyCode
+    );
+
+    int withdrawForeignAccountBalance(
+            @Param("userNo") Long userNo,
+            @Param("accountNo") String accountNo,
+            @Param("currencyCode") String currencyCode,
+            @Param("amount") java.math.BigDecimal amount
+    );
 
     int countValidVerification(
             @Param("verificationNo") Long verificationNo,
