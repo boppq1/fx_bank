@@ -1,10 +1,142 @@
 <!DOCTYPE html>
-<html>
-<html xmlns:th="http://www.thymeleaf.org">
-<meta charset="UTF-8">
-<title>Insert title here</title>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>상품 가입 - 정보 입력</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 760px; margin: 40px auto; line-height: 1.5; }
+        label { display: block; margin-top: 14px; font-weight: 700; }
+        input, select { width: 100%; padding: 9px; margin-top: 6px; box-sizing: border-box; }
+        .actions { margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+        button, a.button { padding: 10px 14px; border: 1px solid #333; background: #111; color: white; text-decoration: none; cursor: pointer; }
+        .secondary { background: white; color: #111; }
+        .message { margin-top: 12px; color: #245c2a; }
+        .error { margin-top: 12px; color: #b00020; }
+    </style>
 </head>
 <body>
+<h1>상품 가입 - 정보 입력</h1>
+<p>
+    <strong th:text="${product.productName}">상품명</strong>
+</p>
 
+<form id="joinForm">
+    <input type="hidden" id="productNo" th:value="${product.productNo}">
+
+    <label for="currencyCode">통화</label>
+    <select id="currencyCode" required>
+        <option value="">선택</option>
+        <option th:each="currency : ${currencies}"
+                th:value="${currency.currencyCode}"
+                th:text="${currency.currencyCode + ' - ' + currency.currencyName}">USD</option>
+    </select>
+
+    <label for="rateNo">가입 기간 / 금리</label>
+    <select id="rateNo" required>
+        <option value="">선택</option>
+        <option th:each="rate : ${rates}"
+                th:value="${rate.rateNo}"
+                th:attr="data-period=${rate.periodMonth},data-rate=${rate.interestRate}"
+                th:text="${rate.periodMonth + '개월 / ' + rate.interestRate + '%'}">12개월 / 4.5%</option>
+    </select>
+
+    <label for="amount">가입 금액</label>
+    <input id="amount" type="number" min="1" step="1" required placeholder="가입 금액 입력">
+
+    <label for="accountPassword">계좌 비밀번호</label>
+    <input id="accountPassword" type="password" required minlength="4" maxlength="20" placeholder="계좌 비밀번호 입력">
+
+    <div class="actions">
+        <a class="button secondary" th:href="@{/product/join/{productNo}/terms(productNo=${product.productNo})}">이전</a>
+        <button type="button" class="secondary" id="ocrButton">OCR 성공 처리(테스트)</button>
+        <button type="submit">가입 완료 테스트</button>
+    </div>
+    <div id="message" class="message"></div>
+    <div id="error" class="error"></div>
+</form>
+
+<script>
+const tinySignature = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAI9jU77yQAAAABJRU5ErkJggg==';
+
+async function ensureAccessToken() {
+    if (window.accessToken) return window.accessToken;
+    const res = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'same-origin' });
+    const body = await res.json();
+    if (!body.success || !body.data || !body.data.accessToken) {
+        location.href = '/login';
+        return null;
+    }
+    window.accessToken = body.data.accessToken;
+    return window.accessToken;
+}
+
+async function apiFetch(url, options) {
+    const token = await ensureAccessToken();
+    if (!token) return null;
+    const headers = Object.assign({ 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, options.headers || {});
+    return fetch(url, Object.assign({}, options, { headers, credentials: 'same-origin' }));
+}
+
+function setMessage(text) {
+    document.getElementById('message').textContent = text || '';
+    document.getElementById('error').textContent = '';
+}
+
+function setError(text) {
+    document.getElementById('error').textContent = text || '';
+    document.getElementById('message').textContent = '';
+}
+
+document.getElementById('ocrButton').addEventListener('click', async () => {
+    const productNo = Number(document.getElementById('productNo').value);
+    const res = await apiFetch(`/api/product/join/${productNo}/ocr-success`, { method: 'POST', body: '{}' });
+    if (!res) return;
+    const body = await res.json();
+    if (!body.success) {
+        setError(body.message);
+        return;
+    }
+    setMessage('OCR 인증 저장 완료: ' + body.data);
+});
+
+document.getElementById('joinForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const productNo = Number(document.getElementById('productNo').value);
+    const rateOption = document.getElementById('rateNo').selectedOptions[0];
+    const formPayload = {
+        productNo,
+        rateNo: Number(rateOption.value),
+        currencyCode: document.getElementById('currencyCode').value,
+        amount: Number(document.getElementById('amount').value),
+        periodMonth: Number(rateOption.dataset.period),
+        appliedRate: Number(rateOption.dataset.rate),
+        accountPassword: document.getElementById('accountPassword').value
+    };
+
+    let res = await apiFetch('/api/product/join/form', {
+        method: 'POST',
+        body: JSON.stringify(formPayload)
+    });
+    if (!res) return;
+    let body = await res.json();
+    if (!body.success) {
+        setError(body.message);
+        return;
+    }
+
+    res = await apiFetch('/api/product/join/complete', {
+        method: 'POST',
+        body: JSON.stringify({ productNo, signatureImageData: tinySignature })
+    });
+    if (!res) return;
+    body = await res.json();
+    if (!body.success) {
+        setError(body.message);
+        return;
+    }
+
+    location.href = `/product/join/${productNo}/complete?subscriptionNo=${body.data}`;
+});
+</script>
 </body>
 </html>

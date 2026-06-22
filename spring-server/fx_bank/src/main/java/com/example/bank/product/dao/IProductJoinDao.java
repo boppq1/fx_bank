@@ -6,6 +6,8 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import com.example.bank.product.dto.ElectronicSignatureDto;
+import com.example.bank.product.dto.ForeignAccountBalanceInsertDto;
+import com.example.bank.product.dto.ForeignAccountInsertDto;
 import com.example.bank.product.dto.IdVerificationDto;
 import com.example.bank.product.dto.ProductDetailDto;
 import com.example.bank.product.dto.ProductJoinCompleteDto;
@@ -25,6 +27,10 @@ public interface IProductJoinDao {
     Long selectNextSubscriptionNo(); // 상품 가입 번호 미리 뽑기
 
     Long selectNextSignatureNo(); // 전자서명 번호 미리 뽑기
+
+    Long selectNextForeignAccountNo(); // 실제 외화 계좌 PK 발급
+
+    Long selectNextForeignBalanceNo(); // 외화 계좌 통화별 잔액 PK 발급
 
 
     // =====================================================
@@ -79,6 +85,10 @@ public interface IProductJoinDao {
     // =====================================================
 
     int insertProductSubscription(ProductSubscriptionInsertDto dto); // 최종 상품 가입 정보 저장
+
+    int insertForeignAccount(ForeignAccountInsertDto dto); // 실제 외화 계좌 생성
+
+    int insertForeignAccountBalance(ForeignAccountBalanceInsertDto dto); // 생성된 외화 계좌의 통화별 잔액 생성
 
 
     // =====================================================

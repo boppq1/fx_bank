@@ -16,11 +16,14 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.bank.product.dao.IProductJoinDao;
 import com.example.bank.product.dto.ElectronicSignatureDto;
+import com.example.bank.product.dto.ForeignAccountBalanceInsertDto;
+import com.example.bank.product.dto.ForeignAccountInsertDto;
 import com.example.bank.product.dto.IdVerificationDto;
 import com.example.bank.product.dto.ProductDetailDto;
 import com.example.bank.product.dto.ProductJoinCompleteDto;
@@ -41,6 +44,7 @@ public class ProductJoinServiceImpl implements ProductJoinService {
 
     private final IProductJoinDao productJoinDao;
     private final ObjectMapper objectMapper;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     @Value("${app.file.signature-dir:uploads/signatures}")
     private String signatureDir;
@@ -48,6 +52,9 @@ public class ProductJoinServiceImpl implements ProductJoinService {
     private static final String SESSION_TERMS = "PRODUCT_JOIN_TERMS";
     private static final String SESSION_FORM = "PRODUCT_JOIN_FORM";
     private static final String SESSION_VERIFICATION_NO = "PRODUCT_JOIN_VERIFICATION_NO";
+    private static final String BANK_NAME = "BUSAN BANK";
+    private static final BigDecimal DEFAULT_LIMIT_ONCE = new BigDecimal("1000000");
+    private static final BigDecimal DEFAULT_LIMIT_DAILY = new BigDecimal("5000000");
 
     // =====================================================
     // 1. 약관 조회
@@ -204,6 +211,10 @@ public class ProductJoinServiceImpl implements ProductJoinService {
             throw new IllegalArgumentException("해당 상품의 금리 정보가 올바르지 않습니다.");
         }
 
+        if (dto.getAccountPassword() == null || dto.getAccountPassword().isBlank()) {
+            throw new IllegalArgumentException("계좌 비밀번호를 입력해주세요.");
+        }
+
         session.setAttribute(SESSION_FORM, dto);
     }
 
@@ -268,6 +279,34 @@ public class ProductJoinServiceImpl implements ProductJoinService {
             throw new IllegalArgumentException("유효한 OCR 인증 정보가 없습니다.");
         }
 
+        // 실제 외화 계좌를 먼저 생성한다.
+        // product_subscriptions.acnt_no에만 번호를 넣으면 계좌 테이블에는 아무것도 남지 않기 때문에,
+        // 가입 완료 트랜잭션 안에서 foreign_accounts와 foreign_account_balances까지 함께 저장한다.
+        Long fxAcntNo = productJoinDao.selectNextForeignAccountNo();
+        String accountNo = generateAccountNo(fxAcntNo, product);
+
+        ForeignAccountInsertDto foreignAccountDto = new ForeignAccountInsertDto();
+        foreignAccountDto.setFxAcntNo(fxAcntNo);
+        foreignAccountDto.setAcntPw(passwordEncoder.encode(formDto.getAccountPassword()));
+        foreignAccountDto.setBankName(BANK_NAME);
+        foreignAccountDto.setAccountNo(accountNo);
+        foreignAccountDto.setUserNo(userNo);
+        foreignAccountDto.setLimitOnce(DEFAULT_LIMIT_ONCE);
+        foreignAccountDto.setLimitDaily(DEFAULT_LIMIT_DAILY);
+
+        productJoinDao.insertForeignAccount(foreignAccountDto);
+
+        // foreign_accounts는 계좌 마스터이고, 실제 통화별 잔액은 foreign_account_balances에서 관리한다.
+        Long balanceNo = productJoinDao.selectNextForeignBalanceNo();
+
+        ForeignAccountBalanceInsertDto balanceDto = new ForeignAccountBalanceInsertDto();
+        balanceDto.setBalanceNo(balanceNo);
+        balanceDto.setFxAcntId(fxAcntNo);
+        balanceDto.setCurrencyCode(formDto.getCurrencyCode());
+        balanceDto.setBalance(formDto.getAmount());
+
+        productJoinDao.insertForeignAccountBalance(balanceDto);
+
         Long subscriptionNo = productJoinDao.selectNextSubscriptionNo();
 
         ProductSubscriptionInsertDto subscriptionDto = new ProductSubscriptionInsertDto();
@@ -276,7 +315,9 @@ public class ProductJoinServiceImpl implements ProductJoinService {
         subscriptionDto.setUserNo(userNo);
         subscriptionDto.setRateNo(formDto.getRateNo());
         subscriptionDto.setType("FOREIGN_DEPOSIT");
-        subscriptionDto.setAcntNo(generateAccountNo(subscriptionNo));
+        // 상품 가입 정보에는 방금 만든 실제 외화 계좌번호를 연결한다.
+        // 현재 DDL에 FK는 없지만, foreign_accounts.account_no와 같은 값을 넣어 업무적으로 연결한다.
+        subscriptionDto.setAcntNo(accountNo);
         subscriptionDto.setCurrencyCode(formDto.getCurrencyCode());
         subscriptionDto.setAmount(formDto.getAmount());
         subscriptionDto.setPeriodMonth(formDto.getPeriodMonth());
@@ -361,11 +402,23 @@ public class ProductJoinServiceImpl implements ProductJoinService {
         );
     }
 
-    private String generateAccountNo(Long subscriptionNo) {
-        String now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyMMddHHmmss"));
-        String seq = String.format("%04d", subscriptionNo % 10000);
+    // 실제 외화 계좌번호를 은행 계좌처럼 보이는 형식으로 만든다.
+    // 333은 프로젝트용 은행 코드, 02는 입출금식, 03은 정기예금식 상품을 의미한다.
+    private String generateAccountNo(Long fxAcntNo, ProductDetailDto product) {
+        String accountTypeCode = isDemandDepositProduct(product) ? "02" : "03"; // 02는 입출금식 통장 상품, 03은 정기 예금 상품
+        String seq = String.format("%07d", fxAcntNo % 10_000_000);
 
-        return "FX" + now + seq;
+        return "333-" + accountTypeCode + "-" + seq;
+    }
+
+    private boolean isDemandDepositProduct(ProductDetailDto product) {
+        if (product == null || product.getProductType() == null) {
+            return false;
+        }
+
+        String productType = product.getProductType();
+        // "예금"은 정기예금에도 포함되는 단어라 여기 조건에 넣으면 정기예금이 입출금식으로 오분류된다.
+        return productType.contains("통장") || productType.contains("입출금"); // 입출금인지 통장인지 판단
     }
 
     private String saveSignatureImage(Long subscriptionNo, String signatureImageData) {

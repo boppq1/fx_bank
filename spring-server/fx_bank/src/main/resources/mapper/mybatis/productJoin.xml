@@ -27,6 +27,18 @@
         FROM dual
     </select>
 
+    <!-- 실제 외화 계좌 PK 발급 -->
+    <select id="selectNextForeignAccountNo" resultType="java.lang.Long">
+        SELECT seq_foreign_accounts.NEXTVAL
+        FROM dual
+    </select>
+
+    <!-- 외화 계좌의 통화별 잔액 PK 발급 -->
+    <select id="selectNextForeignBalanceNo" resultType="java.lang.Long">
+        SELECT seq_fx_balances.NEXTVAL
+        FROM dual
+    </select>
+
 
     <!-- =====================================================
          2. 상품 가입 전 검증용 조회
@@ -284,6 +296,59 @@
             SYSDATE,
             #{maturityDt},
             #{appliedRate},
+            SYSDATE
+        )
+
+    </insert>
+
+    <!--
+        실제 외화 계좌 생성.
+        product_subscriptions.acnt_no에만 번호를 넣으면 "계좌처럼 보이는 가입"일 뿐이라,
+        가입 완료 시 foreign_accounts에도 같은 계좌번호(account_no)를 먼저 생성한다.
+    -->
+    <insert id="insertForeignAccount"
+            parameterType="com.example.bank.product.dto.ForeignAccountInsertDto">
+
+        INSERT INTO foreign_accounts (
+            fx_acnt_no,
+            acnt_pw,
+            bank_name,
+            account_no,
+            user_no,
+            limit_once,
+            limit_daily,
+            updated_dt
+        ) VALUES (
+            #{fxAcntNo},
+            #{acntPw},
+            #{bankName},
+            #{accountNo},
+            #{userNo},
+            #{limitOnce},
+            #{limitDaily},
+            SYSDATE
+        )
+
+    </insert>
+
+    <!--
+        외화 계좌의 통화별 잔액 생성.
+        foreign_accounts는 계좌 마스터이고, 실제 통화별 잔액은 foreign_account_balances에 둔다.
+    -->
+    <insert id="insertForeignAccountBalance"
+            parameterType="com.example.bank.product.dto.ForeignAccountBalanceInsertDto">
+
+        INSERT INTO foreign_account_balances (
+            balance_no,
+            fx_acnt_id,
+            currency_code,
+            balance,
+            updated_dt
+        ) VALUES (
+            #{balanceNo},
+            #{fxAcntId},
+            #{currencyCode},
+            #{balance},
             SYSDATE
         )
 

@@ -1,10 +1,102 @@
 <!DOCTYPE html>
-<html>
-<html xmlns:th="http://www.thymeleaf.org">
-<meta charset="UTF-8">
-<title>Insert title here</title>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>상품 가입 - 약관 동의</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 920px; margin: 40px auto; line-height: 1.5; }
+        table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+        th, td { border: 1px solid #ddd; padding: 10px; vertical-align: top; }
+        th { background: #f5f5f5; }
+        .actions { margin-top: 20px; display: flex; gap: 10px; }
+        button, a.button { padding: 10px 14px; border: 1px solid #333; background: #111; color: white; text-decoration: none; cursor: pointer; }
+        .muted { color: #666; }
+        .error { color: #b00020; margin-top: 12px; }
+    </style>
 </head>
 <body>
+<h1>상품 가입 - 약관 동의</h1>
+<p>
+    <strong th:text="${product.productName}">상품명</strong>
+    <span class="muted">상품번호 <span th:text="${product.productNo}">0</span></span>
+</p>
 
+<form id="termsForm">
+    <input type="hidden" id="productNo" th:value="${product.productNo}">
+
+    <table>
+        <thead>
+        <tr>
+            <th>동의</th>
+            <th>필수 여부</th>
+            <th>약관명</th>
+            <th>구분</th>
+            <th>내용</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="term : ${terms}">
+            <td>
+                <input type="checkbox"
+                       name="termsCode"
+                       th:value="${term.termsCode}"
+                       th:attr="data-required=${term.requiredYn}">
+            </td>
+            <td th:text="${term.requiredYn == 'Y' ? '필수' : '선택'}">필수</td>
+            <td th:text="${term.termsTitle}">약관명</td>
+            <td th:text="${term.termsType}">구분</td>
+            <td th:text="${term.termsText}">약관 내용</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class="actions">
+        <a class="button" th:href="@{/product/detail/{productNo}(productNo=${product.productNo})}">상세로</a>
+        <button type="submit">다음</button>
+    </div>
+    <div id="message" class="error"></div>
+</form>
+
+<script>
+async function ensureAccessToken() {
+    if (window.accessToken) return window.accessToken;
+    const res = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'same-origin' });
+    const body = await res.json();
+    if (!body.success || !body.data || !body.data.accessToken) {
+        location.href = '/login';
+        return null;
+    }
+    window.accessToken = body.data.accessToken;
+    return window.accessToken;
+}
+
+async function apiFetch(url, options) {
+    const token = await ensureAccessToken();
+    if (!token) return null;
+    const headers = Object.assign({ 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, options.headers || {});
+    return fetch(url, Object.assign({}, options, { headers, credentials: 'same-origin' }));
+}
+
+document.getElementById('termsForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const productNo = Number(document.getElementById('productNo').value);
+    const checked = Array.from(document.querySelectorAll('input[name="termsCode"]:checked'));
+    const requiredTermsCodes = checked.filter(el => el.dataset.required === 'Y').map(el => el.value);
+    const optionalTermsCodes = checked.filter(el => el.dataset.required !== 'Y').map(el => el.value);
+
+    const res = await apiFetch('/api/product/join/terms', {
+        method: 'POST',
+        body: JSON.stringify({ productNo, requiredTermsCodes, optionalTermsCodes })
+    });
+    if (!res) return;
+
+    const body = await res.json();
+    if (!body.success) {
+        document.getElementById('message').textContent = body.message;
+        return;
+    }
+    location.href = `/product/join/${productNo}/form`;
+});
+</script>
 </body>
 </html>
