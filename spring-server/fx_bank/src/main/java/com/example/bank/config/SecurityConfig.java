@@ -36,7 +36,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -> auth
                 // 로그인, 재발급, 로그아웃 API와 기본 화면(html, js 등)은 토큰 없이도 무조건 통과 (프리패스)
 
-                .requestMatchers("/a","/", "/login","/register","/reauth", "/api/auth/**","/products", "/product/**","/css/**", "/js/**","/error").permitAll()
+                .requestMatchers("/a","/", "/login","/register","/reauth", "/api/auth/**","/products", "/product/**","/css/**", "/js/**", "/admin/**", "/error", "/event/**").permitAll()
 
                 // 2) ⭐ 대출 API 권한 명시 (반드시 anyRequest보다 위에 적어야 함!)
                 // .requestMatchers("/api/bank/loan").authenticated() // 또는 권한 적용 시 .hasRole("USER")
@@ -55,9 +55,5 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // FastAPI(OCR) 등 외부 HTTP 호출용 공용 RestTemplate
-    @Bean
-    public org.springframework.web.client.RestTemplate restTemplate() {
-        return new org.springframework.web.client.RestTemplate();
-    }
+
 }

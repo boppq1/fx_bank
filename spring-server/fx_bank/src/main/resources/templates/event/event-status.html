@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>이벤트 현황</title>
+    <link rel="stylesheet" th:href="@{/css/event.css}">
+</head>
+<body>
+
+<div class="event-container">
+    <h2>나의 이벤트 현황</h2>
+
+    <div class="status-grid">
+        <div class="status-item" th:classappend="${event.b == 'Y'} ? 'done' : ''">
+            <span class="letter">B</span>
+            <span th:text="${event.b == 'Y'} ? '✅ 인증완료' : '❌ 미인증'"></span>
+            <button th:if="${event.b == 'N'}" onclick="openCamera('B')">인증하기</button>
+        </div>
+        <div class="status-item" th:classappend="${event.n == 'Y'} ? 'done' : ''">
+            <span class="letter">N</span>
+            <span th:text="${event.n == 'Y'} ? '✅ 인증완료' : '❌ 미인증'"></span>
+            <button th:if="${event.n == 'N'}" onclick="openCamera('N')">인증하기</button>
+        </div>
+        <div class="status-item" th:classappend="${event.k == 'Y'} ? 'done' : ''">
+            <span class="letter">K</span>
+            <span th:text="${event.k == 'Y'} ? '✅ 인증완료' : '❌ 미인증'"></span>
+            <button th:if="${event.k == 'N'}" onclick="openCamera('K')">인증하기</button>
+        </div>
+    </div>
+
+    <!-- 모두 완료 시 -->
+    <div th:if="${event.isApplied == 'Y'}" class="success-msg">
+        <h3>🎉 축하합니다!</h3>
+        <p>B, N, K 모두 인증 완료! 우대금리가 적용되었습니다.</p>
+    </div>
+</div>
+
+<script th:src="@{/js/event.js}"></script>
+</body>
+</html>
