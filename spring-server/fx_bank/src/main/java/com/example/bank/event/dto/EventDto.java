@@ -18,7 +18,6 @@ import lombok.ToString;
 public class EventDto {
 	private Long eventNo;
 	private Long userNo;
-	private Long productNo;
 	private String b; // Y, N
 	private String n; // Y, N
 	private String k; // Y, N

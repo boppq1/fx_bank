@@ -21,29 +21,29 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/event")
 @RequiredArgsConstructor
 public class EventRestController {
-	
-	private final EventService es;
-	
-	// 이벤트 참여
+    
+    private final EventService es;
+    
+    // 이벤트 참여 (productNo -> couponNo 변경)
     @PostMapping("/join")
     public ResponseEntity<?> joinEvent(@RequestBody Map<String, Long> body) {
-        es.joinEvent(body.get("userNo"), body.get("productNo"));
+        es.joinEvent(body.get("userNo"), body.get("couponNo"));
         return ResponseEntity.ok("이벤트 참여 완료");
     }
 
     // 이벤트 현황 조회
-    @GetMapping("/{userNo}/{productNo}")
-    public ResponseEntity<?> getEvent(@PathVariable Long userNo,
-                                       @PathVariable Long productNo) {
-        return ResponseEntity.ok(es.getEvent(userNo, productNo));
+    @GetMapping("/{userNo}")
+    public ResponseEntity<?> getEvent(@PathVariable Long userNo) {
+        return ResponseEntity.ok(es.getEvent(userNo));
     }
     
-    // 사진 업로드 & 인증
+    // 사진 업로드 & 인증 (매핑 어노테이션 누락 추가 및 파라미터 변경)
+    @PostMapping("/detect")
     public ResponseEntity<?> detect(
             @RequestParam Long userNo,
-            @RequestParam Long productNo,
+            @RequestParam Long couponNo,
             @RequestParam MultipartFile file) {
-        EventDto result = es.uploadAndDetect(userNo, productNo, file);
+        EventDto result = es.uploadAndDetect(userNo, couponNo, file);
         return ResponseEntity.ok(result);
     }
 }

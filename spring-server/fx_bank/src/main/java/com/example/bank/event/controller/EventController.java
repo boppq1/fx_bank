@@ -40,34 +40,35 @@ public class EventController {
     public String eventStatus(HttpServletRequest request, Model model) {
         String token = extractToken(request);
         Long userNo = Long.parseLong(jwtUtil.getUserId(token));
-        Long productNo = 1L; // 이벤트 상품 번호 (고정값으로 일단 설정)
+        // 쿠폰 번호 고정값 설정 (필요 시 관리)
+        Long couponNo = 1L; 
 
-        EventDto event = eventService.getEvent(userNo, productNo);
+        EventDto event = eventService.getEvent(userNo);
         model.addAttribute("event", event);
         return "event/event-status";
     }
 
-    // 이미지 업로드 & 추론 API
+    // 이미지 업로드 & 추론 API (productNo -> couponNo 변경)
     @PostMapping("/detect")
     @ResponseBody
     public ResponseEntity<?> detect(
             HttpServletRequest request,
-            @RequestParam Long productNo,
+            @RequestParam Long couponNo,
             @RequestParam MultipartFile file) {
         String token = extractToken(request);
         Long userNo = Long.parseLong(jwtUtil.getUserId(token));
-        EventDto result = eventService.uploadAndDetect(userNo, productNo, file);
+        EventDto result = eventService.uploadAndDetect(userNo, couponNo, file);
         return ResponseEntity.ok(result);
     }
 
-    // 이벤트 참여 신청 API
+    // 이벤트 참여 신청 API (productNo -> couponNo 변경)
     @PostMapping("/join")
     @ResponseBody
     public ResponseEntity<?> joinEvent(HttpServletRequest request,
-                                        @RequestParam Long productNo) {
+                                       @RequestParam Long couponNo) {
         String token = extractToken(request);
         Long userNo = Long.parseLong(jwtUtil.getUserId(token));
-        eventService.joinEvent(userNo, productNo);
+        eventService.joinEvent(userNo, couponNo);
         return ResponseEntity.ok("이벤트 참여 완료");
     }
 

@@ -20,12 +20,12 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class EventService {
-	
-	private final IEventDao dao;
-	private final RestTemplate restTemplate;
-	
-	// 사진 업로드 & 글자 인증
-	public EventDto uploadAndDetect(Long userNo, Long productNo, MultipartFile file) {
+    
+    private final IEventDao dao;
+    private final RestTemplate restTemplate;
+    
+    // 사진 업로드 & 글자 인증
+    public EventDto uploadAndDetect(Long userNo, Long couponNo, MultipartFile file) {
 
         // FastAPI로 이미지 전송
         HttpHeaders headers = new HttpHeaders();
@@ -37,7 +37,7 @@ public class EventService {
         HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
 
         ResponseEntity<Map> response = restTemplate.postForEntity(
-            "http://fastapi-cnn:8000/detect",
+            "http://fastapi-bnk:8000/detect",
             request,
             Map.class
         );
@@ -54,26 +54,28 @@ public class EventService {
             throw new RuntimeException("글자를 인식하지 못했습니다. 다시 시도해주세요.");
         }
 
-        return updateLetter(userNo, productNo, detectedLetter);
+        return updateLetter(userNo, couponNo, detectedLetter);
     }
-	
-	
-	// 이벤트 참여 (적금 가입 시 호출)
-    public void joinEvent(Long userNo, Long productNo) {
-        EventDto existing = dao.selectEvent(userNo, productNo);
+    
+    // 이벤트 최초 참여 등록
+    public void joinEvent(Long userNo, Long couponNo) {
+        EventDto existing = dao.selectEvent(userNo);
         if (existing == null) {
             EventDto event = EventDto.builder()
                     .userNo(userNo)
-                    .productNo(productNo)
                     .build();
             dao.insertEvent(event);
         }
     }
     
- // 글자 인증 업데이트
+ // 글자 인증 업데이트 및 쿠폰 발급
     public EventDto updateLetter(Long userNo, Long productNo, String letter) {
-        EventDto event = dao.selectEvent(userNo, productNo);
+        EventDto event = dao.selectEvent(userNo);
         if (event == null) throw new RuntimeException("이벤트 참여 이력이 없습니다.");
+
+        if ("Y".equals(event.getApplied())) {
+            throw new RuntimeException("이미 우대금리 쿠폰이 발급된 계정입니다.");
+        }
 
         // 해당 글자 Y로 변경
         switch (letter.toUpperCase()) {
@@ -83,11 +85,16 @@ public class EventService {
         }
         dao.updateLetter(event);
 
-        // B, N, K 모두 Y면 우대금리 적용
+        // B, N, K 모두 Y면 우대금리 쿠폰 발급 및 이벤트 상태 변경
         if ("Y".equals(event.getB()) && 
             "Y".equals(event.getN()) && 
             "Y".equals(event.getK())) {
-        	dao.updateIsApplied(userNo, productNo);
+            
+            // 1. 쿠폰 테이블에 발급 데이터 삽입 (event_pk 활용)
+            dao.insertCoupon(userNo, event.getEventNo(), productNo);
+            
+            // 2. 이벤트 테이블의 applied 상태를 'Y'로 변경
+            dao.updateIsApplied(userNo); 
             event.setApplied("Y");
         }
 
@@ -95,8 +102,8 @@ public class EventService {
     }
 
     // 이벤트 현황 조회
-    public EventDto getEvent(Long userNo, Long productNo) {
-        EventDto event = dao.selectEvent(userNo, productNo);
+    public EventDto getEvent(Long userNo) {
+        EventDto event = dao.selectEvent(userNo);
         if (event == null) throw new RuntimeException("이벤트 참여 이력이 없습니다.");
         return event;
     }

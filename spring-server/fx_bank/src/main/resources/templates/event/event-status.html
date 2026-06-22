@@ -28,10 +28,10 @@
         </div>
     </div>
 
-    <!-- 모두 완료 시 -->
-    <div th:if="${event.isApplied == 'Y'}" class="success-msg">
+    <div th:if="${event.applied == 'Y'}" class="success-msg">
         <h3>🎉 축하합니다!</h3>
-        <p>B, N, K 모두 인증 완료! 우대금리가 적용되었습니다.</p>
+        <p>B, N, K 모두 인증 완료! <strong>우대금리 쿠폰이 발급되었습니다.</strong></p>
+        <p class="sub-msg">쿠폰함에서 발급된 쿠폰을 확인하고 적금 가입 시 사용해 보세요!</p>
     </div>
 </div>
 
