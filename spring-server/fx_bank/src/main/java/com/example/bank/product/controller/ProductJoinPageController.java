@@ -1,6 +1,7 @@
 package com.example.bank.product.controller;
 
 import com.example.bank.product.dto.ProductDetailDto;
+import com.example.bank.product.dto.ProductTermDto;
 import com.example.bank.product.service.ProductJoinService;
 import com.example.bank.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,30 @@ public class ProductJoinPageController {
         model.addAttribute("product", product);
         model.addAttribute("terms", productJoinService.getJoinTerms(productNo));
         return "product/join/terms";
+    }
+
+    @GetMapping("/product/join/{productNo}/terms/{termsCode}")
+    public String readTerms(
+            @PathVariable("productNo") Long productNo,
+            @PathVariable("termsCode") String termsCode,
+            Model model
+    ) {
+        ProductDetailDto product = productService.getProductDetail(productNo);
+        if (product == null) {
+            return "redirect:/product/list";
+        }
+
+        ProductTermDto term = productJoinService.getJoinTerms(productNo).stream()
+                .filter(item -> termsCode.equals(item.getTermsCode()))
+                .findFirst()
+                .orElse(null);
+        if (term == null) {
+            return "redirect:/product/join/" + productNo + "/terms";
+        }
+
+        model.addAttribute("product", product);
+        model.addAttribute("term", term);
+        return "product/join/terms-reader";
     }
 
     @GetMapping("/product/join/{productNo}/form")

@@ -14,4 +14,5 @@ public class ProductJoinFormRequestDto {
 	private Integer periodMonth;
 	private BigDecimal appliedRate;
 	private String accountPassword; // 실제 외화 계좌(foreign_accounts) 생성 시 저장할 계좌 비밀번호
+	private String withdrawalAccountNo;
 }
