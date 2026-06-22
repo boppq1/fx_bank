@@ -1,10 +1,80 @@
 <!DOCTYPE html>
-<html>
-<html xmlns:th="http://www.thymeleaf.org">
-<meta charset="UTF-8">
-<title>Insert title here</title>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>상품 가입 - 약관 동의</title>
+    <style>
+        body { max-width: 760px; margin: 40px auto; color: #202124; font-family: 'Malgun Gothic', Arial, sans-serif; }
+        .muted { color: #666; } .terms-list { margin-top: 22px; border-top: 1px solid #dfe3e8; }
+        .term-row { display: flex; align-items: center; gap: 12px; min-height: 68px; border-bottom: 1px solid #dfe3e8; }
+        .term-row label { flex: 1; font-weight: 700; } .term-row input:disabled { cursor: not-allowed; }
+        .badge { padding: 3px 7px; border-radius: 4px; font-size: 12px; } .required { background: #fff0e7; color: #a33a00; } .optional { background: #edf0f3; color: #4e5968; }
+        .read-state { color: #69707c; font-size: 13px; } .arrow { padding: 10px; color: #202124; text-decoration: none; font-size: 22px; }
+        .actions { display: flex; gap: 10px; margin-top: 28px; } button, .button { padding: 10px 14px; border: 1px solid #222; background: #111; color: #fff; text-decoration: none; cursor: pointer; }
+        button:disabled { border-color: #bbb; background: #ddd; color: #777; cursor: not-allowed; } .error { margin-top: 12px; color: #b00020; }
+    </style>
 </head>
 <body>
+<h1>약관 동의</h1>
+<p><strong th:text="${product.productName}">상품명</strong> <span class="muted">상품 가입을 위해 약관을 확인해주세요.</span></p>
 
+<form id="termsForm">
+    <input type="hidden" id="productNo" th:value="${product.productNo}">
+    <div class="terms-list">
+        <div class="term-row" th:each="term : ${terms}">
+            <input type="checkbox" name="termsCode" th:id="|term-${term.termsCode}|" th:value="${term.termsCode}"
+                   th:attr="data-required=${term.requiredYn},data-terms-code=${term.termsCode}" disabled>
+            <label th:for="|term-${term.termsCode}|" th:text="${term.termsTitle}">약관 제목</label>
+            <span th:class="${term.requiredYn == 'Y'} ? 'badge required' : 'badge optional'"
+                  th:text="${term.requiredYn == 'Y'} ? '필수' : '선택'">필수</span>
+            <span class="read-state">읽기 전</span>
+            <a class="arrow" th:href="@{/product/join/{productNo}/terms/{termsCode}(productNo=${product.productNo}, termsCode=${term.termsCode})}" aria-label="약관 읽기">›</a>
+        </div>
+    </div>
+    <div class="actions">
+        <a class="button" th:href="@{/product/detail/{productNo}(productNo=${product.productNo})}">상품 상세로</a>
+        <button type="submit">다음</button>
+    </div>
+    <div id="message" class="error"></div>
+</form>
+
+<script>
+const productNo = document.getElementById('productNo').value;
+const readKey = code => `product-terms-read:${productNo}:${code}`;
+
+document.querySelectorAll('input[name="termsCode"]').forEach(checkbox => {
+    const code = checkbox.dataset.termsCode;
+    if (sessionStorage.getItem(readKey(code)) === 'Y') {
+        checkbox.disabled = false;
+        checkbox.closest('.term-row').querySelector('.read-state').textContent = '읽기 완료';
+    }
+});
+
+async function ensureAccessToken() {
+    if (window.accessToken) return window.accessToken;
+    const res = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'same-origin' });
+    const body = await res.json();
+    if (!body.success || !body.data?.accessToken) { location.href = '/login'; return null; }
+    window.accessToken = body.data.accessToken;
+    return window.accessToken;
+}
+
+document.getElementById('termsForm').addEventListener('submit', async event => {
+    event.preventDefault();
+    const required = Array.from(document.querySelectorAll('input[name="termsCode"][data-required="Y"]'));
+    if (required.some(input => input.disabled)) { document.getElementById('message').textContent = '필수 약관을 읽어주세요.'; return; }
+    if (required.some(input => !input.checked)) { document.getElementById('message').textContent = '필수 약관에 동의해주세요.'; return; }
+    const token = await ensureAccessToken();
+    if (!token) return;
+    const checked = Array.from(document.querySelectorAll('input[name="termsCode"]:checked'));
+    const response = await fetch('/api/product/join/terms', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, credentials: 'same-origin',
+        body: JSON.stringify({ productNo: Number(productNo), requiredTermsCodes: checked.filter(input => input.dataset.required === 'Y').map(input => input.value), optionalTermsCodes: checked.filter(input => input.dataset.required !== 'Y').map(input => input.value) })
+    });
+    const body = await response.json();
+    if (!body.success) { document.getElementById('message').textContent = body.message; return; }
+    location.href = `/product/join/${productNo}/form`;
+});
+</script>
 </body>
 </html>

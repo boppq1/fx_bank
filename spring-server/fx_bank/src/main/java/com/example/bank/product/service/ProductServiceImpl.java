@@ -55,4 +55,35 @@ public class ProductServiceImpl implements ProductService {
     public List<ProductReviewDto> getProductReviews(Long productNo) {
         return productDao.selectProductReviews(productNo);
     }
+
+    @Override
+    public boolean canWriteProductReview(Long userNo, Long productNo) {
+        if (userNo == null || productNo == null) {
+            return false;
+        }
+        return productDao.countActiveProductSubscription(userNo, productNo) > 0
+                && productDao.countMyProductReview(userNo, productNo) == 0;
+    }
+
+    @Override
+    public Long writeProductReview(
+            Long userNo,
+            Long productNo,
+            com.example.bank.product.dto.ProductReviewWriteRequestDto request
+    ) {
+        if (!canWriteProductReview(userNo, productNo)) {
+            throw new IllegalArgumentException("가입한 상품에만 리뷰를 한 번 작성할 수 있습니다.");
+        }
+        if (request == null || request.getReviewText() == null || request.getReviewText().isBlank()) {
+            throw new IllegalArgumentException("리뷰 내용을 입력해주세요.");
+        }
+        if (request.getRating() == null || request.getRating().compareTo(java.math.BigDecimal.ONE) < 0
+                || request.getRating().compareTo(new java.math.BigDecimal("5")) > 0) {
+            throw new IllegalArgumentException("평점은 1점에서 5점 사이로 입력해주세요.");
+        }
+
+        Long reviewNo = productDao.selectNextProductReviewNo();
+        productDao.insertProductReview(reviewNo, userNo, productNo, request);
+        return reviewNo;
+    }
 }

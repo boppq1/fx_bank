@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>내 가입 상품</title>
+    <style>
+        body { max-width: 1000px; margin: 40px auto; color: #202124; font-family: 'Malgun Gothic', Arial, sans-serif; }
+        table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+        th { background: #f7f8fa; }
+        .message { margin-top: 16px; color: #666; }
+        .error { color: #b00020; }
+        a { color: #222; }
+    </style>
+</head>
+<body>
+<a href="/product/list">상품 목록으로</a>
+<h1>내 가입 상품</h1>
+<p>현재 로그인한 회원의 상품 가입 정보와 연결된 외화 계좌입니다.</p>
+<div id="message" class="message">가입 상품을 조회하고 있습니다.</div>
+<table id="subscriptionTable" hidden>
+    <thead>
+    <tr><th>상품명</th><th>상품유형</th><th>계좌번호</th><th>통화</th><th>가입금액</th><th>계좌잔액</th><th>가입일</th><th>상태</th><th>리뷰</th></tr>
+    </thead>
+    <tbody id="subscriptionBody"></tbody>
+</table>
+
+<script>
+async function ensureAccessToken() {
+    if (window.accessToken) return window.accessToken;
+    const res = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'same-origin' });
+    const body = await res.json();
+    if (!body.success || !body.data || !body.data.accessToken) {
+        location.href = '/login';
+        return null;
+    }
+    window.accessToken = body.data.accessToken;
+    return window.accessToken;
+}
+
+function formatAmount(value, currencyCode) {
+    if (value === null || value === undefined) return '-';
+    return new Intl.NumberFormat('ko-KR').format(value) + ' ' + (currencyCode || '');
+}
+
+function formatDate(value) {
+    if (!value) return '-';
+    return String(value).slice(0, 10).replaceAll('-', '.');
+}
+
+function escapeHtml(value) {
+    return String(value ?? '-').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
+}
+
+async function loadMySubscriptions() {
+    const token = await ensureAccessToken();
+    if (!token) return;
+    const response = await fetch('/api/product/join/my-subscriptions', {
+        headers: { 'Authorization': 'Bearer ' + token },
+        credentials: 'same-origin'
+    });
+    const body = await response.json();
+    const message = document.getElementById('message');
+    if (!body.success) {
+        message.classList.add('error');
+        message.textContent = body.message || '가입 상품을 조회하지 못했습니다.';
+        return;
+    }
+    if (!body.data || body.data.length === 0) {
+        message.textContent = '가입한 상품이 없습니다.';
+        return;
+    }
+
+    document.getElementById('subscriptionBody').innerHTML = body.data.map(item => `
+        <tr>
+            <td>${escapeHtml(item.productName)}</td>
+            <td>${escapeHtml(item.productType)}</td>
+            <td>${escapeHtml(item.accountNo)}</td>
+            <td>${escapeHtml(item.currencyCode)}</td>
+            <td>${formatAmount(item.subscriptionAmount, item.currencyCode)}</td>
+            <td>${formatAmount(item.accountBalance, item.currencyCode)}</td>
+            <td>${formatDate(item.subscribedDt)}</td>
+            <td>${escapeHtml(item.subscriptionStatus)}</td>
+            <td><a class="review-link" data-product-no="${item.productNo}" href="/product/${item.productNo}/reviews/new" hidden>리뷰 작성</a></td>
+        </tr>`).join('');
+    message.hidden = true;
+    document.getElementById('subscriptionTable').hidden = false;
+    await showReviewLinks(token);
+}
+
+async function showReviewLinks(token) {
+    const links = Array.from(document.querySelectorAll('.review-link'));
+    await Promise.all(links.map(async link => {
+        const productNo = link.dataset.productNo;
+        const response = await fetch(`/api/products/${productNo}/review-eligibility`, {
+            headers: { 'Authorization': 'Bearer ' + token }, credentials: 'same-origin'
+        });
+        const body = await response.json();
+        if (body.success && body.data) link.hidden = false;
+    }));
+}
+
+loadMySubscriptions();
+</script>
+</body>
+</html>

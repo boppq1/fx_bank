@@ -146,18 +146,25 @@
             resultType="com.example.bank.product.dto.ProductTermDto">
 
         SELECT
-            terms_code,
-            product_no,
-            terms_title,
-            terms_type,
-            required_yn,
-            pdf_path,
-            terms_text,
-            use_yn
-        FROM product_terms
-        WHERE product_no = #{productNo}
-          AND use_yn = 'Y'
-        ORDER BY required_yn DESC, terms_code
+            TO_CHAR(pt.terms_no) AS terms_code,
+            pt.product_no,
+            ptv.terms_title,
+            tt.type_name AS terms_type,
+            pt.required_yn,
+            ptv.pdf_path,
+            ptv.terms_text,
+            pt.use_yn
+        FROM product_terms pt
+        JOIN product_term_versions ptv
+          ON pt.terms_no = ptv.terms_no
+        LEFT JOIN terms_types tt
+          ON pt.type_no = tt.type_no
+        WHERE pt.product_no = #{productNo}
+          AND pt.use_yn = 'Y'
+          AND ptv.is_current = 'Y'
+          AND ptv.effective_dt &lt;= SYSDATE
+          AND (ptv.expired_dt IS NULL OR ptv.expired_dt > SYSDATE)
+        ORDER BY pt.required_yn DESC, pt.terms_no
 
     </select>
 
@@ -182,5 +189,32 @@
         ORDER BY r.created_dt DESC
 
     </select>
+
+    <select id="selectNextProductReviewNo" resultType="java.lang.Long">
+        SELECT seq_reviews.NEXTVAL FROM dual
+    </select>
+
+    <select id="countActiveProductSubscription" resultType="int">
+        SELECT COUNT(*)
+        FROM product_subscriptions
+        WHERE user_no = #{userNo}
+          AND product_no = #{productNo}
+          AND subscription_status NOT IN ('해지', '만기', '취소')
+    </select>
+
+    <select id="countMyProductReview" resultType="int">
+        SELECT COUNT(*)
+        FROM product_reviews
+        WHERE user_no = #{userNo}
+          AND product_no = #{productNo}
+    </select>
+
+    <insert id="insertProductReview">
+        INSERT INTO product_reviews (
+            review_no, user_no, product_no, review_text, rating, created_dt, updated_dt
+        ) VALUES (
+            #{reviewNo}, #{userNo}, #{productNo}, #{request.reviewText}, #{request.rating}, SYSDATE, SYSDATE
+        )
+    </insert>
 
 </mapper>
