@@ -1,21 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
         
 <mapper namespace="com.example.bank.event.dao.IEventDao">
 	
-	<insert id="insertEvent" parameterType="com.example.bank.event.dto.EventDto">
-        INSERT INTO event (event_pk, user_no, product_no, b, n, k, is_applied, created_dt)
-        VALUES (event_seq.NEXTVAL, #{userNo}, #{productNo}, 'N', 'N', 'N', 'N', SYSDATE)
+    <insert id="insertEvent" parameterType="com.example.bank.event.dto.EventDto">
+        INSERT INTO event (event_no, user_no, b, n, k, created_dt, applied)
+        VALUES (event_seq.NEXTVAL, #{userNo}, 'N', 'N', 'N', SYSDATE, 'N')
     </insert>
     
     <select id="selectEvent" resultType="com.example.bank.event.dto.EventDto">
-        SELECT event_pk, user_no, product_no, b, n, k, is_applied, created_dt
+        SELECT event_no, user_no, b, n, k, created_dt, applied
         FROM event
         WHERE user_no = #{userNo}
-        AND product_no = #{productNo}
     </select>
     
     <update id="updateLetter" parameterType="com.example.bank.event.dto.EventDto">
@@ -25,15 +23,17 @@
             n = #{n},
             k = #{k}
         WHERE user_no = #{userNo}
-        AND product_no = #{productNo}
     </update>
     
     <update id="updateIsApplied">
         UPDATE event
-        SET is_applied = 'Y'
+        SET applied = 'Y'
         WHERE user_no = #{userNo}
-        AND product_no = #{productNo}
     </update>
     
+    <insert id="insertCoupon">
+        INSERT INTO coupon (coupon_no, user_no, event_no, preferential_rate, is_used, issued_dt)
+        VALUES (coupon_seq.NEXTVAL, #{userNo}, #{eventNo}, 0.50, 'N', SYSDATE)
+    </insert>
     
 </mapper>
