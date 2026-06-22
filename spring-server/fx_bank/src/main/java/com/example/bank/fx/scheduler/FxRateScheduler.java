@@ -35,15 +35,15 @@ public class FxRateScheduler {
 			
 			for (Map<String, Object> item : list) {
 		        String ttbStr = item.get("ttb").toString().replace(",", "");
-		        Double ttb = Double.parseDouble(ttbStr);
+		        Double buy_rate = Double.parseDouble(ttbStr);
 
-		        if (ttb == 0) continue;
+		        if (buy_rate == 0) continue;
 
-		        String cur_nm     = (String) item.get("cur_nm");
-		        Double tts        = Double.parseDouble(item.get("tts").toString().replace(",", ""));
-		        Double deal_bas_r = Double.parseDouble(item.get("deal_bas_r").toString().replace(",", ""));
+		        String currency_code     = (String) item.get("cur_nm");
+		        Double sell_rate        = Double.parseDouble(item.get("tts").toString().replace(",", ""));
+		        Double base_rate = Double.parseDouble(item.get("deal_bas_r").toString().replace(",", ""));
 
-		        fxDataDao.insertRate(cur_nm, ttb, tts, deal_bas_r); //cur_nm : 나라코드
+		        fxDataDao.insertRate(currency_code, buy_rate, sell_rate, base_rate); //cur_nm : 나라코드
 		        													//ttb : 전신환 매수율
 		        													//tts : 전신환 매도율
 		        													//deal_bas_r : 기준환율

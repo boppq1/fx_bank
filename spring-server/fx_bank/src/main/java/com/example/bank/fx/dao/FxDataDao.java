@@ -8,8 +8,8 @@ public interface FxDataDao {
 	
 	void insertRate(
 			@Param("currency_code") String currency_code,
-			@Param("buy_rate") Double ttb,
-			@Param("sell_rate") Double tts,
+			@Param("buy_rate") Double buy_rate,
+			@Param("sell_rate") Double sell_rate,
 			@Param("base_rate") Double deal_bas_r
 			);
 
