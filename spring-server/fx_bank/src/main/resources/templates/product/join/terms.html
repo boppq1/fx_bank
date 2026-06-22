@@ -4,13 +4,20 @@
     <meta charset="UTF-8">
     <title>상품 가입 - 약관 동의</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 920px; margin: 40px auto; line-height: 1.5; }
-        table { width: 100%; border-collapse: collapse; margin-top: 16px; }
-        th, td { border: 1px solid #ddd; padding: 10px; vertical-align: top; }
-        th { background: #f5f5f5; }
-        .actions { margin-top: 20px; display: flex; gap: 10px; }
+        body { max-width: 920px; margin: 40px auto; color: #202124; font-family: 'Malgun Gothic', Arial, sans-serif; }
+        .muted { color: #666; margin-left: 8px; }
+        .terms-card { margin-top: 18px; border: 1px solid #d9dce1; }
+        .terms-header { display: flex; align-items: center; gap: 10px; padding: 15px 18px; background: #f7f8fa; border-bottom: 1px solid #d9dce1; }
+        .terms-header label { flex: 1; font-weight: 700; cursor: pointer; }
+        .required { color: #b00020; font-size: 13px; }
+        .optional { color: #666; font-size: 13px; }
+        .read-status { color: #666; font-size: 13px; }
+        .terms-scroll { height: 220px; overflow-y: auto; padding: 20px; background: #fff; border-bottom: 1px solid #eee; }
+        .terms-content { margin: 0; white-space: pre-wrap; word-break: break-all; font-family: 'Malgun Gothic', Arial, sans-serif; font-size: 14px; line-height: 1.8; }
+        .terms-footer { padding: 10px 18px; color: #666; font-size: 13px; }
+        .actions { margin-top: 24px; display: flex; gap: 10px; }
         button, a.button { padding: 10px 14px; border: 1px solid #333; background: #111; color: white; text-decoration: none; cursor: pointer; }
-        .muted { color: #666; }
+        button:disabled { border-color: #bbb; background: #ddd; color: #777; cursor: not-allowed; }
         .error { color: #b00020; margin-top: 12px; }
     </style>
 </head>
@@ -24,35 +31,33 @@
 <form id="termsForm">
     <input type="hidden" id="productNo" th:value="${product.productNo}">
 
-    <table>
-        <thead>
-        <tr>
-            <th>동의</th>
-            <th>필수 여부</th>
-            <th>약관명</th>
-            <th>구분</th>
-            <th>내용</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="term : ${terms}">
-            <td>
-                <input type="checkbox"
-                       name="termsCode"
-                       th:value="${term.termsCode}"
-                       th:attr="data-required=${term.requiredYn}">
-            </td>
-            <td th:text="${term.requiredYn == 'Y' ? '필수' : '선택'}">필수</td>
-            <td th:text="${term.termsTitle}">약관명</td>
-            <td th:text="${term.termsType}">구분</td>
-            <td th:text="${term.termsText}">약관 내용</td>
-        </tr>
-        </tbody>
-    </table>
+    <section class="terms-card" th:each="term : ${terms}">
+        <div class="terms-header">
+            <input type="checkbox"
+                   name="termsCode"
+                   th:id="|term-${term.termsCode}|"
+                   th:value="${term.termsCode}"
+                   th:attr="data-required=${term.requiredYn}"
+                   disabled>
+            <label th:for="|term-${term.termsCode}|" th:text="${term.termsTitle}">약관 제목</label>
+            <span th:classappend="${term.requiredYn == 'Y'} ? 'required' : 'optional'"
+                  th:text="${term.requiredYn == 'Y'} ? '필수' : '선택'">필수</span>
+            <span class="read-status">약관을 끝까지 읽어주세요.</span>
+        </div>
+        <div class="terms-scroll">
+            <p class="terms-content" th:text="${term.termsText}">약관 내용</p>
+        </div>
+        <div class="terms-footer">
+            <span th:text="${term.termsType}">약관 구분</span>
+            <a th:if="${not #strings.isEmpty(term.pdfPath)}"
+               th:href="@{/api/product/join/{productNo}/terms/{termsCode}/pdf(productNo=${product.productNo}, termsCode=${term.termsCode})}"
+               target="_blank" rel="noopener">PDF 원문 보기</a>
+        </div>
+    </section>
 
     <div class="actions">
-        <a class="button" th:href="@{/product/detail/{productNo}(productNo=${product.productNo})}">상세로</a>
-        <button type="submit">다음</button>
+        <a class="button" th:href="@{/product/detail/{productNo}(productNo=${product.productNo})}">상품 상세로</a>
+        <button id="nextButton" type="submit">다음</button>
     </div>
     <div id="message" class="error"></div>
 </form>
@@ -77,13 +82,47 @@ async function apiFetch(url, options) {
     return fetch(url, Object.assign({}, options, { headers, credentials: 'same-origin' }));
 }
 
+function enableCheckboxWhenRead(scrollBox) {
+    const card = scrollBox.closest('.terms-card');
+    const checkbox = card.querySelector('input[name="termsCode"]');
+    const status = card.querySelector('.read-status');
+    const isAtBottom = () => scrollBox.scrollTop + scrollBox.clientHeight >= scrollBox.scrollHeight - 2;
+
+    function unlock() {
+        checkbox.disabled = false;
+        status.textContent = '읽기 완료. 동의 여부를 선택해주세요.';
+    }
+
+    if (scrollBox.scrollHeight <= scrollBox.clientHeight || isAtBottom()) {
+        unlock();
+        return;
+    }
+    scrollBox.addEventListener('scroll', () => {
+        if (isAtBottom()) unlock();
+    });
+}
+
+document.querySelectorAll('.terms-scroll').forEach(enableCheckboxWhenRead);
+
 document.getElementById('termsForm').addEventListener('submit', async (event) => {
     event.preventDefault();
     const productNo = Number(document.getElementById('productNo').value);
+    const requiredCheckboxes = Array.from(document.querySelectorAll('input[name="termsCode"][data-required="Y"]'));
+    const unreadRequired = requiredCheckboxes.some(checkbox => checkbox.disabled);
+    const uncheckedRequired = requiredCheckboxes.some(checkbox => !checkbox.checked);
+
+    if (unreadRequired) {
+        document.getElementById('message').textContent = '필수 약관을 끝까지 읽어주세요.';
+        return;
+    }
+    if (uncheckedRequired) {
+        document.getElementById('message').textContent = '필수 약관에 모두 동의해주세요.';
+        return;
+    }
+
     const checked = Array.from(document.querySelectorAll('input[name="termsCode"]:checked'));
     const requiredTermsCodes = checked.filter(el => el.dataset.required === 'Y').map(el => el.value);
     const optionalTermsCodes = checked.filter(el => el.dataset.required !== 'Y').map(el => el.value);
-
     const res = await apiFetch('/api/product/join/terms', {
         method: 'POST',
         body: JSON.stringify({ productNo, requiredTermsCodes, optionalTermsCodes })

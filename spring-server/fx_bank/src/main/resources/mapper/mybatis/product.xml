@@ -190,4 +190,31 @@
 
     </select>
 
+    <select id="selectNextProductReviewNo" resultType="java.lang.Long">
+        SELECT seq_reviews.NEXTVAL FROM dual
+    </select>
+
+    <select id="countActiveProductSubscription" resultType="int">
+        SELECT COUNT(*)
+        FROM product_subscriptions
+        WHERE user_no = #{userNo}
+          AND product_no = #{productNo}
+          AND subscription_status NOT IN ('해지', '만기', '취소')
+    </select>
+
+    <select id="countMyProductReview" resultType="int">
+        SELECT COUNT(*)
+        FROM product_reviews
+        WHERE user_no = #{userNo}
+          AND product_no = #{productNo}
+    </select>
+
+    <insert id="insertProductReview">
+        INSERT INTO product_reviews (
+            review_no, user_no, product_no, review_text, rating, created_dt, updated_dt
+        ) VALUES (
+            #{reviewNo}, #{userNo}, #{productNo}, #{request.reviewText}, #{request.rating}, SYSDATE, SYSDATE
+        )
+    </insert>
+
 </mapper>

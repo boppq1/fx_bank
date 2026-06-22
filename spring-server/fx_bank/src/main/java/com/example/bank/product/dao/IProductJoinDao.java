@@ -11,6 +11,7 @@ import com.example.bank.product.dto.ForeignAccountInsertDto;
 import com.example.bank.product.dto.IdVerificationDto;
 import com.example.bank.product.dto.ProductDetailDto;
 import com.example.bank.product.dto.ProductJoinCompleteDto;
+import com.example.bank.product.dto.ProductMySubscriptionDto;
 import com.example.bank.product.dto.ProductSubscriptionInsertDto;
 import com.example.bank.product.dto.ProductTermDto;
 
@@ -73,6 +74,15 @@ public interface IProductJoinDao {
 
     int insertIdVerification(IdVerificationDto dto); // OCR 인증 결과 저장
 
+    int countActiveProductSubscription(
+            @Param("userNo") Long userNo,
+            @Param("productNo") Long productNo
+    );
+
+    java.util.Date selectLatestFinancialProductActivity(@Param("userNo") Long userNo);
+
+    int countWithdrawableSourceAccounts(@Param("userNo") Long userNo);
+
     int countValidVerification(
             @Param("verificationNo") Long verificationNo,
             @Param("userNo") Long userNo,
@@ -117,6 +127,8 @@ public interface IProductJoinDao {
     // =====================================================
     // 8. 가입 완료 화면 조회
     // =====================================================
+
+    List<ProductMySubscriptionDto> selectMySubscriptions(@Param("userNo") Long userNo);
 
     ProductJoinCompleteDto selectJoinComplete(
             @Param("subscriptionNo") Long subscriptionNo

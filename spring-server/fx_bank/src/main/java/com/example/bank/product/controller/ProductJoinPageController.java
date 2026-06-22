@@ -42,6 +42,11 @@ public class ProductJoinPageController {
         return "product/join/form";
     }
 
+    @GetMapping("/product/my-subscriptions")
+    public String mySubscriptions() {
+        return "product/my-subscriptions";
+    }
+
     @GetMapping("/product/join/{productNo}/complete")
     public String complete(
             @PathVariable("productNo") Long productNo,

@@ -3,31 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <title>외화 상품 목록</title>
+    <style>
+        body { max-width: 1100px; margin: 40px auto; color: #202124; font-family: 'Malgun Gothic', Arial, sans-serif; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+        .button, .join-button { display: inline-block; padding: 10px 14px; border: 1px solid #333; background: #111; color: #fff; text-decoration: none; cursor: pointer; }
+        .join-button { padding: 6px 10px; font: inherit; font-size: 13px; }
+        table { width: 100%; margin-top: 18px; border-collapse: collapse; }
+        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+        th { background: #f7f8fa; }
+    </style>
 </head>
 <body>
+<div class="topbar">
+    <div>
+        <h1>외화 상품 목록</h1>
+        <p>총 <strong th:text="${#lists.size(products)}">0</strong>개 상품</p>
+    </div>
+    <a class="button" href="/product/my-subscriptions">내 가입 상품</a>
+</div>
 
-<h1>외화 상품 목록</h1>
-
-<p>
-    총 <strong th:text="${#lists.size(products)}">0</strong>개 상품
-</p>
-
-<table border="1" cellpadding="10">
+<table>
     <thead>
     <tr>
-        <th>상품번호</th>
-        <th>상품명</th>
-        <th>유형</th>
-        <th>통화</th>
-        <th>기본금리</th>
-        <th>최고금리</th>
-        <th>가입기간</th>
-        <th>최소금액</th>
-        <th>평점</th>
-        <th>상세</th>
+        <th>상품번호</th><th>상품명</th><th>유형</th><th>통화</th><th>기본금리</th><th>최고금리</th><th>가입기간</th><th>최소금액</th><th>평점</th><th>상세</th><th>가입</th>
     </tr>
     </thead>
-
     <tbody>
     <tr th:each="product : ${products}">
         <td th:text="${product.productNo}">900001</td>
@@ -36,25 +36,47 @@
         <td th:text="${product.currencyCodes}">USD</td>
         <td th:text="${product.baseRate} + '%'">3.20%</td>
         <td th:text="${product.maxRate} + '%'">4.50%</td>
+        <td><span th:text="${product.minPeriodMonth}">6</span>개월 ~ <span th:text="${product.maxPeriodMonth}">12</span>개월</td>
+        <td th:text="${#numbers.formatInteger(product.minAmount, 0, 'COMMA')} + '원'">500,000원</td>
+        <td><span th:text="${product.avgRating}">4.8</span> (<span th:text="${product.reviewCount}">0</span>)</td>
+        <td><a th:href="@{/product/detail/{productNo}(productNo=${product.productNo})}">상세보기</a></td>
         <td>
-            <span th:text="${product.minPeriodMonth}">6</span>개월 ~
-            <span th:text="${product.maxPeriodMonth}">12</span>개월
-        </td>
-        <td th:text="${#numbers.formatInteger(product.minAmount, 0, 'COMMA')} + '원'">
-            500,000원
-        </td>
-        <td>
-            <span th:text="${product.avgRating}">4.8</span>
-            (<span th:text="${product.reviewCount}">0</span>)
-        </td>
-        <td>
-            <a th:href="@{/product/detail/{productNo}(productNo=${product.productNo})}">
-                상세보기
-            </a>
+            <button type="button" class="join-button"
+                    th:attr="data-product-no=${product.productNo},data-demand=${#strings.contains(product.productType, '통장') or #strings.contains(product.productType, '입출금')}">가입하기</button>
         </td>
     </tr>
     </tbody>
 </table>
+<script>
+async function getAccessToken() {
+    if (window.accessToken) return window.accessToken;
+    const response = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'same-origin' });
+    const body = await response.json();
+    if (!body.success || !body.data?.accessToken) { location.href = '/login'; return null; }
+    window.accessToken = body.data.accessToken;
+    return window.accessToken;
+}
 
+document.querySelectorAll('.join-button').forEach(button => {
+    button.addEventListener('click', async () => {
+        const token = await getAccessToken();
+        if (!token) return;
+        const productNo = button.dataset.productNo;
+        const response = await fetch(`/api/product/join/${productNo}/join-eligibility`, {
+            headers: { 'Authorization': 'Bearer ' + token }, credentials: 'same-origin'
+        });
+        const body = await response.json();
+        if (!body.success) { alert(body.message || '가입 가능 여부를 확인하지 못했습니다.'); return; }
+        if (body.data.canJoin) { location.href = `/product/join/${productNo}/terms`; return; }
+
+        const demandProduct = document.querySelector('.join-button[data-demand="true"]');
+        if (demandProduct && confirm(body.data.reason + '\n\n입출금 외화예금 가입 화면으로 이동할까요?')) {
+            location.href = `/product/join/${demandProduct.dataset.productNo}/terms`;
+            return;
+        }
+        alert(body.data.reason);
+    });
+});
+</script>
 </body>
 </html>

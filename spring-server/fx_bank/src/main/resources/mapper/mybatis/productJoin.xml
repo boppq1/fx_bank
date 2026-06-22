@@ -242,6 +242,37 @@
 
 
     <!-- 최종 가입 전 OCR 인증 유효성 확인 -->
+    <!-- Same user cannot subscribe to the same non-closed product twice. -->
+    <select id="countActiveProductSubscription" resultType="int">
+        SELECT COUNT(*)
+        FROM product_subscriptions
+        WHERE user_no = #{userNo}
+          AND product_no = #{productNo}
+          AND subscription_status NOT IN ('해지', '만기', '취소')
+    </select>
+
+    <!-- 현재 DDL에서 확인 가능한 금융상품 활동 기준: 상품 가입일의 가장 최근 값 -->
+    <select id="selectLatestFinancialProductActivity" resultType="java.util.Date">
+        SELECT MAX(subscribed_dt)
+        FROM product_subscriptions
+        WHERE user_no = #{userNo}
+    </select>
+
+    <!-- Source account required before term-deposit subscription. -->
+    <select id="countWithdrawableSourceAccounts" resultType="int">
+        SELECT COUNT(*)
+        FROM (
+            SELECT acnt_id AS account_id
+            FROM accounts
+            WHERE user_no = #{userNo}
+            UNION ALL
+            SELECT fx_acnt_no AS account_id
+            FROM foreign_accounts
+            WHERE user_no = #{userNo}
+              AND account_no LIKE '333-02-%'
+        )
+    </select>
+
     <select id="countValidVerification" resultType="int">
 
         SELECT COUNT(*)
@@ -467,6 +498,37 @@
           ON ps.user_no = u.user_no
         WHERE ps.subscription_no = #{subscriptionNo}
 
+    </select>
+
+    <!--
+        가입 금액과 계좌 잔액은 계속 변하는 업무 데이터라 DB에서 조회한다.
+        호출 전 Controller가 access token -> Redis USER:{userId} -> userNo를 확인한다.
+    -->
+    <select id="selectMySubscriptions"
+            resultType="com.example.bank.product.dto.ProductMySubscriptionDto">
+        SELECT
+            ps.subscription_no AS subscriptionNo,
+            ps.product_no AS productNo,
+            p.product_name AS productName,
+            p.product_type AS productType,
+            ps.acnt_no AS accountNo,
+            ps.currency_code AS currencyCode,
+            ps.amount AS subscriptionAmount,
+            fab.balance AS accountBalance,
+            ps.subscribed_dt AS subscribedDt,
+            ps.maturity_dt AS maturityDt,
+            ps.subscription_status AS subscriptionStatus
+        FROM product_subscriptions ps
+        JOIN products p
+          ON p.product_no = ps.product_no
+        LEFT JOIN foreign_accounts fa
+          ON fa.account_no = ps.acnt_no
+         AND fa.user_no = ps.user_no
+        LEFT JOIN foreign_account_balances fab
+          ON fab.fx_acnt_id = fa.fx_acnt_no
+         AND fab.currency_code = ps.currency_code
+        WHERE ps.user_no = #{userNo}
+        ORDER BY ps.subscribed_dt DESC, ps.subscription_no DESC
     </select>
 
 </mapper>

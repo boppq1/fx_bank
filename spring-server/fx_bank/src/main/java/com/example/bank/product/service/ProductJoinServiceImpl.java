@@ -25,8 +25,11 @@ import com.example.bank.product.dto.ElectronicSignatureDto;
 import com.example.bank.product.dto.ForeignAccountBalanceInsertDto;
 import com.example.bank.product.dto.ForeignAccountInsertDto;
 import com.example.bank.product.dto.IdVerificationDto;
+import com.example.bank.product.dto.IdentityVerificationRequirementDto;
 import com.example.bank.product.dto.ProductDetailDto;
 import com.example.bank.product.dto.ProductJoinCompleteDto;
+import com.example.bank.product.dto.ProductJoinEligibilityDto;
+import com.example.bank.product.dto.ProductMySubscriptionDto;
 import com.example.bank.product.dto.ProductJoinFormRequestDto;
 import com.example.bank.product.dto.ProductJoinSubmitRequestDto;
 import com.example.bank.product.dto.ProductJoinTermsRequestDto;
@@ -72,6 +75,61 @@ public class ProductJoinServiceImpl implements ProductJoinService {
         }
 
         return productJoinDao.selectJoinTerms(productNo);
+    }
+
+    @Override
+    public IdentityVerificationRequirementDto getIdentityVerificationRequirement(Long productNo, Long userNo) {
+        if (productNo == null || userNo == null) {
+            throw new IllegalArgumentException("본인확인 대상 조회에 필요한 정보가 없습니다.");
+        }
+
+        ProductDetailDto product = productJoinDao.selectProductForJoin(productNo);
+        if (product == null) {
+            throw new IllegalArgumentException("가입 가능한 상품이 아닙니다.");
+        }
+
+        // 입출금식 외화예금은 CDD 대상이므로 가입 때마다 강화된 신원확인을 요구한다.
+        if (isDemandDepositProduct(product)) {
+            return new IdentityVerificationRequirementDto(
+                    true, "CDD", "입출금이 자유로운 외화예금 상품은 신분증 OCR 본인확인이 필요합니다."
+            );
+        }
+
+        // 정기예금은 원칙적으로 OCR 비대상이지만, 최근 1년간 상품 가입 활동이 없으면 EDD 대상으로 본다.
+        Date latestActivity = productJoinDao.selectLatestFinancialProductActivity(userNo);
+        Date oneYearAgo = Date.from(LocalDate.now().minusYears(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+        if (latestActivity == null || latestActivity.before(oneYearAgo)) {
+            return new IdentityVerificationRequirementDto(
+                    true, "EDD", "최근 1년간 금융상품 활동이 없어 추가 신원확인이 필요합니다."
+            );
+        }
+
+        return new IdentityVerificationRequirementDto(
+                false, "PHONE", "정기예금 상품은 휴대폰 본인인증 절차로 진행합니다."
+        );
+    }
+
+    @Override
+    public ProductJoinEligibilityDto getJoinEligibility(Long productNo, Long userNo) {
+        if (productNo == null || userNo == null) {
+            throw new IllegalArgumentException("가입 가능 여부를 확인할 수 없습니다.");
+        }
+
+        ProductDetailDto product = productJoinDao.selectProductForJoin(productNo);
+        if (product == null) {
+            throw new IllegalArgumentException("가입 가능한 상품이 아닙니다.");
+        }
+
+        if (isDemandDepositProduct(product)) {
+            return new ProductJoinEligibilityDto(true, "입출금식 외화예금은 바로 가입할 수 있습니다.");
+        }
+
+        if (productJoinDao.countWithdrawableSourceAccounts(userNo) == 0) {
+            return new ProductJoinEligibilityDto(false,
+                    "정기예금·적금 가입 전에는 출금 가능한 입출금 계좌가 필요합니다. 외화 입출금 예금부터 가입해주세요.");
+        }
+
+        return new ProductJoinEligibilityDto(true, "출금 계좌를 확인했습니다.");
     }
 
     // =====================================================
@@ -156,6 +214,51 @@ public class ProductJoinServiceImpl implements ProductJoinService {
 
         session.setAttribute(SESSION_VERIFICATION_NO, verificationNo);
 
+        return verificationNo;
+    }
+
+    @Override
+    @Transactional
+    public Long saveOcrVerification(
+            Long productNo,
+            Long userNo,
+            boolean ocrSuccess,
+            boolean nameMatched,
+            boolean birthMatched,
+            HttpSession session
+    ) {
+        if (productNo == null || userNo == null) {
+            throw new IllegalArgumentException("OCR 인증에 필요한 사용자 또는 상품 정보가 없습니다.");
+        }
+        if (!ocrSuccess) {
+            throw new IllegalArgumentException("신분증 OCR 인식에 실패했습니다. 이미지가 선명한지 확인해주세요.");
+        }
+        if (!nameMatched || !birthMatched) {
+            throw new IllegalArgumentException("신분증 정보가 로그인 회원 정보와 일치하지 않습니다.");
+        }
+        if (productJoinDao.selectProductForJoin(productNo) == null) {
+            throw new IllegalArgumentException("가입 가능한 상품이 아닙니다.");
+        }
+
+        Long verificationNo = productJoinDao.selectNextVerificationNo();
+        Date now = new Date();
+        Date expiredDt = Date.from(LocalDateTime.now().plusMinutes(30)
+                .atZone(ZoneId.systemDefault()).toInstant());
+
+        IdVerificationDto verificationDto = new IdVerificationDto();
+        verificationDto.setVerificationNo(verificationNo);
+        verificationDto.setUserNo(userNo);
+        verificationDto.setProductNo(productNo);
+        verificationDto.setVerificationStatus("성공");
+        verificationDto.setVerificationMethod("OCR");
+        verificationDto.setOcrProvider("FASTAPI_YOLO_CLOVA");
+        verificationDto.setMatchedNameYn("Y");
+        verificationDto.setMatchedBirthYn("Y");
+        verificationDto.setVerifiedDt(now);
+        verificationDto.setExpiredDt(expiredDt);
+        productJoinDao.insertIdVerification(verificationDto);
+
+        session.setAttribute(SESSION_VERIFICATION_NO, verificationNo);
         return verificationNo;
     }
 
@@ -254,7 +357,7 @@ public class ProductJoinServiceImpl implements ProductJoinService {
             throw new IllegalArgumentException("가입 정보가 없습니다.");
         }
 
-        if (verificationNo == null) {
+        if (verificationNo == null && getIdentityVerificationRequirement(dto.getProductNo(), userNo).isRequired()) {
             throw new IllegalArgumentException("OCR 인증 정보가 없습니다.");
         }
 
@@ -269,14 +372,28 @@ public class ProductJoinServiceImpl implements ProductJoinService {
             throw new IllegalArgumentException("가입 가능한 상품이 아닙니다.");
         }
 
-        int validVerificationCount = productJoinDao.countValidVerification(
-                verificationNo,
-                userNo,
-                productNo
-        );
+        ProductJoinEligibilityDto joinEligibility = getJoinEligibility(productNo, userNo);
+        if (!joinEligibility.isCanJoin()) {
+            throw new IllegalArgumentException(joinEligibility.getReason());
+        }
 
-        if (validVerificationCount == 0) {
-            throw new IllegalArgumentException("유효한 OCR 인증 정보가 없습니다.");
+        int activeSubscriptionCount = productJoinDao.countActiveProductSubscription(userNo, productNo);
+        if (activeSubscriptionCount > 0) {
+            throw new IllegalArgumentException("이미 가입한 상품입니다. 내 가입 상품에서 계좌 정보를 확인해주세요.");
+        }
+
+        IdentityVerificationRequirementDto identityRequirement =
+                getIdentityVerificationRequirement(productNo, userNo);
+        if (identityRequirement.isRequired()) {
+            int validVerificationCount = productJoinDao.countValidVerification(
+                    verificationNo,
+                    userNo,
+                    productNo
+            );
+
+            if (validVerificationCount == 0) {
+                throw new IllegalArgumentException("유효한 OCR 인증 정보가 없습니다.");
+            }
         }
 
         // 실제 외화 계좌를 먼저 생성한다.
@@ -378,6 +495,15 @@ public class ProductJoinServiceImpl implements ProductJoinService {
         }
 
         return productJoinDao.selectJoinComplete(subscriptionNo);
+    }
+
+    @Override
+    public List<ProductMySubscriptionDto> getMySubscriptions(Long userNo) {
+        if (userNo == null) {
+            throw new IllegalArgumentException("로그인 사용자 정보가 없습니다.");
+        }
+
+        return productJoinDao.selectMySubscriptions(userNo);
     }
 
     // =====================================================
