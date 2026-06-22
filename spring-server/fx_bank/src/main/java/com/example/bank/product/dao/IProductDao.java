@@ -36,4 +36,17 @@ public interface IProductDao {
 
     // 상품별 리뷰
     List<ProductReviewDto> selectProductReviews(@Param("productNo") Long productNo);
+
+    Long selectNextProductReviewNo();
+
+    int countActiveProductSubscription(@Param("userNo") Long userNo, @Param("productNo") Long productNo);
+
+    int countMyProductReview(@Param("userNo") Long userNo, @Param("productNo") Long productNo);
+
+    int insertProductReview(
+            @Param("reviewNo") Long reviewNo,
+            @Param("userNo") Long userNo,
+            @Param("productNo") Long productNo,
+            @Param("request") com.example.bank.product.dto.ProductReviewWriteRequestDto request
+    );
 }

@@ -3,6 +3,9 @@ package com.example.bank.product.service;
 import java.util.List;
 
 import com.example.bank.product.dto.ProductJoinCompleteDto;
+import com.example.bank.product.dto.ProductJoinEligibilityDto;
+import com.example.bank.product.dto.IdentityVerificationRequirementDto;
+import com.example.bank.product.dto.ProductMySubscriptionDto;
 import com.example.bank.product.dto.ProductJoinFormRequestDto;
 import com.example.bank.product.dto.ProductJoinSubmitRequestDto;
 import com.example.bank.product.dto.ProductJoinTermsRequestDto;
@@ -21,6 +24,17 @@ public interface ProductJoinService {
     // OCR 인증 성공 결과 저장
     Long saveOcrSuccess(Long productNo, Long userNo, HttpSession session);
 
+    Long saveOcrVerification(
+            Long productNo,
+            Long userNo,
+            boolean ocrSuccess,
+            boolean nameMatched,
+            boolean birthMatched,
+            HttpSession session
+    );
+
+    IdentityVerificationRequirementDto getIdentityVerificationRequirement(Long productNo, Long userNo);
+
     // 가입 정보 입력값을 검증하고 세션에 저장
     void saveJoinFormToSession(ProductJoinFormRequestDto dto, HttpSession session);
 
@@ -28,5 +42,9 @@ public interface ProductJoinService {
     Long completeJoin(ProductJoinSubmitRequestDto dto, Long userNo, HttpSession session);
 
     // 가입 완료 화면 조회
+    List<ProductMySubscriptionDto> getMySubscriptions(Long userNo);
+
+    ProductJoinEligibilityDto getJoinEligibility(Long productNo, Long userNo);
+
     ProductJoinCompleteDto getJoinComplete(Long subscriptionNo);
 }

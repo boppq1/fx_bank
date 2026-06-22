@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>상품 리뷰</title>
+    <style>
+        body { max-width: 760px; margin: 40px auto; color: #202124; font-family: 'Malgun Gothic', Arial, sans-serif; }
+        a { color: #0b5cab; } .review { padding: 18px 0; border-bottom: 1px solid #dfe3e8; } .review p { margin: 5px 0; }
+        .empty { padding: 18px; background: #f7f8fa; color: #626975; }
+    </style>
+</head>
+<body>
+<a th:href="@{/product/detail/{productNo}(productNo=${product.productNo})}">상품 상세로</a>
+<h1 th:text="${product.productName} + ' 리뷰'">상품 리뷰</h1>
+<div class="empty" th:if="${#lists.isEmpty(reviews)}">아직 리뷰가 없습니다.</div>
+<article class="review" th:each="review : ${reviews}">
+    <p><strong th:text="${review.userName}">작성자</strong> · <span th:text="${review.rating}">5</span>점 · <span th:text="${#dates.format(review.createdDt, 'yyyy-MM-dd')}">2026-06-22</span></p>
+    <p th:text="${review.reviewText}">리뷰 내용</p>
+</article>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>리뷰 작성</title>
+    <style>
+        body { max-width: 700px; margin: 40px auto; color: #202124; font-family: 'Malgun Gothic', Arial, sans-serif; }
+        label { display: block; margin-top: 20px; font-weight: 700; }
+        select, textarea { width: 100%; margin-top: 8px; padding: 10px; border: 1px solid #c7cbd1; font: inherit; box-sizing: border-box; }
+        textarea { min-height: 180px; resize: vertical; } button { margin-top: 20px; padding: 10px 15px; border: 1px solid #222; background: #111; color: #fff; cursor: pointer; }
+        .error { margin-top: 12px; color: #b00020; }
+    </style>
+</head>
+<body>
+<a th:href="@{/product/detail/{productNo}(productNo=${product.productNo})}">상품 상세로</a>
+<h1>리뷰 작성</h1>
+<p><strong th:text="${product.productName}">상품명</strong></p>
+<form id="reviewForm">
+    <label for="rating">평점</label>
+    <select id="rating" required><option value="5">5점</option><option value="4">4점</option><option value="3">3점</option><option value="2">2점</option><option value="1">1점</option></select>
+    <label for="reviewText">리뷰 내용</label>
+    <textarea id="reviewText" maxlength="1000" required placeholder="상품 이용 경험을 작성해주세요."></textarea>
+    <button type="submit">등록하기</button>
+    <div id="error" class="error"></div>
+</form>
+<script th:inline="javascript">
+    const productNo = /*[[${product.productNo}]]*/ 0;
+    async function getAccessToken() {
+        const response = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'same-origin' });
+        const body = await response.json();
+        if (!body.success || !body.data?.accessToken) { location.href = '/login'; return null; }
+        return body.data.accessToken;
+    }
+    document.getElementById('reviewForm').addEventListener('submit', async event => {
+        event.preventDefault();
+        const token = await getAccessToken();
+        if (!token) return;
+        const response = await fetch(`/api/products/${productNo}/reviews`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, credentials: 'same-origin',
+            body: JSON.stringify({ rating: Number(document.getElementById('rating').value), reviewText: document.getElementById('reviewText').value })
+        });
+        const body = await response.json();
+        if (!body.success) { document.getElementById('error').textContent = body.message || '리뷰를 등록하지 못했습니다.'; return; }
+        location.href = `/product/detail/${productNo}`;
+    });
+</script>
+</body>
+</html>

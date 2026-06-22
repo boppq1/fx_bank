@@ -25,4 +25,12 @@ public interface ProductService {
     List<ProductTermDto> getProductTerms(Long productNo);
 
     List<ProductReviewDto> getProductReviews(Long productNo);
+
+    boolean canWriteProductReview(Long userNo, Long productNo);
+
+    Long writeProductReview(
+            Long userNo,
+            Long productNo,
+            com.example.bank.product.dto.ProductReviewWriteRequestDto request
+    );
 }
