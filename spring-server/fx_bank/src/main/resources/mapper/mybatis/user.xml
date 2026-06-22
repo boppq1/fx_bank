@@ -22,7 +22,7 @@
             addr_detail_en,
             zip_code_en,
             gender,
-            user_tendency,
+            users_mbti AS user_tendency,
             created_dt,
             updated_dt,
             last_login_at
@@ -39,7 +39,7 @@
         INSERT INTO users (
             user_no, user_id, secu_pw, name_ko, name_en, phone, email, birth_date,
             addr_ko, addr_detail_ko, zip_code_ko, addr_en, addr_detail_en, zip_code_en,
-            gender, user_tendency, created_dt
+            gender, users_mbti, created_dt
         ) VALUES (
             #{userNo},
             #{userId},

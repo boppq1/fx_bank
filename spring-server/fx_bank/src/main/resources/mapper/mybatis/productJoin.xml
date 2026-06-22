@@ -27,6 +27,18 @@
         FROM dual
     </select>
 
+    <!-- 실제 외화 계좌 PK 발급 -->
+    <select id="selectNextForeignAccountNo" resultType="java.lang.Long">
+        SELECT seq_foreign_accounts.NEXTVAL
+        FROM dual
+    </select>
+
+    <!-- 외화 계좌의 통화별 잔액 PK 발급 -->
+    <select id="selectNextForeignBalanceNo" resultType="java.lang.Long">
+        SELECT seq_fx_balances.NEXTVAL
+        FROM dual
+    </select>
+
 
     <!-- =====================================================
          2. 상품 가입 전 검증용 조회
@@ -230,6 +242,37 @@
 
 
     <!-- 최종 가입 전 OCR 인증 유효성 확인 -->
+    <!-- Same user cannot subscribe to the same non-closed product twice. -->
+    <select id="countActiveProductSubscription" resultType="int">
+        SELECT COUNT(*)
+        FROM product_subscriptions
+        WHERE user_no = #{userNo}
+          AND product_no = #{productNo}
+          AND subscription_status NOT IN ('해지', '만기', '취소')
+    </select>
+
+    <!-- 현재 DDL에서 확인 가능한 금융상품 활동 기준: 상품 가입일의 가장 최근 값 -->
+    <select id="selectLatestFinancialProductActivity" resultType="java.util.Date">
+        SELECT MAX(subscribed_dt)
+        FROM product_subscriptions
+        WHERE user_no = #{userNo}
+    </select>
+
+    <!-- Source account required before term-deposit subscription. -->
+    <select id="countWithdrawableSourceAccounts" resultType="int">
+        SELECT COUNT(*)
+        FROM (
+            SELECT acnt_id AS account_id
+            FROM accounts
+            WHERE user_no = #{userNo}
+            UNION ALL
+            SELECT fx_acnt_no AS account_id
+            FROM foreign_accounts
+            WHERE user_no = #{userNo}
+              AND account_no LIKE '333-02-%'
+        )
+    </select>
+
     <select id="countValidVerification" resultType="int">
 
         SELECT COUNT(*)
@@ -284,6 +327,59 @@
             SYSDATE,
             #{maturityDt},
             #{appliedRate},
+            SYSDATE
+        )
+
+    </insert>
+
+    <!--
+        실제 외화 계좌 생성.
+        product_subscriptions.acnt_no에만 번호를 넣으면 "계좌처럼 보이는 가입"일 뿐이라,
+        가입 완료 시 foreign_accounts에도 같은 계좌번호(account_no)를 먼저 생성한다.
+    -->
+    <insert id="insertForeignAccount"
+            parameterType="com.example.bank.product.dto.ForeignAccountInsertDto">
+
+        INSERT INTO foreign_accounts (
+            fx_acnt_no,
+            acnt_pw,
+            bank_name,
+            account_no,
+            user_no,
+            limit_once,
+            limit_daily,
+            updated_dt
+        ) VALUES (
+            #{fxAcntNo},
+            #{acntPw},
+            #{bankName},
+            #{accountNo},
+            #{userNo},
+            #{limitOnce},
+            #{limitDaily},
+            SYSDATE
+        )
+
+    </insert>
+
+    <!--
+        외화 계좌의 통화별 잔액 생성.
+        foreign_accounts는 계좌 마스터이고, 실제 통화별 잔액은 foreign_account_balances에 둔다.
+    -->
+    <insert id="insertForeignAccountBalance"
+            parameterType="com.example.bank.product.dto.ForeignAccountBalanceInsertDto">
+
+        INSERT INTO foreign_account_balances (
+            balance_no,
+            fx_acnt_id,
+            currency_code,
+            balance,
+            updated_dt
+        ) VALUES (
+            #{balanceNo},
+            #{fxAcntId},
+            #{currencyCode},
+            #{balance},
             SYSDATE
         )
 
@@ -402,6 +498,37 @@
           ON ps.user_no = u.user_no
         WHERE ps.subscription_no = #{subscriptionNo}
 
+    </select>
+
+    <!--
+        가입 금액과 계좌 잔액은 계속 변하는 업무 데이터라 DB에서 조회한다.
+        호출 전 Controller가 access token -> Redis USER:{userId} -> userNo를 확인한다.
+    -->
+    <select id="selectMySubscriptions"
+            resultType="com.example.bank.product.dto.ProductMySubscriptionDto">
+        SELECT
+            ps.subscription_no AS subscriptionNo,
+            ps.product_no AS productNo,
+            p.product_name AS productName,
+            p.product_type AS productType,
+            ps.acnt_no AS accountNo,
+            ps.currency_code AS currencyCode,
+            ps.amount AS subscriptionAmount,
+            fab.balance AS accountBalance,
+            ps.subscribed_dt AS subscribedDt,
+            ps.maturity_dt AS maturityDt,
+            ps.subscription_status AS subscriptionStatus
+        FROM product_subscriptions ps
+        JOIN products p
+          ON p.product_no = ps.product_no
+        LEFT JOIN foreign_accounts fa
+          ON fa.account_no = ps.acnt_no
+         AND fa.user_no = ps.user_no
+        LEFT JOIN foreign_account_balances fab
+          ON fab.fx_acnt_id = fa.fx_acnt_no
+         AND fab.currency_code = ps.currency_code
+        WHERE ps.user_no = #{userNo}
+        ORDER BY ps.subscribed_dt DESC, ps.subscription_no DESC
     </select>
 
 </mapper>

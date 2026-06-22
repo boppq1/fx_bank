@@ -6,9 +6,12 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import com.example.bank.product.dto.ElectronicSignatureDto;
+import com.example.bank.product.dto.ForeignAccountBalanceInsertDto;
+import com.example.bank.product.dto.ForeignAccountInsertDto;
 import com.example.bank.product.dto.IdVerificationDto;
 import com.example.bank.product.dto.ProductDetailDto;
 import com.example.bank.product.dto.ProductJoinCompleteDto;
+import com.example.bank.product.dto.ProductMySubscriptionDto;
 import com.example.bank.product.dto.ProductSubscriptionInsertDto;
 import com.example.bank.product.dto.ProductTermDto;
 
@@ -25,6 +28,10 @@ public interface IProductJoinDao {
     Long selectNextSubscriptionNo(); // 상품 가입 번호 미리 뽑기
 
     Long selectNextSignatureNo(); // 전자서명 번호 미리 뽑기
+
+    Long selectNextForeignAccountNo(); // 실제 외화 계좌 PK 발급
+
+    Long selectNextForeignBalanceNo(); // 외화 계좌 통화별 잔액 PK 발급
 
 
     // =====================================================
@@ -67,6 +74,15 @@ public interface IProductJoinDao {
 
     int insertIdVerification(IdVerificationDto dto); // OCR 인증 결과 저장
 
+    int countActiveProductSubscription(
+            @Param("userNo") Long userNo,
+            @Param("productNo") Long productNo
+    );
+
+    java.util.Date selectLatestFinancialProductActivity(@Param("userNo") Long userNo);
+
+    int countWithdrawableSourceAccounts(@Param("userNo") Long userNo);
+
     int countValidVerification(
             @Param("verificationNo") Long verificationNo,
             @Param("userNo") Long userNo,
@@ -79,6 +95,10 @@ public interface IProductJoinDao {
     // =====================================================
 
     int insertProductSubscription(ProductSubscriptionInsertDto dto); // 최종 상품 가입 정보 저장
+
+    int insertForeignAccount(ForeignAccountInsertDto dto); // 실제 외화 계좌 생성
+
+    int insertForeignAccountBalance(ForeignAccountBalanceInsertDto dto); // 생성된 외화 계좌의 통화별 잔액 생성
 
 
     // =====================================================
@@ -107,6 +127,8 @@ public interface IProductJoinDao {
     // =====================================================
     // 8. 가입 완료 화면 조회
     // =====================================================
+
+    List<ProductMySubscriptionDto> selectMySubscriptions(@Param("userNo") Long userNo);
 
     ProductJoinCompleteDto selectJoinComplete(
             @Param("subscriptionNo") Long subscriptionNo
