@@ -7,14 +7,13 @@
 </head>
 <body>
 <header th:fragment="header" class="site-header">
- 
+
   <!-- 상단 유틸리티 바 : 묵직한 네이비, 신뢰감 강조 -->
   <div class="util-bar">
     <div class="util-inner">
       <ul class="util-left">
-        <li><a href="#">개인뱅킹</a></li>
-        <li><a href="#">기업뱅킹</a></li>
-        <li><a href="#">자산관리</a></li>
+        <li><a th:href="@{/fx/guide}">외환 안내</a></li>
+        <li><a th:href="@{/fx/exchange-rate}">환율조회</a></li>
       </ul>
       <ul class="util-right">
         <li><a href="#" class="util-lang">🌐 KOR</a></li>
@@ -27,61 +26,46 @@
       </ul>
     </div>
   </div>
- 
+
   <!-- 메인 GNB -->
   <div class="gnb-bar">
     <div class="gnb-inner">
- 
+
       <a href="/" class="brand">
         <span class="brand-name">BNK 부산은행</span>
       </a>
- 
+
       <nav class="gnb">
         <ul class="gnb-menu">
- 
+
           <li class="gnb-item">
-            <a href="#" class="gnb-link">금융상품</a>
+            <a th:href="@{/product/list}" class="gnb-link">외환상품</a>
             <div class="gnb-dropdown">
-              <a href="#">예금·적금</a>
-              <a href="#">펀드·ETF</a>
-              <a href="#">외화예금</a>
-              <a href="#">MMF</a>
+              <a th:href="@{/product/list}">외화예금</a>
+              <a th:href="@{/product/list}">외화적금</a>
+              <a th:href="@{/fx/guide}">외환 상품·서비스 안내</a>
             </div>
           </li>
- 
+
           <li class="gnb-item">
-            <a href="#" class="gnb-link">환율·환전</a>
+            <a th:href="@{/fx/exchange-rate}" class="gnb-link">환율·환전</a>
             <div class="gnb-dropdown">
-              <a href="#">실시간 환율</a>
-              <a href="#">환전 신청</a>
-              <a href="#">환전 내역</a>
-              <a href="#">환율 알림</a>
+              <a th:href="@{/fx/exchange-rate}">환율조회</a>
+              <a th:href="@{/fx/exchange-calculator}">환전계산기</a>
             </div>
           </li>
- 
-          <li class="gnb-item">
-            <a href="#" class="gnb-link">투자정보</a>
-            <div class="gnb-dropdown">
-              <a href="#">시장 동향</a>
-              <a href="#">투자 리포트</a>
-              <a href="#">금리 정보</a>
-              <a href="#">경제 캘린더</a>
-            </div>
-          </li>
- 
+
           <li class="gnb-item">
             <a href="#" class="gnb-link">고객지원</a>
             <div class="gnb-dropdown">
-              <a href="#">공지사항</a>
-              <a href="#">FAQ</a>
-              <a href="#">1:1 문의</a>
+              <a href="/fx/guide#faq">FAQ</a>
               <a href="#">챗봇 상담</a>
             </div>
           </li>
- 
+
         </ul>
       </nav>
- 
+
       <div class="gnb-tools">
         <div class="gnb-search">
           <span class="gnb-search-ico">🔍</span>

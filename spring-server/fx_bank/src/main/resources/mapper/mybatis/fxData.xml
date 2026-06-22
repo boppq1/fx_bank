@@ -1,24 +1,75 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-        
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
 <mapper namespace="com.example.bank.fx.dao.FxDataDao">
 
-	<insert id="insertRate">
-		INSERT INTO exchange_rates (rate_no, cur_nm, ttb, tts, deal_bas_r, ntc_dt)
-		VALUES (
-			SEQ_EXCHANGE_RATES.NEXTVAL,
-			#{currency_code},
-			#{buy_rate},
-			#{sell_rate},
-			#{base_rate},
-			SYSDATE
-		)
-	</insert>
-	
-	
-	
-	
+    <!-- exchange_rates 컬럼 (map-underscore-to-camel-case 로 FxDataDto 자동 매핑) -->
+    <sql id="rateColumns">
+        fx_rate_no, currency_code, buy_rate, sell_rate, base_rate, announced_at
+    </sql>
+
+    <!-- 환율 적재 (스케줄러) : buy_rate=ttb, sell_rate=tts, base_rate=deal_bas_r -->
+    <insert id="insertRate">
+        INSERT INTO exchange_rates (
+            fx_rate_no, currency_code, buy_rate, sell_rate, base_rate, announced_at
+        ) VALUES (
+            SEQ_EXCHANGE_RATES.NEXTVAL,
+            #{currency_code},
+            #{buy_rate},
+            #{sell_rate},
+            #{base_rate},
+            SYSTIMESTAMP
+        )
+    </insert>
+
+    <!-- 대표 통화들의 최신 환율 (메인 페이지) -->
+    <select id="selectLatestRatesByCurrencies" resultType="com.example.bank.fx.dto.FxDataDto">
+        SELECT <include refid="rateColumns"/>
+        FROM (
+            SELECT er.*,
+                   ROW_NUMBER() OVER (PARTITION BY currency_code ORDER BY announced_at DESC) rn
+            FROM exchange_rates er
+            WHERE currency_code IN
+            <foreach collection="currencyCodes" item="code" open="(" separator="," close=")">
+                #{code}
+            </foreach>
+        )
+        WHERE rn = 1
+    </select>
+
+    <!-- 전체 통화별 최신 환율 (환율조회 표) -->
+    <select id="selectAllLatestRates" resultType="com.example.bank.fx.dto.FxDataDto">
+        SELECT <include refid="rateColumns"/>
+        FROM (
+            SELECT er.*,
+                   ROW_NUMBER() OVER (PARTITION BY currency_code ORDER BY announced_at DESC) rn
+            FROM exchange_rates er
+        )
+        WHERE rn = 1
+        ORDER BY currency_code
+    </select>
+
+    <!-- 특정 통화 환율 이력 (환율조회 상세/차트) -->
+    <select id="selectRateHistory" resultType="com.example.bank.fx.dto.FxDataDto">
+        SELECT <include refid="rateColumns"/>
+        FROM exchange_rates
+        WHERE currency_code = #{currencyCode}
+        ORDER BY announced_at DESC
+    </select>
+
+    <!-- 기준일(date) 이전 최신 환율 1건 (환전계산기) -->
+    <select id="selectLatestRate" resultType="com.example.bank.fx.dto.FxDataDto">
+        SELECT <include refid="rateColumns"/>
+        FROM exchange_rates
+        WHERE currency_code = #{currencyCode}
+          AND announced_at = (
+              SELECT MAX(announced_at)
+              FROM exchange_rates
+              WHERE currency_code = #{currencyCode}
+                AND TRUNC(announced_at) &lt;= TO_DATE(#{date}, 'YYYY-MM-DD')
+          )
+    </select>
+
 </mapper>

@@ -1,10 +1,59 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>Insert title here</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>환율조회 | BNK 부산은행</title>
+<link rel="stylesheet" th:href="@{/css/fx-home.css}">
+<link rel="stylesheet" th:href="@{/css/fx-guide.css}">
 </head>
 <body>
 
+<div th:replace="~{header :: header}"></div>
+
+<section class="guide-hero">
+    <div class="guide-hero-inner">
+        <span class="guide-hero-badge">환율 정보</span>
+        <h1 class="guide-hero-title">환율조회</h1>
+        <p class="guide-hero-desc">통화별 최신 고시환율을 확인하세요. 매매기준율과 살 때·팔 때 환율을 한눈에 볼 수 있습니다.</p>
+    </div>
+</section>
+
+<main class="guide-wrap">
+    <div class="guide-section">
+        <h2 class="guide-section-title">통화별 최신 환율</h2>
+
+        <div class="guide-toolbar">
+            <input type="text" id="fxRateSearch" class="guide-search-input" placeholder="통화 코드 검색 (예: USD, EUR)">
+            <a class="btn btn-light" th:href="@{/fx/exchange-calculator}">환전계산기 →</a>
+        </div>
+
+        <div class="guide-table-wrap">
+            <table class="guide-table">
+                <thead>
+                    <tr>
+                        <th>통화</th>
+                        <th>매매기준율</th>
+                        <th>살 때 (고객)</th>
+                        <th>팔 때 (고객)</th>
+                        <th>고시시각</th>
+                    </tr>
+                </thead>
+                <tbody id="fxRateBody">
+                    <tr><td colspan="5" style="text-align:center;color:var(--text-sub)">불러오는 중…</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <p class="guide-foot-note">
+            * 한국수출입은행 고시 전신환 매매율 기준이며, 실제 거래 환율은 영업점·거래 시점에 따라 다를 수 있습니다.<br>
+            * 매일 자동 갱신되며, 데이터가 보이지 않으면 아직 환율이 적재되지 않은 상태입니다.
+        </p>
+    </div>
+</main>
+
+<div th:replace="~{footer :: footer}"></div>
+
+<script th:src="@{/js/fx-rate.js}"></script>
 </body>
 </html>

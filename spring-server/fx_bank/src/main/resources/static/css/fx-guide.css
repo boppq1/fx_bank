@@ -1,0 +1,374 @@
+/* ========================================================================
+ * fx-guide.css — 외환 상품·서비스 안내 (단일 페이지 + 탭)
+ * fx-home.css 의 토큰(var(--navy) 등)과 공용 클래스(.btn 등)를 재사용한다.
+ * 새 클래스는 .guide- 접두사로 네임스페이스하여 기존과 충돌하지 않음.
+ * (이 페이지는 head 에서 fx-home.css 를 먼저 link 해야 토큰/버튼이 정상 동작)
+ * ===================================================================== */
+
+/* ---------- 히어로 ---------- */
+.guide-hero {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 100%);
+    position: relative;
+    overflow: hidden;
+    padding: 56px 0;
+}
+.guide-hero::after {
+    content: "";
+    position: absolute;
+    right: -120px;
+    top: -120px;
+    width: 360px;
+    height: 360px;
+    background: radial-gradient(circle, rgba(109, 63, 232, .45), transparent 70%);
+    pointer-events: none;
+}
+.guide-hero-inner {
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: 0 32px;
+    position: relative;
+    z-index: 1;
+}
+.guide-hero-badge {
+    display: inline-block;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #fff;
+    background: rgba(109, 63, 232, .35);
+    border: 1px solid rgba(139, 111, 242, .55);
+    border-radius: 999px;
+    padding: 6px 14px;
+    margin-bottom: 16px;
+}
+.guide-hero-title {
+    font-size: 38px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -1px;
+    margin: 0 0 12px;
+}
+.guide-hero-desc {
+    font-size: 15.5px;
+    color: #C7CCDD;
+    line-height: 1.6;
+    margin: 0;
+    max-width: 720px;
+}
+
+/* ---------- 탭 네비 ---------- */
+.guide-wrap {
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: 0 32px 72px;
+}
+.guide-tabs {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    gap: 4px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    margin: 0 -32px 32px;
+    padding: 0 32px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.guide-tabs::-webkit-scrollbar { display: none; }
+.guide-tab-btn {
+    flex: 0 0 auto;
+    appearance: none;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    padding: 18px 18px 16px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-sub);
+    border-bottom: 3px solid transparent;
+    transition: color .15s, border-color .15s;
+    white-space: nowrap;
+}
+.guide-tab-btn:hover { color: var(--navy); }
+.guide-tab-btn.is-active {
+    color: var(--purple);
+    border-bottom-color: var(--purple);
+}
+
+/* ---------- 패널 ---------- */
+.guide-panel { display: none; }
+.guide-panel.is-active {
+    display: block;
+    animation: guideFade .25s ease;
+}
+@keyframes guideFade {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- 섹션 카드 ---------- */
+.guide-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 28px 22px;
+    margin-bottom: 22px;
+}
+.guide-section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 21px;
+    font-weight: 800;
+    color: var(--navy);
+    letter-spacing: -.4px;
+    margin: 0 0 18px;
+}
+.guide-section-title::before {
+    content: "";
+    width: 5px;
+    height: 20px;
+    border-radius: 3px;
+    background: linear-gradient(135deg, var(--purple), var(--purple-soft));
+}
+.guide-sub-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--navy);
+    margin: 22px 0 10px;
+}
+.guide-sub-title:first-child { margin-top: 0; }
+.guide-section p { color: var(--text); line-height: 1.7; margin: 0 0 12px; font-size: 14.5px; }
+.guide-section p.guide-muted { color: var(--text-sub); }
+
+/* ---------- 리스트 ---------- */
+.guide-list { margin: 0 0 14px; padding-left: 0; list-style: none; }
+.guide-list > li {
+    position: relative;
+    padding-left: 18px;
+    margin-bottom: 8px;
+    color: var(--text);
+    line-height: 1.65;
+    font-size: 14.5px;
+}
+.guide-list > li::before {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: 9px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--purple);
+}
+.guide-list ul { margin: 8px 0 4px; padding-left: 16px; list-style: none; }
+.guide-list ul li {
+    position: relative;
+    padding-left: 14px;
+    margin-bottom: 6px;
+    color: var(--text-sub);
+    font-size: 13.8px;
+    line-height: 1.6;
+}
+.guide-list ul li::before {
+    content: "-";
+    position: absolute;
+    left: 0;
+    color: var(--text-sub);
+}
+
+/* ---------- 표 ---------- */
+.guide-table-wrap { overflow-x: auto; margin: 6px 0 16px; -webkit-overflow-scrolling: touch; }
+.guide-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.6px;
+    min-width: 520px;
+}
+.guide-table th, .guide-table td {
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+    text-align: left;
+    vertical-align: top;
+    line-height: 1.55;
+}
+.guide-table thead th {
+    background: var(--bg);
+    color: var(--navy);
+    font-weight: 700;
+    white-space: nowrap;
+}
+.guide-table tbody th {
+    background: #FBFBFE;
+    color: var(--text);
+    font-weight: 600;
+}
+.guide-table td small { color: var(--text-sub); }
+
+/* ---------- 콜아웃/주의 ---------- */
+.guide-note {
+    display: flex;
+    gap: 10px;
+    background: var(--purple-lt);
+    border: 1px solid #DAD0FF;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin: 12px 0 16px;
+    font-size: 13.8px;
+    color: var(--navy);
+    line-height: 1.6;
+}
+.guide-note::before { content: "ℹ️"; flex: 0 0 auto; }
+.guide-note.guide-warn { background: #FFF7E8; border-color: #F3DDB0; }
+.guide-note.guide-warn::before { content: "⚠️"; }
+
+/* ---------- 카드 그리드 (환전가능금액 등) ---------- */
+.guide-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin: 6px 0 8px;
+}
+.guide-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 18px 12px;
+}
+.guide-card h4 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--navy);
+    margin: 0 0 10px;
+}
+
+/* ---------- FAQ (네이티브 details) ---------- */
+.guide-faq {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    background: var(--surface);
+    overflow: hidden;
+}
+.guide-faq > summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 16px 48px 16px 18px;
+    font-size: 14.6px;
+    font-weight: 600;
+    color: var(--navy);
+    position: relative;
+}
+.guide-faq > summary::-webkit-details-marker { display: none; }
+.guide-faq > summary::before {
+    content: "Q";
+    color: var(--purple);
+    font-weight: 800;
+    margin-right: 8px;
+}
+.guide-faq > summary::after {
+    content: "＋";
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-sub);
+    font-size: 18px;
+}
+.guide-faq[open] > summary::after { content: "－"; }
+.guide-faq[open] > summary { border-bottom: 1px solid var(--border); }
+.guide-faq-body {
+    padding: 16px 18px;
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.7;
+    background: #FCFCFE;
+}
+.guide-faq-body .guide-list { margin-bottom: 0; }
+
+/* ---------- 법규 링크 배지 ---------- */
+.guide-cat {
+    display: inline-block;
+    font-size: 11.5px;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 3px 9px;
+    background: var(--purple-lt);
+    color: var(--purple);
+    white-space: nowrap;
+}
+.guide-link { color: var(--purple); font-weight: 600; text-decoration: none; }
+.guide-link:hover { text-decoration: underline; }
+.guide-link.is-disabled { color: var(--text-sub); pointer-events: none; }
+
+/* ---------- 하단 CTA ---------- */
+.guide-cta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    background: linear-gradient(135deg, var(--purple), var(--purple-soft));
+    border-radius: 18px;
+    padding: 26px 30px;
+    margin-top: 8px;
+    box-shadow: 0 14px 30px rgba(109, 63, 232, .3);
+}
+.guide-cta-title { font-size: 18px; font-weight: 800; color: #fff; margin: 0 0 4px; }
+.guide-cta-sub { font-size: 13.6px; color: rgba(255, 255, 255, .88); margin: 0; }
+.guide-cta .btn { flex: 0 0 auto; }
+
+/* ---------- 조회/계산 폼 (환율조회·환전계산기) ---------- */
+.guide-toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; }
+.guide-search-input {
+    flex: 1 1 240px; height: 46px; border: 1px solid var(--border); border-radius: 11px;
+    background: var(--surface); padding: 0 16px; font-size: 14.5px; color: var(--text);
+}
+.guide-search-input:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(109, 63, 232, .15); }
+
+.guide-form { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+.guide-field { display: flex; flex-direction: column; gap: 8px; }
+.guide-field.full { grid-column: 1 / -1; }
+.guide-label { font-size: 13.5px; font-weight: 700; color: var(--navy); }
+.guide-input, .guide-select {
+    height: 48px; border: 1px solid var(--border); border-radius: 11px; background: var(--surface);
+    padding: 0 14px; font-size: 14.5px; color: var(--text); width: 100%;
+}
+.guide-input:focus, .guide-select:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(109, 63, 232, .15); }
+.guide-radio-group { display: flex; gap: 10px; }
+.guide-radio { flex: 1; position: relative; }
+.guide-radio input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+.guide-radio span {
+    display: block; text-align: center; padding: 12px 0; border: 1px solid var(--border);
+    border-radius: 11px; font-size: 14px; font-weight: 600; color: var(--text-sub); transition: .15s;
+}
+.guide-radio input:checked + span { border-color: var(--purple); background: var(--purple-lt); color: var(--purple); }
+.guide-actions { display: flex; gap: 10px; margin-top: 4px; }
+
+/* 계산 결과 */
+.guide-result { margin-top: 24px; border-top: 1px dashed var(--border); padding-top: 22px; }
+.guide-result-big {
+    background: linear-gradient(135deg, var(--purple), var(--purple-soft));
+    color: #fff; border-radius: 16px; padding: 22px 24px; margin-bottom: 16px;
+    box-shadow: 0 14px 30px rgba(109, 63, 232, .3);
+}
+.guide-result-big .label { font-size: 13px; opacity: .9; margin: 0 0 6px; }
+.guide-result-big .value { font-size: 30px; font-weight: 800; margin: 0; letter-spacing: -.5px; }
+.guide-result-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.guide-result-item { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+.guide-result-item .label { font-size: 12.5px; color: var(--text-sub); margin: 0 0 6px; }
+.guide-result-item .value { font-size: 16px; font-weight: 700; color: var(--navy); margin: 0; }
+.guide-foot-note { font-size: 12.5px; color: var(--text-sub); margin-top: 12px; line-height: 1.6; }
+
+/* ---------- 반응형 ---------- */
+@media (max-width: 1040px) {
+    .guide-cards { grid-template-columns: 1fr; }
+}
+@media (max-width: 680px) {
+    .guide-hero { padding: 40px 0; }
+    .guide-hero-title { font-size: 30px; }
+    .guide-hero-inner, .guide-wrap { padding-left: 20px; padding-right: 20px; }
+    .guide-tabs { margin-left: -20px; margin-right: -20px; padding: 0 20px; }
+    .guide-section { padding: 22px 18px 16px; }
+    .guide-cta { flex-direction: column; align-items: flex-start; }
+    .guide-form, .guide-result-grid { grid-template-columns: 1fr; }
+}
