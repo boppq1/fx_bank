@@ -6,12 +6,12 @@
 <mapper namespace="com.example.bank.event.dao.IEventDao">
 	
     <insert id="insertEvent" parameterType="com.example.bank.event.dto.EventDto">
-        INSERT INTO event (event_pk, user_no, b, n, k, created_dt, applied)
+        INSERT INTO event (event_no, user_no, b, n, k, created_dt, applied)
         VALUES (event_seq.NEXTVAL, #{userNo}, 'N', 'N', 'N', SYSDATE, 'N')
     </insert>
     
     <select id="selectEvent" resultType="com.example.bank.event.dto.EventDto">
-        SELECT event_pk, user_no, b, n, k, created_dt, applied
+        SELECT event_no, user_no, b, n, k, created_dt, applied
         FROM event
         WHERE user_no = #{userNo}
     </select>
@@ -32,8 +32,8 @@
     </update>
     
     <insert id="insertCoupon">
-        INSERT INTO coupon (coupon_pk, user_no, event_pk, product_no, preferential_rate, is_used, issued_dt)
-        VALUES (coupon_seq.NEXTVAL, #{userNo}, #{eventPk}, #{productNo}, 0.50, 'N', SYSDATE)
+        INSERT INTO coupon (coupon_no, user_no, event_no, preferential_rate, is_used, issued_dt)
+        VALUES (coupon_seq.NEXTVAL, #{userNo}, #{eventNo}, 0.50, 'N', SYSDATE)
     </insert>
     
 </mapper>

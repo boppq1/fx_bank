@@ -42,6 +42,9 @@ class _WebScreenState extends State<WebScreen> {
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setUserAgent("Flutter/fx_bank") // 스프링 백엔드가 앱 접속인지 판단하는 기준이 됩니다!
+      ..setOnConsoleMessage((JavaScriptConsoleMessage message) {
+    debugPrint('WebView 콘솔: ${message.message}');
+  })
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageFinished: (String url) => debugPrint('로딩 완료: $url'),
@@ -58,7 +61,7 @@ class _WebScreenState extends State<WebScreen> {
       )
       // ⚠️ 중요: 현재 구동 중인 본인의 스프링 서버 주소(IP)를 적어주세요.
       // 안드로이드 에뮬레이터에서 내 컴퓨터(localhost)를 가리키는 주소는 10.0.2.2 입니다.
-      ..loadRequest(Uri.parse('http://192.168.225.101:8080/')); 
+      ..loadRequest(Uri.parse('http://localhost:8080/')); 
   }
 
   Future<void> _takePictureAndUpload(String letter) async {

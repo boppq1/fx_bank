@@ -11,5 +11,5 @@ public interface IEventDao {
     EventDto selectEvent(@Param("userNo") Long userNo);
     void updateLetter(EventDto event);
     void updateIsApplied(@Param("userNo") Long userNo);
-    void insertCoupon(@Param("userNo") Long userNo, @Param("eventPk") Long eventPk, @Param("productNo") Long productNo);
+    void insertCoupon(@Param("userNo") Long userNo, @Param("eventNo") Long eventNo);
 }

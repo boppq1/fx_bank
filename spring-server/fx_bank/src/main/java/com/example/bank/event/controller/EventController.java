@@ -12,6 +12,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.example.bank.event.dto.EventDto;
 import com.example.bank.event.service.EventService;
+import com.example.bank.personal.dao.IUser;
+import com.example.bank.personal.service.UserService;
 import com.example.bank.util.JwtUtil;
 
 import jakarta.servlet.http.Cookie;
@@ -25,6 +27,8 @@ public class EventController {
 
     private final EventService eventService;
     private final JwtUtil jwtUtil;
+    private final UserService us;
+    private final IUser iUser;
 
     // 이벤트 설명 페이지
     @GetMapping
@@ -38,10 +42,7 @@ public class EventController {
     // 이벤트 현황 페이지
     @GetMapping("/status")
     public String eventStatus(HttpServletRequest request, Model model) {
-        String token = extractToken(request);
-        Long userNo = Long.parseLong(jwtUtil.getUserId(token));
-        // 쿠폰 번호 고정값 설정 (필요 시 관리)
-        Long couponNo = 1L; 
+        Long userNo = extractUserNo(request);
 
         EventDto event = eventService.getEvent(userNo);
         model.addAttribute("event", event);
@@ -53,22 +54,19 @@ public class EventController {
     @ResponseBody
     public ResponseEntity<?> detect(
             HttpServletRequest request,
-            @RequestParam Long couponNo,
+            @RequestParam String letter,
             @RequestParam MultipartFile file) {
-        String token = extractToken(request);
-        Long userNo = Long.parseLong(jwtUtil.getUserId(token));
-        EventDto result = eventService.uploadAndDetect(userNo, couponNo, file);
+        Long userNo = extractUserNo(request);
+        EventDto result = eventService.uploadAndDetect(userNo, letter, file);
         return ResponseEntity.ok(result);
     }
 
     // 이벤트 참여 신청 API (productNo -> couponNo 변경)
     @PostMapping("/join")
     @ResponseBody
-    public ResponseEntity<?> joinEvent(HttpServletRequest request,
-                                       @RequestParam Long couponNo) {
-        String token = extractToken(request);
-        Long userNo = Long.parseLong(jwtUtil.getUserId(token));
-        eventService.joinEvent(userNo, couponNo);
+    public ResponseEntity<?> joinEvent(HttpServletRequest request) {
+        Long userNo = extractUserNo(request);
+        eventService.joinEvent(userNo);
         return ResponseEntity.ok("이벤트 참여 완료");
     }
 
@@ -77,11 +75,18 @@ public class EventController {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
-                if ("accessToken".equals(cookie.getName())) {
+                if ("refreshToken".equals(cookie.getName())) {  // accessToken → refreshToken
                     return cookie.getValue();
                 }
             }
         }
         throw new RuntimeException("토큰이 없습니다.");
+    }
+    
+ // 토큰의 userId(아이디)로 실제 userNo(숫자 PK)를 조회
+    private Long extractUserNo(HttpServletRequest request) {
+        String token = extractToken(request);
+        String userId = jwtUtil.getUserId(token);   // "majunbae"
+        return iUser.findByUserId(userId.trim()).getUserNo();
     }
 }

@@ -27,7 +27,7 @@ public class EventRestController {
     // 이벤트 참여 (productNo -> couponNo 변경)
     @PostMapping("/join")
     public ResponseEntity<?> joinEvent(@RequestBody Map<String, Long> body) {
-        es.joinEvent(body.get("userNo"), body.get("couponNo"));
+        es.joinEvent(body.get("userNo"));
         return ResponseEntity.ok("이벤트 참여 완료");
     }
 
@@ -41,9 +41,9 @@ public class EventRestController {
     @PostMapping("/detect")
     public ResponseEntity<?> detect(
             @RequestParam Long userNo,
-            @RequestParam Long couponNo,
+            @RequestParam String letter,
             @RequestParam MultipartFile file) {
-        EventDto result = es.uploadAndDetect(userNo, couponNo, file);
+        EventDto result = es.uploadAndDetect(userNo, letter, file);
         return ResponseEntity.ok(result);
     }
 }
