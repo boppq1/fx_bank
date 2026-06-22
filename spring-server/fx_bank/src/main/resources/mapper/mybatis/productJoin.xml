@@ -261,17 +261,49 @@
     <!-- Source account required before term-deposit subscription. -->
     <select id="countWithdrawableSourceAccounts" resultType="int">
         SELECT COUNT(*)
-        FROM (
-            SELECT acnt_id AS account_id
-            FROM accounts
-            WHERE user_no = #{userNo}
-            UNION ALL
-            SELECT fx_acnt_no AS account_id
-            FROM foreign_accounts
-            WHERE user_no = #{userNo}
-              AND account_no LIKE '333-02-%'
-        )
+        FROM foreign_accounts fa
+        JOIN foreign_account_balances fab
+          ON fab.fx_acnt_id = fa.fx_acnt_no
+        WHERE fa.user_no = #{userNo}
+          AND fa.account_no LIKE '333-02-%'
+          AND fab.balance > 0
     </select>
+
+    <!-- 출금 잔액 UPDATE 뒤 상품 계좌 잔액 INSERT를 같은 트랜잭션에서 수행하기 위한 세션 설정 -->
+    <update id="disableParallelDml">
+        ALTER SESSION DISABLE PARALLEL DML
+    </update>
+
+    <select id="selectWithdrawableForeignAccounts"
+            resultType="com.example.bank.product.dto.WithdrawableForeignAccountDto">
+        SELECT
+            fa.account_no AS accountNo,
+            fab.currency_code AS currencyCode,
+            fab.balance AS balance
+        FROM foreign_accounts fa
+        JOIN foreign_account_balances fab
+          ON fab.fx_acnt_id = fa.fx_acnt_no
+        WHERE fa.user_no = #{userNo}
+          AND fa.account_no LIKE '333-02-%'
+          AND fab.currency_code = #{currencyCode}
+          AND fab.balance > 0
+        ORDER BY fa.account_no
+    </select>
+
+    <update id="withdrawForeignAccountBalance">
+        UPDATE foreign_account_balances fab
+        SET fab.balance = fab.balance - #{amount},
+            fab.updated_dt = SYSDATE
+        WHERE fab.currency_code = #{currencyCode}
+          AND fab.balance >= #{amount}
+          AND fab.fx_acnt_id = (
+              SELECT fa.fx_acnt_no
+              FROM foreign_accounts fa
+              WHERE fa.account_no = #{accountNo}
+                AND fa.user_no = #{userNo}
+                AND fa.account_no LIKE '333-02-%'
+          )
+    </update>
 
     <select id="countValidVerification" resultType="int">
 
