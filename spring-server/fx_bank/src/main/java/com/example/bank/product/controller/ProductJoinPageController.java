@@ -78,6 +78,17 @@ public class ProductJoinPageController {
         return "product/join/coupon";
     }
 
+    @GetMapping("/product/join/{productNo}/signature")
+    public String signature(@PathVariable("productNo") Long productNo, Model model) {
+        ProductDetailDto product = productService.getProductDetail(productNo);
+        if (product == null) {
+            return "redirect:/product/list";
+        }
+
+        model.addAttribute("product", product);
+        return "product/join/signature";
+    }
+
     @GetMapping("/product/my-subscriptions")
     public String mySubscriptions() {
         return "product/my-subscriptions";
