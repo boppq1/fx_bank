@@ -69,6 +69,10 @@ document.querySelectorAll('.join-button').forEach(button => {
         if (!body.success) { alert(body.message || '가입 가능 여부를 확인하지 못했습니다.'); return; }
         if (body.data.canJoin) { location.href = `/product/join/${productNo}/terms`; return; }
 
+        // 이미 상품 목록 화면이므로 특정 입출금 상품 가입 화면으로 강제 이동하지 않는다.
+        alert(body.data.reason + '\n\n상품 목록에서 외화 입출금 예금 상품을 먼저 선택해주세요.');
+        return;
+
         const demandProduct = Array.from(document.querySelectorAll('.join-button')).find(candidate => {
             const type = candidate.dataset.productType || '';
             return type.includes('예금') && !type.includes('정기') && !type.includes('적금');
