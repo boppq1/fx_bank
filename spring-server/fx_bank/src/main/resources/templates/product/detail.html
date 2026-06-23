@@ -41,6 +41,19 @@
             list-style: none;
         }
         .term summary::-webkit-details-marker { display: none; }
+        .term summary::after {
+            content: '⌄';
+            width: 24px;
+            height: 24px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            color: var(--text-sub);
+            background: var(--lavender);
+            font-size: 18px;
+            transition: transform .18s ease;
+        }
+        .term[open] summary::after { transform: rotate(180deg); }
         .term-title { flex: 1; font-weight: 700; color: var(--text); }
         .term-type { color: var(--text-sub); font-size: 13px; }
         .badge { padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; }
@@ -56,6 +69,9 @@
             font-size: 14px;
             line-height: 1.8;
             color: var(--text-body);
+            max-height: 320px;
+            overflow-y: auto;
+            overscroll-behavior: contain;
         }
         .term-link { display: inline-block; margin: 0 16px 16px; font-size: 14px; color: var(--violet); font-weight: 600; text-decoration: none; }
         .term-link:hover { text-decoration: underline; }
@@ -192,6 +208,26 @@
     }
 
     showReviewWriteLink();
+
+    const joinButton = document.querySelector('a[href*="/product/join/"]');
+    joinButton?.addEventListener('click', async event => {
+        event.preventDefault();
+
+        const refreshResponse = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'same-origin' });
+        const refreshBody = await refreshResponse.json();
+        if (!refreshBody.success || !refreshBody.data?.accessToken) { location.href = '/login'; return; }
+
+        const response = await fetch(`/api/product/join/${productNo}/join-eligibility`, {
+            headers: { 'Authorization': 'Bearer ' + refreshBody.data.accessToken },
+            credentials: 'same-origin'
+        });
+        const body = await response.json();
+        if (!body.success) { alert(body.message || '가입 가능 여부를 확인하지 못했습니다.'); return; }
+        if (body.data.canJoin) { location.href = `/product/join/${productNo}/terms`; return; }
+
+        alert(body.data.reason + '\n\n상품 목록에서 외화 입출금 예금 상품을 먼저 선택해주세요.');
+        location.href = '/product/list';
+    });
 </script>
 </body>
 </html>
