@@ -10,6 +10,32 @@ services:
       - /home/ubuntu/Wallet_ATQGGWDFRRT7KEMU:/wallet
     restart: always
 
+  fastapi-agent:
+    build: ./fastapi-agent
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./fastapi-agent/.env
+    volumes:
+      - /home/ubuntu/Wallet_ATQGGWDFRRT7KEMU:/wallet
+    restart: always
+
+  fastapi-bnk:
+    build: ./fastapi-bnk
+    ports:
+      - "8001:8001"
+    env_file:
+      - ./fastapi-bnk/.env
+    restart: always
+
+  fastapi-ocr:
+    build: ./fastapi-ocr
+    ports:
+      - "8003:8003"
+    env_file:
+      - ./fastapi-ocr/.env
+    restart: always
+
   nginx:
     image: nginx:latest
     ports:
@@ -20,4 +46,7 @@ services:
       - /etc/letsencrypt:/etc/letsencrypt
     depends_on:
       - spring-boot
+      - fastapi-agent
+      - fastapi-bnk
+      - fastapi-ocr
     restart: always
