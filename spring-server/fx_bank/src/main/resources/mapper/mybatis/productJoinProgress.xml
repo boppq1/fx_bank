@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.bank.product.dao.IProductJoinProgressDao">
+
+    <!--
+        MERGE 기반 upsert.
+        user_no + product_no + progress_status='IN_PROGRESS' 가 매칭되면 UPDATE, 없으면 INSERT.
+        terms_codes(CLOB)는 서비스에서 JSON 문자열로 직렬화해 전달한다.
+        created_dt/expired_dt 는 INSERT 때만 설정(만료기한 7일 고정), UPDATE 는 updated_dt 만 갱신.
+        ※ 완전 원자성(동시 더블클릭 100% 차단)은 (user_no, product_no) 부분 유니크 인덱스가 있어야 보장됨 → DDL 권고만.
+    -->
+    <update id="upsertProgress" parameterType="com.example.bank.product.dto.ProductJoinProgressDto">
+        MERGE INTO product_join_progress t
+        USING (SELECT #{userNo} AS user_no, #{productNo} AS product_no FROM dual) s
+        ON (t.user_no = s.user_no AND t.product_no = s.product_no AND t.progress_status = 'IN_PROGRESS')
+        WHEN MATCHED THEN UPDATE SET
+            t.current_step         = #{currentStep},
+            t.verification_no      = #{verificationNo},
+            t.required_terms_codes = #{requiredTermsCodes},
+            t.optional_terms_codes = #{optionalTermsCodes},
+            t.rate_no              = #{rateNo},
+            t.currency_code        = #{currencyCode},
+            t.amount               = #{amount},
+            t.period_month         = #{periodMonth},
+            t.applied_rate         = #{appliedRate},
+            t.updated_dt           = SYSDATE
+        WHEN NOT MATCHED THEN INSERT (
+            join_progress_no,
+            user_no,
+            product_no,
+            verification_no,
+            current_step,
+            progress_status,
+            required_terms_codes,
+            optional_terms_codes,
+            rate_no,
+            currency_code,
+            amount,
+            period_month,
+            applied_rate,
+            created_dt,
+            expired_dt
+        ) VALUES (
+            seq_product_join_progress.NEXTVAL,
+            #{userNo},
+            #{productNo},
+            #{verificationNo},
+            #{currentStep},
+            'IN_PROGRESS',
+            #{requiredTermsCodes},
+            #{optionalTermsCodes},
+            #{rateNo},
+            #{currencyCode},
+            #{amount},
+            #{periodMonth},
+            #{appliedRate},
+            SYSDATE,
+            SYSDATE + 7
+        )
+    </update>
+
+    <!--
+        동시 INSERT 충돌(ORA-00001) 폴백용 UPDATE.
+        upsertProgress(MERGE)의 INSERT 분기가 유니크 인덱스에 막혔을 때, 서비스가 이 UPDATE 로 폴백한다.
+        대상은 해당 user+product 의 IN_PROGRESS 행(부분 유니크 인덱스 전제로 1건).
+    -->
+    <update id="updateInProgress" parameterType="com.example.bank.product.dto.ProductJoinProgressDto">
+        UPDATE product_join_progress
+        SET current_step         = #{currentStep},
+            verification_no      = #{verificationNo},
+            required_terms_codes = #{requiredTermsCodes},
+            optional_terms_codes = #{optionalTermsCodes},
+            rate_no              = #{rateNo},
+            currency_code        = #{currencyCode},
+            amount               = #{amount},
+            period_month         = #{periodMonth},
+            applied_rate         = #{appliedRate},
+            updated_dt           = SYSDATE
+        WHERE user_no = #{userNo}
+          AND product_no = #{productNo}
+          AND progress_status = 'IN_PROGRESS'
+    </update>
+
+    <resultMap id="progressMap" type="com.example.bank.product.dto.ProductJoinProgressDto">
+        <id property="joinProgressNo" column="join_progress_no"/>
+        <result property="userNo" column="user_no"/>
+        <result property="productNo" column="product_no"/>
+        <result property="verificationNo" column="verification_no"/>
+        <result property="currentStep" column="current_step"/>
+        <result property="progressStatus" column="progress_status"/>
+        <result property="requiredTermsCodes" column="required_terms_codes"/>
+        <result property="optionalTermsCodes" column="optional_terms_codes"/>
+        <result property="rateNo" column="rate_no"/>
+        <result property="currencyCode" column="currency_code"/>
+        <result property="amount" column="amount"/>
+        <result property="periodMonth" column="period_month"/>
+        <result property="appliedRate" column="applied_rate"/>
+        <result property="createdDt" column="created_dt"/>
+        <result property="updatedDt" column="updated_dt"/>
+        <result property="expiredDt" column="expired_dt"/>
+    </resultMap>
+
+    <!-- 최신 IN_PROGRESS·미만료 1건 (중복 존재 시 가장 최근 join_progress_no) -->
+    <select id="selectLatestInProgress" resultMap="progressMap">
+        SELECT *
+        FROM (
+            SELECT *
+            FROM product_join_progress
+            WHERE user_no = #{userNo}
+              AND product_no = #{productNo}
+              AND progress_status = 'IN_PROGRESS'
+              AND (expired_dt IS NULL OR expired_dt > SYSDATE)
+            ORDER BY join_progress_no DESC
+        )
+        WHERE ROWNUM = 1
+    </select>
+
+    <!-- keepNo 제외한 IN_PROGRESS 행 만료(중복 정리) -->
+    <update id="expireOtherInProgress">
+        UPDATE product_join_progress
+        SET progress_status = 'EXPIRED', updated_dt = SYSDATE
+        WHERE user_no = #{userNo}
+          AND product_no = #{productNo}
+          AND progress_status = 'IN_PROGRESS'
+          AND join_progress_no != #{keepNo}
+    </update>
+
+    <!-- 해당 user+product 의 IN_PROGRESS 전부 만료(새로 시작/무효) -->
+    <update id="expireAllInProgress">
+        UPDATE product_join_progress
+        SET progress_status = 'EXPIRED', updated_dt = SYSDATE
+        WHERE user_no = #{userNo}
+          AND product_no = #{productNo}
+          AND progress_status = 'IN_PROGRESS'
+    </update>
+
+    <!-- 가입 완료 마킹(행 보존) -->
+    <update id="markCompleted">
+        UPDATE product_join_progress
+        SET progress_status = 'COMPLETED', updated_dt = SYSDATE
+        WHERE user_no = #{userNo}
+          AND product_no = #{productNo}
+          AND progress_status = 'IN_PROGRESS'
+    </update>
+
+    <!-- 프리필 표시용 기본금리 -->
+    <select id="selectRateInterest" resultType="java.math.BigDecimal">
+        SELECT interest_rate
+        FROM product_rates
+        WHERE product_no = #{productNo}
+          AND rate_no = #{rateNo}
+    </select>
+
+</mapper>

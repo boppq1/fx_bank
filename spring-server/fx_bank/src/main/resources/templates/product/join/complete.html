@@ -2,104 +2,102 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>상품 가입 완료</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상품 가입 완료 | BNK 부산은행</title>
+    <link rel="stylesheet" th:href="@{/css/fx-home.css}">
+    <link rel="stylesheet" th:href="@{/css/fx-guide.css}">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 760px;
-            margin: 40px auto;
-            line-height: 1.5;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 16px;
-        }
-
-        th, td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: left;
-        }
-
-        th {
-            background: #f5f5f5;
-            width: 180px;
-        }
-
-        a.button {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 14px;
-            border: 1px solid #333;
-            background: #111;
-            color: white;
-            text-decoration: none;
-        }
+        .complete-table th { width: 180px; }
     </style>
 </head>
 <body>
-<h1>상품 가입 완료</h1>
 
-<table th:if="${complete != null}">
-    <tr>
-        <th>가입 번호</th>
-        <td th:text="${complete.subscriptionNo}">1</td>
-    </tr>
-    <tr>
-        <th>상품명</th>
-        <td th:text="${complete.productName}">상품명</td>
-    </tr>
-    <tr>
-        <th>가입자</th>
-        <td th:text="${complete.userName}">가입자</td>
-    </tr>
-    <tr>
-        <th>계좌번호</th>
-        <td th:text="${complete.acntNo}">계좌번호</td>
-    </tr>
-    <tr>
-        <th>통화</th>
-        <td>
-            <span th:switch="${complete.currencyCode}">
-                <span th:case="'USD'">미국 달러(USD)</span>
-                <span th:case="'JPY'">일본 엔(JPY)</span>
-                <span th:case="'EUR'">유로(EUR)</span>
-                <span th:case="'CNY'">중국 위안(CNY)</span>
-                <span th:case="'GBP'">영국 파운드(GBP)</span>
-                <span th:case="*" th:text="${complete.currencyCode}">통화</span>
-            </span>
-        </td>
-    </tr>
-    <tr>
-        <th>가입 금액</th>
-        <td th:text="${#numbers.formatDecimal(complete.amount, 0, 'COMMA', 2, 'POINT')}">0</td>
-    </tr>
-    <tr>
-        <th>가입 기간</th>
-        <td th:text="${complete.periodMonth + '개월'}">12개월</td>
-    </tr>
-    <tr>
-        <th>적용 금리</th>
-        <td th:text="${complete.appliedRate + '%'}">4.5%</td>
-    </tr>
-    <tr>
-        <th>가입 상태</th>
-        <td th:text="${complete.subscriptionStatus}">가입완료</td>
-    </tr>
-    <tr>
-        <th>가입일</th>
-        <td th:text="${#dates.format(complete.subscribedDt, 'yyyy-MM-dd')}">2026-06-19</td>
-    </tr>
-    <tr>
-        <th>만기일</th>
-        <td th:text="${#dates.format(complete.maturityDt, 'yyyy-MM-dd')}">2027-06-19</td>
-    </tr>
-</table>
+<div th:replace="~{header :: header}"></div>
 
-<p th:if="${complete == null}">가입 완료 정보를 찾을 수 없습니다.</p>
+<section class="guide-hero">
+    <div class="guide-hero-inner">
+        <span class="guide-hero-badge">상품 가입</span>
+        <h1 class="guide-hero-title">상품 가입이 완료되었습니다</h1>
+        <p class="guide-hero-desc">가입 내역을 확인하세요. 가입한 상품과 외화 계좌는 마이페이지에서 다시 볼 수 있습니다.</p>
+    </div>
+</section>
 
-<a class="button" th:href="@{/product/detail/{productNo}(productNo=${productNo})}">상품 상세로 돌아가기</a>
+<main class="guide-wrap">
+    <div class="guide-section">
+        <h2 class="guide-section-title">가입 내역</h2>
+
+        <div th:if="${complete != null}">
+            <p class="guide-note">🎉 가입이 정상적으로 완료되었습니다.</p>
+            <div class="guide-table-wrap">
+                <table class="guide-table complete-table">
+                    <tbody>
+                    <tr>
+                        <th>가입 번호</th>
+                        <td th:text="${complete.subscriptionNo}">1</td>
+                    </tr>
+                    <tr>
+                        <th>상품명</th>
+                        <td th:text="${complete.productName}">상품명</td>
+                    </tr>
+                    <tr>
+                        <th>가입자</th>
+                        <td th:text="${complete.userName}">가입자</td>
+                    </tr>
+                    <tr>
+                        <th>계좌번호</th>
+                        <td th:text="${complete.acntNo}">계좌번호</td>
+                    </tr>
+                    <tr>
+                        <th>통화</th>
+                        <td>
+                            <span th:switch="${complete.currencyCode}">
+                                <span th:case="'USD'">미국 달러(USD)</span>
+                                <span th:case="'JPY'">일본 엔(JPY)</span>
+                                <span th:case="'EUR'">유로(EUR)</span>
+                                <span th:case="'CNY'">중국 위안(CNY)</span>
+                                <span th:case="'GBP'">영국 파운드(GBP)</span>
+                                <span th:case="*" th:text="${complete.currencyCode}">통화</span>
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>가입 금액</th>
+                        <td th:text="${#numbers.formatDecimal(complete.amount, 0, 'COMMA', 2, 'POINT')}">0</td>
+                    </tr>
+                    <tr>
+                        <th>가입 기간</th>
+                        <td th:text="${complete.periodMonth + '개월'}">12개월</td>
+                    </tr>
+                    <tr>
+                        <th>적용 금리</th>
+                        <td th:text="${complete.appliedRate + '%'}">4.5%</td>
+                    </tr>
+                    <tr>
+                        <th>가입 상태</th>
+                        <td th:text="${complete.subscriptionStatus}">가입완료</td>
+                    </tr>
+                    <tr>
+                        <th>가입일</th>
+                        <td th:text="${#dates.format(complete.subscribedDt, 'yyyy-MM-dd')}">2026-06-19</td>
+                    </tr>
+                    <tr>
+                        <th>만기일</th>
+                        <td th:text="${#dates.format(complete.maturityDt, 'yyyy-MM-dd')}">2027-06-19</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <p th:if="${complete == null}" class="guide-note guide-warn">가입 완료 정보를 찾을 수 없습니다.</p>
+
+        <div class="guide-actions">
+            <a class="btn btn-primary" th:href="@{/product/detail/{productNo}(productNo=${productNo})}">상품 상세로 돌아가기</a>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{footer :: footer}"></div>
+
 </body>
 </html>

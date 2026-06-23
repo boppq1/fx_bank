@@ -2,85 +2,122 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>상품 가입 - 정보 입력</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>가입 정보 입력 | 상품 가입 | BNK 부산은행</title>
+    <link rel="stylesheet" th:href="@{/css/fx-home.css}">
+    <link rel="stylesheet" th:href="@{/css/fx-guide.css}">
     <style>
-        body { max-width: 760px; margin: 40px auto; color: #202124; font-family: 'Malgun Gothic', Arial, sans-serif; }
-        label { display: block; margin-top: 16px; font-weight: 700; }
-        input, select { width: 100%; padding: 10px; margin-top: 7px; box-sizing: border-box; border: 1px solid #c7cbd1; }
-        .ocr-box { margin-top: 24px; padding: 18px; border: 1px solid #c7cbd1; background: #f7f8fa; }
-        .ocr-box h2 { margin: 0; font-size: 18px; }
-        .hint, .status, .identity-notice { margin: 8px 0 0; font-size: 14px; color: #666; }
-        .status.ok { color: #176b3a; } .status.error { color: #b00020; }
-        .actions { margin-top: 24px; display: flex; gap: 10px; flex-wrap: wrap; }
-        button, a.button { padding: 10px 14px; border: 1px solid #333; background: #111; color: white; text-decoration: none; cursor: pointer; }
-        .secondary { background: white; color: #111; }
-        button:disabled { cursor: not-allowed; border-color: #bbb; background: #ddd; color: #777; }
-        .message { margin-top: 12px; color: #176b3a; } .error { margin-top: 12px; color: #b00020; }
+        /* 인증 상태 텍스트: form.html JS 가 className='status '+type 으로 .status/.ok/.error 를 직접 토글 → 클래스명 유지 */
+        .status { margin: 10px 0 0; font-size: 13.5px; color: var(--text-sub); }
+        .status.ok { color: #176B3A; }
+        .status.error { color: var(--up); }
+        .hint { margin: 0 0 10px; font-size: 13.5px; color: var(--text-sub); line-height: 1.6; }
+        .identity-notice { margin: 10px 0 0; font-size: 13.5px; color: var(--text-sub); }
+        .id-file { width: 100%; padding: 10px; border: 1px dashed var(--border); border-radius: var(--radius-sm); background: var(--surface); font-size: 14px; }
+        /* 가입 정보 패널의 필드 간격 */
+        .join-section .guide-field { margin-top: 18px; }
+        .join-card { margin-top: 18px; }
+        .join-card .guide-sub-title { margin-top: 0; }
+        .message { margin-top: 14px; color: #176B3A; font-size: 13.5px; font-weight: 600; }
+        .error { margin-top: 14px; color: var(--up); font-size: 13.5px; font-weight: 600; }
     </style>
 </head>
 <body>
-<h1>상품 가입 - 정보 입력</h1>
-<p><strong th:text="${product.productName}">상품명</strong></p>
 
-<form id="joinForm">
-    <input type="hidden" id="productNo" th:value="${product.productNo}">
+<div th:replace="~{header :: header}"></div>
 
-    <section id="ocrSection" class="ocr-box">
-        <h2>신분증 OCR 인증</h2>
-        <p class="hint">신분증 이미지를 선택하면 FastAPI OCR 서버에서 인식한 뒤 로그인 회원 정보와 대조합니다.</p>
-        <label for="idCardFile">신분증 이미지</label>
-        <input id="idCardFile" type="file" accept="image/jpeg,image/png,image/webp">
-        <div class="actions"><button type="button" id="ocrButton" class="secondary">신분증 인증하기</button></div>
-        <p id="ocrStatus" class="status">아직 인증되지 않았습니다.</p>
-    </section>
-    <section id="phoneSection" class="ocr-box" hidden>
-        <h2>휴대폰 본인인증</h2>
-        <p class="hint">회원가입 때 등록한 휴대폰 번호로 인증번호를 발송합니다.</p>
-        <div class="actions"><button type="button" id="sendPhoneCodeButton" class="secondary">인증번호 받기</button></div>
-        <label for="phoneCode">인증번호</label>
-        <input id="phoneCode" inputmode="numeric" maxlength="6" placeholder="인증번호 6자리 입력">
-        <div class="actions"><button type="button" id="confirmPhoneCodeButton" class="secondary">인증번호 확인</button></div>
-        <p id="phoneStatus" class="status">휴대폰 인증이 필요합니다.</p>
-    </section>
-    <p id="identityNotice" class="identity-notice" hidden></p>
-
-    <label for="currencyCode">통화</label>
-    <select id="currencyCode" required>
-        <option value="">선택</option>
-        <option th:each="currency : ${currencies}"
-                th:value="${currency.currencyCode}"
-                th:text="${currency.currencyCode + ' - ' + currency.currencyName}">USD</option>
-    </select>
-
-    <section id="withdrawalSection" class="ocr-box" hidden>
-        <h2>출금 계좌 선택</h2>
-        <p class="hint">가입 금액은 선택한 외화 입출금 계좌에서 출금됩니다.</p>
-        <label for="withdrawalAccountNo">출금 계좌</label>
-        <select id="withdrawalAccountNo"><option value="">통화를 먼저 선택해주세요.</option></select>
-    </section>
-
-    <label for="rateNo">가입 기간 / 금리</label>
-    <select id="rateNo" required>
-        <option value="">선택</option>
-        <option th:each="rate : ${rates}"
-                th:value="${rate.rateNo}"
-                th:attr="data-period=${rate.periodMonth},data-rate=${rate.interestRate}"
-                th:text="${rate.periodMonth + '개월 / ' + rate.interestRate + '%'}">12개월 / 4.5%</option>
-    </select>
-
-    <label for="amount">가입 금액</label>
-    <input id="amount" type="number" min="1" step="1" required placeholder="가입 금액 입력">
-
-    <label for="accountPassword">계좌 비밀번호</label>
-    <input id="accountPassword" type="password" required minlength="4" maxlength="20" placeholder="계좌 비밀번호 입력">
-
-    <div class="actions">
-        <a class="button secondary" th:href="@{/product/join/{productNo}/coupon(productNo=${product.productNo})}">이전</a>
-        <button id="submitButton" type="submit">입력 내용 확인</button>
+<section class="guide-hero">
+    <div class="guide-hero-inner">
+        <span class="guide-hero-badge">상품 가입</span>
+        <h1 class="guide-hero-title">가입 정보 입력</h1>
+        <p class="guide-hero-desc"><strong th:text="${product.productName}">상품명</strong> · 본인인증과 가입 정보를 입력해주세요.</p>
     </div>
-    <div id="message" class="message"></div>
-    <div id="error" class="error"></div>
-</form>
+</section>
+
+<main class="guide-wrap">
+    <div class="guide-section join-section">
+        <h2 class="guide-section-title">가입 정보 입력</h2>
+        <p id="prefillNotice" class="guide-note" hidden>이전에 진행하던 정보를 불러왔습니다. 보안을 위해 <b>계좌 비밀번호</b>와 <b>본인인증</b>은 다시 진행해주세요.</p>
+
+        <form id="joinForm">
+            <input type="hidden" id="productNo" th:value="${product.productNo}">
+
+            <section id="ocrSection" class="guide-card join-card">
+                <h3 class="guide-sub-title">신분증 OCR 인증</h3>
+                <p class="hint">신분증 이미지를 선택하면 FastAPI OCR 서버에서 인식한 뒤 로그인 회원 정보와 대조합니다.</p>
+                <div class="guide-field">
+                    <label class="guide-label" for="idCardFile">신분증 이미지</label>
+                    <input id="idCardFile" class="id-file" type="file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="guide-actions"><button type="button" id="ocrButton" class="btn btn-light">신분증 인증하기</button></div>
+                <p id="ocrStatus" class="status">아직 인증되지 않았습니다.</p>
+            </section>
+
+            <section id="phoneSection" class="guide-card join-card" hidden>
+                <h3 class="guide-sub-title">휴대폰 본인인증</h3>
+                <p class="hint">회원가입 때 등록한 휴대폰 번호로 인증번호를 발송합니다.</p>
+                <div class="guide-actions"><button type="button" id="sendPhoneCodeButton" class="btn btn-light">인증번호 받기</button></div>
+                <div class="guide-field">
+                    <label class="guide-label" for="phoneCode">인증번호</label>
+                    <input id="phoneCode" class="guide-input" inputmode="numeric" maxlength="6" placeholder="인증번호 6자리 입력">
+                </div>
+                <div class="guide-actions"><button type="button" id="confirmPhoneCodeButton" class="btn btn-light">인증번호 확인</button></div>
+                <p id="phoneStatus" class="status">휴대폰 인증이 필요합니다.</p>
+            </section>
+
+            <p id="identityNotice" class="identity-notice" hidden></p>
+
+            <div class="guide-field">
+                <label class="guide-label" for="currencyCode">통화</label>
+                <select id="currencyCode" class="guide-select" required>
+                    <option value="">선택</option>
+                    <option th:each="currency : ${currencies}"
+                            th:value="${currency.currencyCode}"
+                            th:text="${currency.currencyCode + ' - ' + currency.currencyName}">USD</option>
+                </select>
+            </div>
+
+            <section id="withdrawalSection" class="guide-card join-card" hidden>
+                <h3 class="guide-sub-title">출금 계좌 선택</h3>
+                <p class="hint">가입 금액은 선택한 외화 입출금 계좌에서 출금됩니다.</p>
+                <div class="guide-field">
+                    <label class="guide-label" for="withdrawalAccountNo">출금 계좌</label>
+                    <select id="withdrawalAccountNo" class="guide-select"><option value="">통화를 먼저 선택해주세요.</option></select>
+                </div>
+            </section>
+
+            <div class="guide-field">
+                <label class="guide-label" for="rateNo">가입 기간 / 금리</label>
+                <select id="rateNo" class="guide-select" required>
+                    <option value="">선택</option>
+                    <option th:each="rate : ${rates}"
+                            th:value="${rate.rateNo}"
+                            th:attr="data-period=${rate.periodMonth},data-rate=${rate.interestRate}"
+                            th:text="${rate.periodMonth + '개월 / ' + rate.interestRate + '%'}">12개월 / 4.5%</option>
+                </select>
+            </div>
+
+            <div class="guide-field">
+                <label class="guide-label" for="amount">가입 금액</label>
+                <input id="amount" class="guide-input" type="number" min="1" step="1" required placeholder="가입 금액 입력">
+            </div>
+
+            <div class="guide-field">
+                <label class="guide-label" for="accountPassword">계좌 비밀번호</label>
+                <input id="accountPassword" class="guide-input" type="password" required minlength="4" maxlength="20" placeholder="계좌 비밀번호 입력">
+            </div>
+
+            <div class="guide-actions">
+                <a class="btn btn-light" th:href="@{/product/join/{productNo}/coupon(productNo=${product.productNo})}">이전</a>
+                <button id="submitButton" type="submit" class="btn btn-primary">입력 내용 확인</button>
+            </div>
+            <div id="message" class="message"></div>
+            <div id="error" class="error"></div>
+        </form>
+    </div>
+</main>
+
+<div th:replace="~{footer :: footer}"></div>
 
 <script th:inline="javascript">
 const productType = /*[[${product.productType}]]*/ '';
@@ -258,6 +295,31 @@ document.getElementById('joinForm').addEventListener('submit', async (event) => 
     sessionStorage.setItem(`product-join-form:${productNo}`, JSON.stringify(formPayload));
     location.href = `/product/join/${productNo}/signature`;
 });
+
+// ===== 이어서 가입: 폼 프리필(비민감 값만 — 계좌비밀번호/본인인증 제외) =====
+(function applyResumePrefill() {
+    const productNo = document.getElementById('productNo').value;
+    const raw = sessionStorage.getItem(`join-prefill:${productNo}`);
+    if (!raw) return;
+    let p;
+    try { p = JSON.parse(raw); } catch (e) { return; }
+    sessionStorage.removeItem(`join-prefill:${productNo}`); // 1회성
+
+    if (p.currencyCode) {
+        const cur = document.getElementById('currencyCode');
+        cur.value = p.currencyCode;
+        if (cur.value === p.currencyCode) cur.dispatchEvent(new Event('change')); // 출금계좌 목록 로드 트리거
+    }
+    if (p.rateNo != null && p.rateNo !== '') {
+        document.getElementById('rateNo').value = String(p.rateNo);
+    }
+    if (p.amount != null && p.amount !== '') {
+        document.getElementById('amount').value = p.amount;
+    }
+
+    const notice = document.getElementById('prefillNotice');
+    if (notice) notice.hidden = false;
+})();
 
 loadIdentityVerificationRequirement();
 </script>

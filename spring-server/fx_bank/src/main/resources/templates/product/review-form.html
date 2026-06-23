@@ -2,27 +2,55 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>리뷰 작성</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>리뷰 작성 | BNK 부산은행</title>
+    <link rel="stylesheet" th:href="@{/css/fx-home.css}">
+    <link rel="stylesheet" th:href="@{/css/fx-guide.css}">
     <style>
-        body { max-width: 700px; margin: 40px auto; color: #202124; font-family: 'Malgun Gothic', Arial, sans-serif; }
-        label { display: block; margin-top: 20px; font-weight: 700; }
-        select, textarea { width: 100%; margin-top: 8px; padding: 10px; border: 1px solid #c7cbd1; font: inherit; box-sizing: border-box; }
-        textarea { min-height: 180px; resize: vertical; } button { margin-top: 20px; padding: 10px 15px; border: 1px solid #222; background: #111; color: #fff; cursor: pointer; }
-        .error { margin-top: 12px; color: #b00020; }
+        /* 리뷰 내용 textarea: 공용 시스템에 textarea 전용 클래스가 없어 guide-input 토큰으로 재스타일 */
+        textarea.guide-input { min-height: 180px; resize: vertical; line-height: 1.6; }
+        /* error: review-form.html JS 가 #error 에 textContent 를 직접 넣어 오류를 표시 → 클래스명 유지 */
+        .error { margin-top: 14px; color: var(--up); font-size: 13.5px; font-weight: 600; }
     </style>
 </head>
 <body>
-<a th:href="@{/product/detail/{productNo}(productNo=${product.productNo})}">상품 상세로</a>
-<h1>리뷰 작성</h1>
-<p><strong th:text="${product.productName}">상품명</strong></p>
-<form id="reviewForm">
-    <label for="rating">평점</label>
-    <select id="rating" required><option value="5">5점</option><option value="4">4점</option><option value="3">3점</option><option value="2">2점</option><option value="1">1점</option></select>
-    <label for="reviewText">리뷰 내용</label>
-    <textarea id="reviewText" maxlength="1000" required placeholder="상품 이용 경험을 작성해주세요."></textarea>
-    <button type="submit">등록하기</button>
-    <div id="error" class="error"></div>
-</form>
+
+<div th:replace="~{header :: header}"></div>
+
+<section class="guide-hero">
+    <div class="guide-hero-inner">
+        <span class="guide-hero-badge">상품 리뷰</span>
+        <h1 class="guide-hero-title">리뷰 작성</h1>
+        <p class="guide-hero-desc"><strong th:text="${product.productName}">상품명</strong> · 상품 이용 경험을 다른 고객과 나눠주세요.</p>
+    </div>
+</section>
+
+<main class="guide-wrap">
+    <div class="guide-section">
+        <h2 class="guide-section-title">리뷰 작성</h2>
+
+        <form id="reviewForm">
+            <div class="guide-field">
+                <label class="guide-label" for="rating">평점</label>
+                <select id="rating" class="guide-select" required><option value="5">5점</option><option value="4">4점</option><option value="3">3점</option><option value="2">2점</option><option value="1">1점</option></select>
+            </div>
+
+            <div class="guide-field">
+                <label class="guide-label" for="reviewText">리뷰 내용</label>
+                <textarea id="reviewText" class="guide-input" maxlength="1000" required placeholder="상품 이용 경험을 작성해주세요."></textarea>
+            </div>
+
+            <div class="guide-actions">
+                <a class="btn btn-light" th:href="@{/product/detail/{productNo}(productNo=${product.productNo})}">상품 상세로</a>
+                <button type="submit" class="btn btn-primary">등록하기</button>
+            </div>
+            <div id="error" class="error"></div>
+        </form>
+    </div>
+</main>
+
+<div th:replace="~{footer :: footer}"></div>
+
 <script th:inline="javascript">
     const productNo = /*[[${product.productNo}]]*/ 0;
     async function getAccessToken() {
