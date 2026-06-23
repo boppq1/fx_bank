@@ -42,7 +42,7 @@
         <td><a th:href="@{/product/detail/{productNo}(productNo=${product.productNo})}">상세보기</a></td>
         <td>
             <button type="button" class="join-button"
-                    th:attr="data-product-no=${product.productNo},data-demand=${#strings.contains(product.productType, '통장') or #strings.contains(product.productType, '입출금')}">가입하기</button>
+                    th:attr="data-product-no=${product.productNo},data-product-type=${product.productType}">가입하기</button>
         </td>
     </tr>
     </tbody>
@@ -69,7 +69,10 @@ document.querySelectorAll('.join-button').forEach(button => {
         if (!body.success) { alert(body.message || '가입 가능 여부를 확인하지 못했습니다.'); return; }
         if (body.data.canJoin) { location.href = `/product/join/${productNo}/terms`; return; }
 
-        const demandProduct = document.querySelector('.join-button[data-demand="true"]');
+        const demandProduct = Array.from(document.querySelectorAll('.join-button')).find(candidate => {
+            const type = candidate.dataset.productType || '';
+            return type.includes('예금') && !type.includes('정기') && !type.includes('적금');
+        });
         if (demandProduct && confirm(body.data.reason + '\n\n입출금 외화예금 가입 화면으로 이동할까요?')) {
             location.href = `/product/join/${demandProduct.dataset.productNo}/terms`;
             return;

@@ -3,14 +3,17 @@ package com.example.bank.product.controller;
 import com.example.bank.gloval.common.ApiResponse;
 import com.example.bank.personal.dto.UserEntity;
 import com.example.bank.personal.service.OcrService;
+import com.example.bank.personal.service.SolapiSmsService;
 import com.example.bank.product.dto.ProductJoinCompleteDto;
 import com.example.bank.product.dto.ProductJoinEligibilityDto;
 import com.example.bank.product.dto.IdentityVerificationRequirementDto;
 import com.example.bank.product.dto.ProductJoinFormRequestDto;
 import com.example.bank.product.dto.ProductJoinSubmitRequestDto;
 import com.example.bank.product.dto.ProductJoinTermsRequestDto;
+import com.example.bank.product.dto.PhoneVerificationRequestDto;
 import com.example.bank.product.dto.ProductMySubscriptionDto;
 import com.example.bank.product.dto.ProductTermDto;
+import com.example.bank.product.dto.WithdrawableForeignAccountDto;
 import com.example.bank.product.service.ProductJoinService;
 import com.example.bank.util.RedisUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -47,6 +50,7 @@ public class ProductJoinController {
     private final RedisUtil redisUtil;
     private final ObjectMapper objectMapper;
     private final OcrService ocrService;
+    private final SolapiSmsService solapiSmsService;
 
     @GetMapping("/{productNo}/terms")
     public ApiResponse<List<ProductTermDto>> getJoinTerms(@PathVariable("productNo") Long productNo) {
@@ -89,10 +93,11 @@ public class ProductJoinController {
     @PostMapping("/form")
     public ApiResponse<Void> saveJoinForm(
             @RequestBody ProductJoinFormRequestDto dto,
+            Authentication authentication,
             HttpSession session
     ) {
         try {
-            productJoinService.saveJoinFormToSession(dto, session);
+            productJoinService.saveJoinFormToSession(dto, getUserNoFromRedis(authentication), session);
             return ApiResponse.success("가입 정보 저장 성공", null);
         } catch (RuntimeException e) {
             return ApiResponse.error(e.getMessage());
@@ -146,6 +151,56 @@ public class ProductJoinController {
             Long userNo = getUserNoFromRedis(authentication);
             return ApiResponse.success("본인확인 대상 조회 성공",
                     productJoinService.getIdentityVerificationRequirement(productNo, userNo));
+        } catch (RuntimeException e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @GetMapping("/withdrawable-accounts")
+    public ApiResponse<List<WithdrawableForeignAccountDto>> getWithdrawableAccounts(
+            @RequestParam("currencyCode") String currencyCode,
+            Authentication authentication
+    ) {
+        try {
+            return ApiResponse.success("출금 가능 계좌 조회 성공",
+                    productJoinService.getWithdrawableForeignAccounts(getUserNoFromRedis(authentication), currencyCode));
+        } catch (RuntimeException e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @PostMapping("/{productNo}/phone-verification/send")
+    public ApiResponse<Void> sendPhoneVerification(
+            @PathVariable("productNo") Long productNo,
+            Authentication authentication
+    ) {
+        try {
+            UserEntity user = getAuthenticatedUserFromRedis(authentication);
+            if (productJoinService.getIdentityVerificationRequirement(productNo, user.getUserNo()).isRequired()) {
+                return ApiResponse.error("이 상품은 휴대폰 인증 대신 신분증 OCR 인증 대상입니다.");
+            }
+            solapiSmsService.sendVerificationCode(user.getPhone());
+            return ApiResponse.success("인증번호를 발송했습니다.", null);
+        } catch (RuntimeException e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @PostMapping("/{productNo}/phone-verification/confirm")
+    public ApiResponse<Void> confirmPhoneVerification(
+            @PathVariable("productNo") Long productNo,
+            @RequestBody PhoneVerificationRequestDto request,
+            Authentication authentication,
+            HttpSession session
+    ) {
+        try {
+            UserEntity user = getAuthenticatedUserFromRedis(authentication);
+            if (productJoinService.getIdentityVerificationRequirement(productNo, user.getUserNo()).isRequired()) {
+                return ApiResponse.error("이 상품은 휴대폰 인증 대신 신분증 OCR 인증 대상입니다.");
+            }
+            solapiSmsService.verifyCode(user.getPhone(), request.getCode());
+            session.setAttribute("PRODUCT_JOIN_PHONE_VERIFIED_PRODUCT_NO", productNo);
+            return ApiResponse.success("휴대폰 본인인증이 완료되었습니다.", null);
         } catch (RuntimeException e) {
             return ApiResponse.error(e.getMessage());
         }

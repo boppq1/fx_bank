@@ -35,6 +35,7 @@ import com.example.bank.product.dto.ProductJoinSubmitRequestDto;
 import com.example.bank.product.dto.ProductJoinTermsRequestDto;
 import com.example.bank.product.dto.ProductSubscriptionInsertDto;
 import com.example.bank.product.dto.ProductTermDto;
+import com.example.bank.product.dto.WithdrawableForeignAccountDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -55,6 +56,7 @@ public class ProductJoinServiceImpl implements ProductJoinService {
     private static final String SESSION_TERMS = "PRODUCT_JOIN_TERMS";
     private static final String SESSION_FORM = "PRODUCT_JOIN_FORM";
     private static final String SESSION_VERIFICATION_NO = "PRODUCT_JOIN_VERIFICATION_NO";
+    private static final String SESSION_PHONE_VERIFIED_PRODUCT_NO = "PRODUCT_JOIN_PHONE_VERIFIED_PRODUCT_NO";
     private static final String BANK_NAME = "BUSAN BANK";
     private static final BigDecimal DEFAULT_LIMIT_ONCE = new BigDecimal("1000000");
     private static final BigDecimal DEFAULT_LIMIT_DAILY = new BigDecimal("5000000");
@@ -267,7 +269,7 @@ public class ProductJoinServiceImpl implements ProductJoinService {
     // =====================================================
 
     @Override
-    public void saveJoinFormToSession(ProductJoinFormRequestDto dto, HttpSession session) {
+    public void saveJoinFormToSession(ProductJoinFormRequestDto dto, Long userNo, HttpSession session) {
         if (dto == null || dto.getProductNo() == null) {
             throw new IllegalArgumentException("가입 정보가 없습니다.");
         }
@@ -299,6 +301,17 @@ public class ProductJoinServiceImpl implements ProductJoinService {
             throw new IllegalArgumentException("가입 가능한 상품이 아닙니다.");
         }
 
+        if (!isDemandDepositProduct(product)) {
+            if (dto.getWithdrawalAccountNo() == null || dto.getWithdrawalAccountNo().isBlank()) {
+                throw new IllegalArgumentException("정기예금·적금 가입에 사용할 출금 계좌를 선택해주세요.");
+            }
+            boolean ownsSourceAccount = getWithdrawableForeignAccounts(userNo, dto.getCurrencyCode()).stream()
+                    .anyMatch(account -> dto.getWithdrawalAccountNo().equals(account.getAccountNo()));
+            if (!ownsSourceAccount) {
+                throw new IllegalArgumentException("선택한 출금 계좌를 사용할 수 없습니다.");
+            }
+        }
+
         int currencyCount = productJoinDao.countProductCurrency(productNo, dto.getCurrencyCode());
         if (currencyCount == 0) {
             throw new IllegalArgumentException("해당 상품에서 지원하지 않는 통화입니다.");
@@ -321,6 +334,14 @@ public class ProductJoinServiceImpl implements ProductJoinService {
         session.setAttribute(SESSION_FORM, dto);
     }
 
+    @Override
+    public List<WithdrawableForeignAccountDto> getWithdrawableForeignAccounts(Long userNo, String currencyCode) {
+        if (userNo == null || currencyCode == null || currencyCode.isBlank()) {
+            throw new IllegalArgumentException("출금 계좌 조회에 필요한 정보가 없습니다.");
+        }
+        return productJoinDao.selectWithdrawableForeignAccounts(userNo, currencyCode);
+    }
+
     // =====================================================
     // 5. 최종 가입 저장
     // =====================================================
@@ -328,6 +349,10 @@ public class ProductJoinServiceImpl implements ProductJoinService {
     @Override
     @Transactional
     public Long completeJoin(ProductJoinSubmitRequestDto dto, Long userNo, HttpSession session) {
+        // DB 세션의 병렬 DML이 활성화된 경우 같은 테이블의 UPDATE 후 INSERT가 ORA-12838로 막힌다.
+        // 이 트랜잭션에서만 병렬 DML을 끄고 출금·입금 처리를 하나의 원자적 작업으로 수행한다.
+        productJoinDao.disableParallelDml();
+
         if (dto == null || dto.getProductNo() == null) {
             throw new IllegalArgumentException("최종 가입 정보가 없습니다.");
         }
@@ -393,6 +418,20 @@ public class ProductJoinServiceImpl implements ProductJoinService {
 
             if (validVerificationCount == 0) {
                 throw new IllegalArgumentException("유효한 OCR 인증 정보가 없습니다.");
+            }
+        } else if (!productNo.equals(session.getAttribute(SESSION_PHONE_VERIFIED_PRODUCT_NO))) {
+            throw new IllegalArgumentException("가입하기 전에 휴대폰 본인인증을 완료해주세요.");
+        }
+
+        if (!isDemandDepositProduct(product)) {
+            int withdrawnCount = productJoinDao.withdrawForeignAccountBalance(
+                    userNo,
+                    formDto.getWithdrawalAccountNo(),
+                    formDto.getCurrencyCode(),
+                    formDto.getAmount()
+            );
+            if (withdrawnCount == 0) {
+                throw new IllegalArgumentException("출금 계좌의 잔액이 부족하거나 사용할 수 없습니다.");
             }
         }
 
@@ -544,7 +583,9 @@ public class ProductJoinServiceImpl implements ProductJoinService {
 
         String productType = product.getProductType();
         // "예금"은 정기예금에도 포함되는 단어라 여기 조건에 넣으면 정기예금이 입출금식으로 오분류된다.
-        return productType.contains("통장") || productType.contains("입출금"); // 입출금인지 통장인지 판단
+        boolean isTermOrInstallment = productType.contains("정기") || productType.contains("적금");
+        return !isTermOrInstallment
+                && (productType.contains("통장") || productType.contains("입출금") || productType.contains("예금"));
     }
 
     private String saveSignatureImage(Long subscriptionNo, String signatureImageData) {

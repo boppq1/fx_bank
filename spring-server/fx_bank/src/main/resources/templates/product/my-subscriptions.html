@@ -43,6 +43,11 @@ function formatAmount(value, currencyCode) {
     return new Intl.NumberFormat('ko-KR').format(value) + ' ' + (currencyCode || '');
 }
 
+function formatDate(value) {
+    if (!value) return '-';
+    return String(value).slice(0, 10).replaceAll('-', '.');
+}
+
 function escapeHtml(value) {
     return String(value ?? '-').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
 }
@@ -74,7 +79,7 @@ async function loadMySubscriptions() {
             <td>${escapeHtml(item.currencyCode)}</td>
             <td>${formatAmount(item.subscriptionAmount, item.currencyCode)}</td>
             <td>${formatAmount(item.accountBalance, item.currencyCode)}</td>
-            <td>${escapeHtml(item.subscribedDt)}</td>
+            <td>${formatDate(item.subscribedDt)}</td>
             <td>${escapeHtml(item.subscriptionStatus)}</td>
             <td><a class="review-link" data-product-no="${item.productNo}" href="/product/${item.productNo}/reviews/new" hidden>리뷰 작성</a></td>
         </tr>`).join('');

@@ -33,6 +33,15 @@
         <div class="actions"><button type="button" id="ocrButton" class="secondary">신분증 인증하기</button></div>
         <p id="ocrStatus" class="status">아직 인증되지 않았습니다.</p>
     </section>
+    <section id="phoneSection" class="ocr-box" hidden>
+        <h2>휴대폰 본인인증</h2>
+        <p class="hint">회원가입 때 등록한 휴대폰 번호로 인증번호를 발송합니다.</p>
+        <div class="actions"><button type="button" id="sendPhoneCodeButton" class="secondary">인증번호 받기</button></div>
+        <label for="phoneCode">인증번호</label>
+        <input id="phoneCode" inputmode="numeric" maxlength="6" placeholder="인증번호 6자리 입력">
+        <div class="actions"><button type="button" id="confirmPhoneCodeButton" class="secondary">인증번호 확인</button></div>
+        <p id="phoneStatus" class="status">휴대폰 인증이 필요합니다.</p>
+    </section>
     <p id="identityNotice" class="identity-notice" hidden></p>
 
     <label for="currencyCode">통화</label>
@@ -42,6 +51,13 @@
                 th:value="${currency.currencyCode}"
                 th:text="${currency.currencyCode + ' - ' + currency.currencyName}">USD</option>
     </select>
+
+    <section id="withdrawalSection" class="ocr-box" hidden>
+        <h2>출금 계좌 선택</h2>
+        <p class="hint">가입 금액은 선택한 외화 입출금 계좌에서 출금됩니다.</p>
+        <label for="withdrawalAccountNo">출금 계좌</label>
+        <select id="withdrawalAccountNo"><option value="">통화를 먼저 선택해주세요.</option></select>
+    </section>
 
     <label for="rateNo">가입 기간 / 금리</label>
     <select id="rateNo" required>
@@ -66,10 +82,13 @@
     <div id="error" class="error"></div>
 </form>
 
-<script>
+<script th:inline="javascript">
 const tinySignature = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAI9jU77yQAAAABJRU5ErkJggg==';
+const productType = /*[[${product.productType}]]*/ '';
+const requiresWithdrawalAccount = productType.includes('정기') || productType.includes('적금');
 let ocrVerified = false;
 let identityVerificationRequired = true;
+let phoneVerified = false;
 
 async function ensureAccessToken() {
     if (window.accessToken) return window.accessToken;
@@ -113,6 +132,7 @@ async function loadIdentityVerificationRequirement() {
     const notice = document.getElementById('identityNotice');
     if (!requirement.required) {
         document.getElementById('ocrSection').hidden = true;
+        document.getElementById('phoneSection').hidden = false;
         notice.hidden = false;
         notice.textContent = requirement.reason;
     } else {
@@ -151,9 +171,68 @@ document.getElementById('ocrButton').addEventListener('click', async () => {
     }
 });
 
+function setPhoneStatus(text, type) {
+    const status = document.getElementById('phoneStatus');
+    status.textContent = text;
+    status.className = 'status ' + (type || '');
+}
+
+async function loadWithdrawableAccounts() {
+    const currencyCode = document.getElementById('currencyCode').value;
+    const select = document.getElementById('withdrawalAccountNo');
+    select.innerHTML = '<option value="">출금 계좌를 선택해주세요.</option>';
+    if (!currencyCode) return;
+    const token = await ensureAccessToken();
+    if (!token) return;
+    const response = await fetch(`/api/product/join/withdrawable-accounts?currencyCode=${encodeURIComponent(currencyCode)}`, {
+        headers: { 'Authorization': 'Bearer ' + token }, credentials: 'same-origin'
+    });
+    const body = await response.json();
+    if (!body.success) { setError(body.message || '출금 계좌를 조회하지 못했습니다.'); return; }
+    if (!body.data.length) { select.innerHTML = '<option value="">선택 가능한 출금 계좌가 없습니다.</option>'; return; }
+    body.data.forEach(account => {
+        const option = document.createElement('option');
+        option.value = account.accountNo;
+        option.textContent = `${account.accountNo} · 잔액 ${formatNumber(account.balance)} ${account.currencyCode}`;
+        select.appendChild(option);
+    });
+}
+
+function formatNumber(value) { return new Intl.NumberFormat('ko-KR').format(value ?? 0); }
+
+if (requiresWithdrawalAccount) {
+    document.getElementById('withdrawalSection').hidden = false;
+    document.getElementById('currencyCode').addEventListener('change', loadWithdrawableAccounts);
+}
+
+document.getElementById('sendPhoneCodeButton').addEventListener('click', async () => {
+    const token = await ensureAccessToken();
+    if (!token) return;
+    const productNo = Number(document.getElementById('productNo').value);
+    const response = await fetch(`/api/product/join/${productNo}/phone-verification/send`, {
+        method: 'POST', headers: { 'Authorization': 'Bearer ' + token }, credentials: 'same-origin'
+    });
+    const body = await response.json();
+    setPhoneStatus(body.success ? '인증번호를 발송했습니다.' : (body.message || '인증번호 발송에 실패했습니다.'), body.success ? '' : 'error');
+});
+
+document.getElementById('confirmPhoneCodeButton').addEventListener('click', async () => {
+    const token = await ensureAccessToken();
+    if (!token) return;
+    const productNo = Number(document.getElementById('productNo').value);
+    const response = await fetch(`/api/product/join/${productNo}/phone-verification/confirm`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, credentials: 'same-origin',
+        body: JSON.stringify({ code: document.getElementById('phoneCode').value })
+    });
+    const body = await response.json();
+    if (body.success) { phoneVerified = true; setPhoneStatus('휴대폰 본인인증이 완료되었습니다.', 'ok'); return; }
+    setPhoneStatus(body.message || '인증번호가 일치하지 않습니다.', 'error');
+});
+
 document.getElementById('joinForm').addEventListener('submit', async (event) => {
     event.preventDefault();
     if (identityVerificationRequired && !ocrVerified) { setError('가입하기 전에 신분증 OCR 인증을 완료해주세요.'); return; }
+    if (!identityVerificationRequired && !phoneVerified) { setError('가입하기 전에 휴대폰 본인인증을 완료해주세요.'); return; }
 
     const productNo = Number(document.getElementById('productNo').value);
     const rateOption = document.getElementById('rateNo').selectedOptions[0];
@@ -164,8 +243,11 @@ document.getElementById('joinForm').addEventListener('submit', async (event) => 
         amount: Number(document.getElementById('amount').value),
         periodMonth: Number(rateOption.dataset.period),
         appliedRate: Number(rateOption.dataset.rate),
+        withdrawalAccountNo: requiresWithdrawalAccount ? document.getElementById('withdrawalAccountNo').value : null,
         accountPassword: document.getElementById('accountPassword').value
     };
+
+    if (requiresWithdrawalAccount && !formPayload.withdrawalAccountNo) { setError('출금 계좌를 선택해주세요.'); return; }
 
     let response = await apiFetch('/api/product/join/form', { method: 'POST', body: JSON.stringify(formPayload) });
     if (!response) return;

@@ -10,6 +10,7 @@ import com.example.bank.product.dto.ProductJoinFormRequestDto;
 import com.example.bank.product.dto.ProductJoinSubmitRequestDto;
 import com.example.bank.product.dto.ProductJoinTermsRequestDto;
 import com.example.bank.product.dto.ProductTermDto;
+import com.example.bank.product.dto.WithdrawableForeignAccountDto;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -36,7 +37,9 @@ public interface ProductJoinService {
     IdentityVerificationRequirementDto getIdentityVerificationRequirement(Long productNo, Long userNo);
 
     // 가입 정보 입력값을 검증하고 세션에 저장
-    void saveJoinFormToSession(ProductJoinFormRequestDto dto, HttpSession session);
+    void saveJoinFormToSession(ProductJoinFormRequestDto dto, Long userNo, HttpSession session);
+
+    List<WithdrawableForeignAccountDto> getWithdrawableForeignAccounts(Long userNo, String currencyCode);
 
     // 전자서명 후 최종 가입 저장
     Long completeJoin(ProductJoinSubmitRequestDto dto, Long userNo, HttpSession session);
