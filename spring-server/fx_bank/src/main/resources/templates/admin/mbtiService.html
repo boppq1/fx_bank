@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FX Bank - 금융 MBTI</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0a0e1a;
+            --card: #111827;
+            --card2: #1a2235;
+            --accent: #3b82f6;
+            --accent2: #60a5fa;
+            --gold: #f59e0b;
+            --text: #f1f5f9;
+            --muted: #94a3b8;
+            --border: #1e2d45;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warn-bg: rgba(245, 158, 11, 0.12);
+            --warn-border: rgba(245, 158, 11, 0.35);
+            --warn-text: #fbbf24;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
+            min-height: 100vh;
+        }
+
+        .screen { display: none; min-height: 100vh; flex-direction: column; }
+        .screen.active { display: flex; }
+
+        /* ─── 메인 ─── */
+        #s-main {
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            background: radial-gradient(ellipse at 50% 0%, #1e3a5f 0%, var(--bg) 60%);
+        }
+
+        .main-inner { max-width: 480px; width: 100%; text-align: center; }
+
+        .logo {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            color: var(--accent2);
+            text-transform: uppercase;
+            margin-bottom: 44px;
+        }
+
+        .mbti-preview { display: flex; justify-content: center; gap: 8px; margin-bottom: 32px; }
+
+        .mbti-char {
+            width: 52px; height: 52px;
+            border-radius: 12px;
+            background: var(--card2);
+            border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; font-weight: 800; color: var(--accent2);
+            animation: float 3s ease-in-out infinite;
+        }
+        .mbti-char:nth-child(2) { animation-delay: .2s; }
+        .mbti-char:nth-child(3) { animation-delay: .4s; }
+        .mbti-char:nth-child(4) { animation-delay: .6s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .main-title { font-size: 30px; font-weight: 800; line-height: 1.25; margin-bottom: 14px; }
+        .main-title span { color: var(--accent2); }
+
+        .main-desc { font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 32px; }
+
+        .axis-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 32px;
+            text-align: left;
+        }
+
+        .axis-item {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 14px;
+        }
+
+        .axis-label { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+        .axis-values { font-size: 13px; font-weight: 600; }
+        .axis-values span { color: var(--accent2); }
+
+        .btn-main {
+            width: 100%; padding: 16px;
+            background: var(--accent); color: #fff;
+            border: none; border-radius: 14px;
+            font-size: 16px; font-weight: 700;
+            cursor: pointer; transition: all .2s;
+        }
+        .btn-main:hover { background: var(--accent2); transform: translateY(-2px); }
+
+        .err-box {
+            background: rgba(239,68,68,.1);
+            border: 1px solid rgba(239,68,68,.3);
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 13px;
+            color: var(--danger);
+            margin-top: 16px;
+            display: none;
+        }
+
+        /* ─── 로딩 ─── */
+        #s-loading { align-items: center; justify-content: center; background: var(--bg); }
+
+        .ring {
+            width: 72px; height: 72px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 28px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loading-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+
+        .steps { list-style: none; text-align: left; display: inline-block; margin-top: 20px; }
+        .steps li {
+            font-size: 13px; color: var(--muted);
+            padding: 5px 0;
+            display: flex; align-items: center; gap: 10px;
+            transition: color .3s;
+        }
+        .steps li.done { color: var(--success); }
+        .steps li.active { color: var(--text); }
+
+        /* ─── 결과 ─── */
+        #s-result { background: var(--bg); }
+
+        .hero {
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f2040 100%);
+            padding: 44px 20px 36px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle at center, rgba(59,130,246,.1) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .hero-logo { font-size: 11px; letter-spacing: 4px; color: var(--accent2); text-transform: uppercase; margin-bottom: 28px; }
+
+        .mbti-badge { display: inline-flex; gap: 6px; margin-bottom: 16px; }
+        .mbti-letter {
+            width: 58px; height: 66px;
+            background: rgba(59,130,246,.15);
+            border: 1px solid rgba(59,130,246,.4);
+            border-radius: 13px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 26px; font-weight: 900; color: var(--accent2);
+        }
+
+        .mbti-type { font-size: 12px; color: var(--accent2); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+        .mbti-desc { font-size: 15px; color: var(--text); line-height: 1.7; max-width: 340px; margin: 0 auto 20px; }
+
+        /* 정보 부족 배너 */
+        .info-banner {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            background: var(--warn-bg);
+            border: 1px solid var(--warn-border);
+            border-radius: 12px;
+            padding: 13px 15px;
+            margin: 0 auto 20px;
+            max-width: 400px;
+            text-align: left;
+        }
+        .info-banner-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+        .info-banner-text { font-size: 13px; color: var(--warn-text); line-height: 1.6; }
+
+        /* 점수 바 */
+        .score-bars { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-width: 400px; margin: 0 auto; }
+        .sbi { text-align: left; }
+        .sbl { font-size: 11px; color: var(--muted); margin-bottom: 5px; display: flex; justify-content: space-between; }
+        .sbt { height: 5px; background: rgba(255,255,255,.1); border-radius: 3px; overflow: hidden; }
+        .sbf { height: 100%; background: var(--accent); border-radius: 3px; transition: width 1s ease; }
+
+        /* 바디 */
+        .result-body { padding: 28px 18px; max-width: 600px; margin: 0 auto; width: 100%; }
+
+        .sec-title { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 14px; }
+
+        .tag-main {
+            display: inline-block;
+            background: rgba(245,158,11,.15); color: var(--gold);
+            font-size: 10px; font-weight: 700; letter-spacing: 1px;
+            padding: 3px 10px; border-radius: 20px; margin-bottom: 10px;
+        }
+        .tag-sub {
+            display: inline-block;
+            background: rgba(148,163,184,.1); color: var(--muted);
+            font-size: 10px; font-weight: 700; letter-spacing: 1px;
+            padding: 3px 10px; border-radius: 20px; margin-bottom: 10px;
+        }
+
+        .divider { height: 1px; background: var(--border); margin: 24px 0; }
+
+        .product-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 10px;
+            transition: border-color .2s;
+        }
+        .product-card:hover { border-color: var(--accent); }
+        .product-card.main-card {
+            border-color: rgba(245,158,11,.3);
+            background: linear-gradient(135deg, #1a2235 0%, #1a1a2e 100%);
+        }
+
+        .product-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+        .product-name { font-size: 15px; font-weight: 700; }
+
+        .s-badge { font-size: 10px; font-weight: 600; padding: 2px 9px; border-radius: 20px; }
+        .s-badge.pos { background: rgba(16,185,129,.15); color: var(--success); }
+        .s-badge.neg { background: rgba(239,68,68,.15); color: var(--danger); }
+        .s-badge.neu { background: rgba(148,163,184,.15); color: var(--muted); }
+
+        .product-tendency { font-size: 12px; color: var(--accent2); margin-bottom: 7px; }
+        .product-review { font-size: 12px; color: var(--muted); line-height: 1.6; border-left: 2px solid var(--border); padding-left: 11px; }
+        .score-chip { font-size: 11px; color: var(--muted); margin-top: 8px; }
+        .score-chip span { color: var(--success); font-weight: 600; }
+
+        /* 더 보기 */
+        .more-wrap {
+            overflow: hidden;
+            max-height: 0;
+            opacity: 0;
+            transition: max-height .4s ease, opacity .4s ease;
+        }
+        .more-wrap.open { max-height: 2000px; opacity: 1; }
+
+        .btn-more {
+            width: 100%; padding: 12px;
+            background: transparent; color: var(--muted);
+            border: 1px solid var(--border); border-radius: 12px;
+            font-size: 13px; font-weight: 600;
+            cursor: pointer; transition: all .2s;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            margin-top: 10px;
+        }
+        .btn-more:hover { border-color: var(--accent); color: var(--accent2); }
+        .chevron { transition: transform .3s; display: inline-block; }
+        .btn-more.open .chevron { transform: rotate(180deg); }
+
+        .btn-retry {
+            width: 100%; padding: 14px;
+            background: transparent; color: var(--muted);
+            border: 1px solid var(--border); border-radius: 14px;
+            font-size: 14px; font-weight: 600;
+            cursor: pointer; margin-top: 20px; transition: all .2s;
+        }
+        .btn-retry:hover { border-color: var(--accent); color: var(--accent2); }
+
+        .empty { color: var(--muted); font-size: 13px; padding: 8px 0; }
+    </style>
+</head>
+<body>
+
+<!-- ① 메인 -->
+<div id="s-main" class="screen active">
+    <div class="main-inner">
+        <div class="logo">FX Bank</div>
+        <div class="mbti-preview">
+            <div class="mbti-char">S</div>
+            <div class="mbti-char">P</div>
+            <div class="mbti-char">G</div>
+            <div class="mbti-char">A</div>
+        </div>
+        <h1 class="main-title">나의 금융 MBTI는<br><span>무엇일까요?</span></h1>
+        <p class="main-desc">내 투자 성향과 행동 패턴을 분석해<br>딱 맞는 외화 상품을 추천해드려요</p>
+        <div class="axis-info">
+            <div class="axis-item">
+                <div class="axis-label">안전성</div>
+                <div class="axis-values"><span>S</span> 안전 vs <span>R</span> 도전</div>
+            </div>
+            <div class="axis-item">
+                <div class="axis-label">목적성</div>
+                <div class="axis-values"><span>P</span> 목표 vs <span>F</span> 즉흥</div>
+            </div>
+            <div class="axis-item">
+                <div class="axis-label">사회성</div>
+                <div class="axis-values"><span>G</span> 글로벌 vs <span>L</span> 국내</div>
+            </div>
+            <div class="axis-item">
+                <div class="axis-label">참여도</div>
+                <div class="axis-values"><span>A</span> 적극 vs <span>W</span> 관망</div>
+            </div>
+        </div>
+        <button class="btn-main" onclick="startAnalysis()">내 금융 MBTI 분석하기 →</button>
+        <div class="err-box" id="err-msg"></div>
+    </div>
+</div>
+
+<!-- ② 로딩 -->
+<div id="s-loading" class="screen">
+    <div style="text-align:center">
+        <div class="ring"></div>
+        <div class="loading-title">분석 중이에요...</div>
+        <p style="font-size:13px;color:var(--muted)">잠시만 기다려주세요</p>
+        <ul class="steps">
+            <li id="step1"><span class="si">⏳</span> 행동 로그 수집 중</li>
+            <li id="step2"><span class="si">⏳</span> MBTI 성향 분석 중</li>
+            <li id="step3"><span class="si">⏳</span> 맞춤 상품 검색 중</li>
+            <li id="step4"><span class="si">⏳</span> 결과 생성 중</li>
+        </ul>
+    </div>
+</div>
+
+<!-- ③ 결과 -->
+<div id="s-result" class="screen">
+    <div class="hero">
+        <div class="hero-logo">FX Bank · 금융 MBTI</div>
+        <div class="mbti-badge" id="r-badge"></div>
+        <div class="mbti-type" id="r-code"></div>
+        <p class="mbti-desc" id="r-desc"></p>
+        <div id="r-banner"></div>
+        <div class="score-bars" id="r-scores"></div>
+    </div>
+
+    <div class="result-body">
+        <div class="sec-title">맞춤 상품 추천</div>
+        <div class="tag-main">🎯 딱 맞는 상품</div>
+        <div id="r-main"></div>
+
+        <div class="divider"></div>
+
+        <div class="tag-sub">💡 함께 보면 좋은 상품</div>
+        <div id="r-sub-visible"></div>
+        <div class="more-wrap" id="r-sub-more"></div>
+        <button class="btn-more" id="btn-more" onclick="toggleMore()" style="display:none">
+            <span class="chevron">▼</span>
+            <span id="more-label">다른 상품 더 보기</span>
+        </button>
+
+        <button class="btn-retry" onclick="show('s-main')">다시 분석하기</button>
+    </div>
+</div>
+
+<script>
+    async function restoreToken() {
+        if (window.accessToken) return window.accessToken;
+        try {
+            const res = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'include' });
+            const result = await res.json();
+            if (result.success) {
+                window.accessToken = result.data.accessToken;
+                return window.accessToken;
+            }
+        } catch (e) {}
+        return null;
+    }
+
+    function show(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        window.scrollTo(0, 0);
+    }
+
+    function setStep(n, s) {
+        const el = document.getElementById('step' + n);
+        el.className = s;
+        el.querySelector('.si').textContent = s === 'done' ? '✅' : '⏳';
+    }
+
+    async function startAnalysis() {
+        const token = await restoreToken();
+        if (!token) {
+            const err = document.getElementById('err-msg');
+            err.style.display = 'block';
+            err.textContent = '로그인이 필요해요. 다시 로그인해주세요.';
+            return;
+        }
+
+        show('s-loading');
+        setStep(1, 'active');
+        await delay(800);
+        setStep(1, 'done'); setStep(2, 'active');
+        await delay(800);
+        setStep(2, 'done'); setStep(3, 'active');
+
+        try {
+            const res = await fetch('http://localhost:8000/analyze-user', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!res.ok) {
+                const e = await res.json();
+                throw new Error(e.detail || '분석 중 오류가 발생했어요');
+            }
+
+            const data = await res.json();
+
+            setStep(3, 'done'); setStep(4, 'active');
+            await delay(600);
+            setStep(4, 'done');
+            await delay(400);
+
+            renderResult(data);
+            show('s-result');
+
+        } catch (e) {
+            show('s-main');
+            const err = document.getElementById('err-msg');
+            err.style.display = 'block';
+            err.textContent = e.message;
+        }
+    }
+
+    function renderResult(data) {
+        const mbti = data.mbti || 'SPGA';
+        const scores = data.mbti_scores || {};
+        const main = data.main_recommendations || [];
+        const sub = data.sub_recommendations || [];
+        const infoStatus = data.info_status || {};
+
+        // MBTI 배지
+        document.getElementById('r-badge').innerHTML =
+            mbti.split('').map(l => `<div class="mbti-letter">${l}</div>`).join('');
+        document.getElementById('r-code').textContent = mbti + ' 유형';
+        document.getElementById('r-desc').textContent = data.mbti_description || '';
+
+        // 정보 부족 배너 — message가 있을 때만 표시
+        const bannerEl = document.getElementById('r-banner');
+        if (infoStatus.message) {
+            const icons = {
+                NO_LOG_AGE_FALLBACK: '📊',
+                NO_LOG_NO_AGE_FALLBACK: '🙌',
+                NO_BIRTH_DATE: '📋'
+            };
+            const icon = icons[infoStatus.code] || 'ℹ️';
+            bannerEl.innerHTML = `
+        <div class="info-banner">
+          <span class="info-banner-icon">${icon}</span>
+          <span class="info-banner-text">${infoStatus.message}</span>
+        </div>`;
+        } else {
+            bannerEl.innerHTML = '';
+        }
+
+        // 점수 바
+        const axes = [
+            { label: '안전성', l: 'S', r: 'R', ls: scores.S || 0, rs: scores.R || 0 },
+            { label: '목적성', l: 'P', r: 'F', ls: scores.P || 0, rs: scores.F || 0 },
+            { label: '사회성', l: 'G', r: 'L', ls: scores.G || 0, rs: scores.L || 0 },
+            { label: '참여도', l: 'A', r: 'W', ls: scores.A || 0, rs: scores.W || 0 },
+        ];
+        document.getElementById('r-scores').innerHTML = axes.map(a => {
+            const total = a.ls + a.rs || 1;
+            const pct = Math.round(a.ls / total * 100);
+            const winner = a.ls >= a.rs ? a.l : a.r;
+            return `<div class="sbi">
+        <div class="sbl"><span>${a.label}</span><span style="color:var(--accent2)">${winner}</span></div>
+        <div class="sbt"><div class="sbf" style="width:${pct}%"></div></div>
+      </div>`;
+        }).join('');
+
+        // 메인 추천
+        document.getElementById('r-main').innerHTML = main.length
+            ? main.map(p => productCard(p, true)).join('')
+            : '<p class="empty">맞춤 상품을 찾지 못했어요</p>';
+
+        // 보조 추천: 첫 2개 노출, 나머지 숨김
+        const visibleSub = sub.slice(0, 2);
+        const moreSub = sub.slice(2);
+
+        document.getElementById('r-sub-visible').innerHTML = visibleSub.length
+            ? visibleSub.map(p => productCard(p, false)).join('')
+            : '<p class="empty">추가 추천 상품이 없어요</p>';
+
+        const moreEl = document.getElementById('r-sub-more');
+        const moreBtn = document.getElementById('btn-more');
+
+        if (moreSub.length) {
+            moreEl.innerHTML = moreSub.map(p => productCard(p, false)).join('');
+            moreBtn.style.display = 'flex';
+            document.getElementById('more-label').textContent = `다른 상품 ${moreSub.length}개 더 보기`;
+        } else {
+            moreEl.innerHTML = '';
+            moreBtn.style.display = 'none';
+        }
+    }
+
+    function toggleMore() {
+        const wrap = document.getElementById('r-sub-more');
+        const btn = document.getElementById('btn-more');
+        const isOpen = wrap.classList.toggle('open');
+        btn.classList.toggle('open', isOpen);
+        document.getElementById('more-label').textContent = isOpen ? '접기' : `다른 상품 더 보기`;
+    }
+
+    function productCard(p, isMain) {
+        const sc = p.sentiment === '긍정' ? 'pos' : p.sentiment === '부정' ? 'neg' : 'neu';
+        const chip = p.sentiment_score >= 0
+            ? `<div class="score-chip">고객 만족도 <span>+${p.sentiment_score}</span></div>` : '';
+        return `<div class="product-card${isMain ? ' main-card' : ''}">
+      <div class="product-header">
+        <div class="product-name">${p.product_name}</div>
+        <div class="s-badge ${sc}">${p.sentiment || '중립'}</div>
+      </div>
+      <div class="product-tendency">${p.product_tendency || ''}</div>
+      <div class="product-review">"${p.review_text || ''}"</div>
+      ${chip}
+    </div>`;
+    }
+
+    function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+</script>
+</body>
+</html>
