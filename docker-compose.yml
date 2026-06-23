@@ -24,8 +24,6 @@ services:
     build: ./fastapi-bnk
     ports:
       - "8001:8001"
-    env_file:
-      - ./fastapi-bnk/.env
     restart: always
 
   fastapi-ocr:
