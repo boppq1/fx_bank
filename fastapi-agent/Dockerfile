@@ -3,7 +3,7 @@ FROM python:3.11-slim
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
-    libaio1 \
+    libaio1t64 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
