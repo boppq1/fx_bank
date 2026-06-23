@@ -1,5 +1,3 @@
-const PRODUCT_NO = 1; // 이벤트 상품 번호
-
 // 이벤트 참여 신청
 function joinEvent() {
     fetch('/event/join', {
