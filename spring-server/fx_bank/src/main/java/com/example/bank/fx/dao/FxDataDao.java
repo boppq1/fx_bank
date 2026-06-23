@@ -24,8 +24,11 @@ public interface FxDataDao {
     /** 대표 통화들의 최신 환율 (메인 페이지) */
     List<FxDataDto> selectLatestRatesByCurrencies(@Param("currencyCodes") List<String> currencyCodes);
 
-    /** 전체 통화별 최신 환율 (환율조회 표) */
+    /** 전체 통화별 최신 환율 (메인/요약) */
     List<FxDataDto> selectAllLatestRates();
+
+    /** 전체 환율 이력 (환율조회 페이지 - 클라이언트 페이지네이션) */
+    List<FxDataDto> selectAll();
 
     /** 특정 통화 환율 이력 (환율조회 상세/차트) */
     List<FxDataDto> selectRateHistory(@Param("currencyCode") String currencyCode);

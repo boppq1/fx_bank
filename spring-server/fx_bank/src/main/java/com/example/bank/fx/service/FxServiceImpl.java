@@ -2,6 +2,7 @@ package com.example.bank.fx.service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import com.example.bank.fx.dao.FxDataDao;
 import com.example.bank.fx.dto.FxCalcResultDto;
 import com.example.bank.fx.dto.FxDataDto;
+import com.example.bank.fx.dto.FxRateCardDto;
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,18 +27,36 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class FxServiceImpl implements FxService {
 
+    private static final int SPARK_POINTS = 30;
+
     private final FxDataDao fxDataDao;
 
     /** 메인 페이지 노출 대표 통화 (application.properties: fx.main.currencies) */
     @Value("${fx.main.currencies:USD,JPY(100),CNH,EUR}")
     private String mainCurrencies;
 
+    /** 메인 환율 카드/캐러셀 통화 세트 (대표 4종보다 넓게) */
+    @Value("${fx.card.currencies:USD,JPY(100),CNH,EUR,GBP,AUD,CAD,CHF}")
+    private String cardCurrencies;
+
+    private List<String> mainCodes() {
+        return splitCodes(mainCurrencies);
+    }
+
+    private List<String> cardCodes() {
+        return splitCodes(cardCurrencies);
+    }
+
+    private List<String> splitCodes(String s) {
+        return Arrays.stream(s.split(","))
+                .map(String::trim)
+                .filter(v -> !v.isEmpty())
+                .collect(Collectors.toList());
+    }
+
     @Override
     public List<FxDataDto> getMainRates() {
-        List<String> codes = Arrays.stream(mainCurrencies.split(","))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .collect(Collectors.toList());
+        List<String> codes = mainCodes();
         if (codes.isEmpty()) {
             return Collections.emptyList();
         }
@@ -44,8 +64,49 @@ public class FxServiceImpl implements FxService {
     }
 
     @Override
+    public List<FxRateCardDto> getMainRateDetails() {
+        List<FxRateCardDto> out = new ArrayList<>();
+        for (String code : cardCodes()) {
+            List<FxDataDto> hist = fxDataDao.selectRateHistory(code); // announced_at DESC
+            if (hist == null || hist.isEmpty()) {
+                continue;
+            }
+
+            FxDataDto latest = hist.get(0);
+            FxDataDto prev = hist.size() > 1 ? hist.get(1) : latest;
+
+            double base = nz(latest.getBaseRate());
+            double prevBase = nz(prev.getBaseRate());
+            double changeAbs = base - prevBase;
+            double changePct = prevBase != 0 ? (changeAbs / prevBase) * 100.0 : 0.0;
+
+            // 스파크라인: 최근 N개를 오래된→최신 순으로
+            int n = Math.min(SPARK_POINTS, hist.size());
+            List<Double> spark = new ArrayList<>();
+            for (int i = n - 1; i >= 0; i--) {
+                spark.add(round2(nz(hist.get(i).getBaseRate())));
+            }
+
+            out.add(new FxRateCardDto(
+                    code,
+                    round2(base),
+                    round2(nz(latest.getBuyRate())),
+                    round2(nz(latest.getSellRate())),
+                    round2(changeAbs),
+                    round2(changePct),
+                    spark));
+        }
+        return out;
+    }
+
+    @Override
     public List<FxDataDto> getLatestRates() {
         return fxDataDao.selectAllLatestRates();
+    }
+
+    @Override
+    public List<FxDataDto> getAllRates() {
+        return fxDataDao.selectAll();
     }
 
     @Override
@@ -56,7 +117,6 @@ public class FxServiceImpl implements FxService {
     @Override
     public FxCalcResultDto calculate(String currencyCode, String date, String buySell, int prefer) {
 
-        // 기준일 미지정 시 오늘 날짜 사용
         if (date == null || date.isBlank()) {
             date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         }
@@ -69,16 +129,10 @@ public class FxServiceImpl implements FxService {
         boolean isBuy = "buy".equalsIgnoreCase(buySell);
 
         // 고시환율: 고객이 '살 때'=sellRate(tts) / '팔 때'=buyRate(ttb)
-        double noticeRate = isBuy ? rate.getSellRate() : rate.getBuyRate();
-        double baseRate   = rate.getBaseRate();
-
-        // 스프레드 = |고시환율 - 매매기준율|
+        double noticeRate = isBuy ? nz(rate.getSellRate()) : nz(rate.getBuyRate());
+        double baseRate = nz(rate.getBaseRate());
         double spread = Math.abs(noticeRate - baseRate);
-
-        // 우대 절감액 = 스프레드 × 우대율(%)
         double preferDiscount = spread * (prefer / 100.0);
-
-        // 적용환율: 살 때는 우대만큼 싸게(-), 팔 때는 비싸게(+)
         double appliedRate = isBuy ? noticeRate - preferDiscount : noticeRate + preferDiscount;
 
         FxCalcResultDto result = new FxCalcResultDto();
@@ -90,6 +144,10 @@ public class FxServiceImpl implements FxService {
         result.setPreferDiscount(round2(preferDiscount));
         result.setAppliedRate(round2(appliedRate));
         return result;
+    }
+
+    private double nz(Double v) {
+        return v == null ? 0.0 : v;
     }
 
     private double round2(double v) {

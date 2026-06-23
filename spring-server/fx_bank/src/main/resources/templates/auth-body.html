@@ -11,8 +11,24 @@
 
     <!-- 좌측 소개 -->
     <aside class="auth-intro">
-      <span class="intro-logo">BNK 부산은행</span>
-      <h1 class="intro-title">외환 거래, 더 쉽고 안전하게</h1>
+      <div class="intro-mark">₩</div>
+      <span class="intro-logo">BNK 부산은행 외환</span>
+      <h1 class="intro-title">외환 거래,<br>더 쉽고 안전하게</h1>
+      <p class="intro-desc">실시간 환율 조회부터 환전 계산, 외화예금 가입까지<br>BNK 외환을 한 곳에서 안전하게 이용하세요.</p>
+      <ul class="intro-feature">
+        <li>
+          <span class="feat-ico">🪪</span>
+          <div class="feat-text"><strong>신분증 OCR 인증</strong><span>주민번호는 AES 암호화로 안전하게 보관</span></div>
+        </li>
+        <li>
+          <span class="feat-ico">📈</span>
+          <div class="feat-text"><strong>실시간 환율·환전 계산</strong><span>최근 추세까지 한눈에 확인</span></div>
+        </li>
+        <li>
+          <span class="feat-ico">🌏</span>
+          <div class="feat-text"><strong>다국어 지원</strong><span>한국어 · English · 日本語 · 中文</span></div>
+        </li>
+      </ul>
     </aside>
 
     <!-- 우측 카드 -->
@@ -76,7 +92,7 @@
 
             <!-- ===== 신분증 OCR 인증 ===== -->
             <div class="field">
-              <label>신분증 인증</label>
+              <label>신분증 인증 <span class="req-tag">필수</span></label>
               <div class="idcard-uploader">
                 <input type="file" id="idCardFile" accept="image/*" capture="environment" hidden>
                 <button type="button" class="idcard-drop" id="idCardDrop">

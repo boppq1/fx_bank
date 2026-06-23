@@ -5,12 +5,48 @@
  * (이 페이지는 head 에서 fx-home.css 를 먼저 link 해야 토큰/버튼이 정상 동작)
  * ===================================================================== */
 
+/* ---------- 디자인 토큰 (네오뱅크 / 바이올렛) ----------
+ * 링크 순서와 무관히 색이 해석되도록 동일 토큰을 이 파일에도 보장한다. */
+:root{
+  --violet:#6D5BFF; --violet-soft:#8E7CFF; --violet-deep:#5A45E8;
+  --purple:#6D5BFF; --purple-soft:#8E7CFF; --purple-lt:#F2F0FB;   /* legacy 별칭 */
+  --navy:#1A1A2E; --navy-dark:#14142B;                            /* 이제 어두운 '텍스트' 색 */
+  --lavender:#F2F0FB; --bg:#F7F6FE; --surface:#FFFFFF; --border:#ECEAF6;
+  --text:#1A1A2E; --text-body:#33333D; --text-sub:#5C5C70;
+  --up:#E5484D; --down:#3E63DD;
+  --grad:linear-gradient(135deg,#6D5BFF 0%,#8E7CFF 100%);
+  --grad-cta:linear-gradient(135deg,#6D5BFF 0%,#5A45E8 100%);
+  --grad-hero:linear-gradient(135deg,#5B47E6 0%,#7C6BF0 100%);
+  --radius:16px; --radius-sm:12px;
+  --shadow-sm:0 2px 8px rgba(26,26,46,.06);
+  --shadow:0 8px 24px rgba(109,91,255,.10);
+  --shadow-lg:0 16px 40px rgba(109,91,255,.14);
+  --container:1200px; --t:160ms; --ease:cubic-bezier(.22,.61,.36,1);
+}
+
 /* ---------- 히어로 ---------- */
 .guide-hero {
-    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 100%);
     position: relative;
     overflow: hidden;
     padding: 56px 0;
+    background:
+        radial-gradient(58% 80% at 12% 18%, rgba(142,124,255,.55), transparent 60%),
+        radial-gradient(50% 70% at 88% 10%, rgba(59,130,246,.42), transparent 55%),
+        radial-gradient(55% 75% at 82% 92%, rgba(251,113,133,.30), transparent 55%),
+        linear-gradient(135deg,#5B47E6 0%,#4F46E5 100%);
+}
+.guide-hero::before {
+    content: "";
+    position: absolute;
+    left: -70px;
+    bottom: -90px;
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    background: #8E7CFF;
+    filter: blur(70px);
+    opacity: .3;
+    pointer-events: none;
 }
 .guide-hero::after {
     content: "";
@@ -19,7 +55,7 @@
     top: -120px;
     width: 360px;
     height: 360px;
-    background: radial-gradient(circle, rgba(109, 63, 232, .45), transparent 70%);
+    background: radial-gradient(circle, rgba(255, 255, 255, .22), transparent 70%);
     pointer-events: none;
 }
 .guide-hero-inner {
@@ -34,8 +70,8 @@
     font-size: 12.5px;
     font-weight: 700;
     color: #fff;
-    background: rgba(109, 63, 232, .35);
-    border: 1px solid rgba(139, 111, 242, .55);
+    background: rgba(255, 255, 255, .18);
+    border: 1px solid rgba(255, 255, 255, .35);
     border-radius: 999px;
     padding: 6px 14px;
     margin-bottom: 16px;
@@ -49,7 +85,7 @@
 }
 .guide-hero-desc {
     font-size: 15.5px;
-    color: #C7CCDD;
+    color: rgba(255, 255, 255, .9);
     line-height: 1.6;
     margin: 0;
     max-width: 720px;
@@ -86,20 +122,20 @@
     font-weight: 700;
     color: var(--text-sub);
     border-bottom: 3px solid transparent;
-    transition: color .15s, border-color .15s;
+    transition: color var(--t) var(--ease), border-color var(--t) var(--ease);
     white-space: nowrap;
 }
-.guide-tab-btn:hover { color: var(--navy); }
+.guide-tab-btn:hover { color: var(--violet); }
 .guide-tab-btn.is-active {
-    color: var(--purple);
-    border-bottom-color: var(--purple);
+    color: var(--violet);
+    border-bottom-color: var(--violet);
 }
 
 /* ---------- 패널 ---------- */
 .guide-panel { display: none; }
 .guide-panel.is-active {
     display: block;
-    animation: guideFade .25s ease;
+    animation: guideFade .2s var(--ease);
 }
 @keyframes guideFade {
     from { opacity: 0; transform: translateY(6px); }
@@ -110,9 +146,10 @@
 .guide-section {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 16px;
+    border-radius: var(--radius);
     padding: 28px 28px 22px;
     margin-bottom: 22px;
+    box-shadow: var(--shadow-sm);
 }
 .guide-section-title {
     display: flex;
@@ -120,7 +157,7 @@
     gap: 10px;
     font-size: 21px;
     font-weight: 800;
-    color: var(--navy);
+    color: var(--text);
     letter-spacing: -.4px;
     margin: 0 0 18px;
 }
@@ -129,16 +166,16 @@
     width: 5px;
     height: 20px;
     border-radius: 3px;
-    background: linear-gradient(135deg, var(--purple), var(--purple-soft));
+    background: linear-gradient(135deg, var(--violet), var(--violet-soft));
 }
 .guide-sub-title {
     font-size: 16px;
     font-weight: 700;
-    color: var(--navy);
+    color: var(--text);
     margin: 22px 0 10px;
 }
 .guide-sub-title:first-child { margin-top: 0; }
-.guide-section p { color: var(--text); line-height: 1.7; margin: 0 0 12px; font-size: 14.5px; }
+.guide-section p { color: var(--text-body); line-height: 1.7; margin: 0 0 12px; font-size: 14.5px; }
 .guide-section p.guide-muted { color: var(--text-sub); }
 
 /* ---------- 리스트 ---------- */
@@ -147,7 +184,7 @@
     position: relative;
     padding-left: 18px;
     margin-bottom: 8px;
-    color: var(--text);
+    color: var(--text-body);
     line-height: 1.65;
     font-size: 14.5px;
 }
@@ -159,7 +196,7 @@
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: var(--purple);
+    background: var(--violet);
 }
 .guide-list ul { margin: 8px 0 4px; padding-left: 16px; list-style: none; }
 .guide-list ul li {
@@ -193,13 +230,13 @@
     line-height: 1.55;
 }
 .guide-table thead th {
-    background: var(--bg);
-    color: var(--navy);
+    background: var(--lavender);
+    color: var(--text);
     font-weight: 700;
     white-space: nowrap;
 }
 .guide-table tbody th {
-    background: #FBFBFE;
+    background: var(--bg);
     color: var(--text);
     font-weight: 600;
 }
@@ -209,13 +246,13 @@
 .guide-note {
     display: flex;
     gap: 10px;
-    background: var(--purple-lt);
-    border: 1px solid #DAD0FF;
-    border-radius: 12px;
+    background: var(--lavender);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
     padding: 14px 16px;
     margin: 12px 0 16px;
     font-size: 13.8px;
-    color: var(--navy);
+    color: var(--text);
     line-height: 1.6;
 }
 .guide-note::before { content: "ℹ️"; flex: 0 0 auto; }
@@ -230,22 +267,28 @@
     margin: 6px 0 8px;
 }
 .guide-card {
-    background: var(--bg);
+    background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 14px;
+    border-radius: var(--radius);
     padding: 18px 18px 12px;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow var(--t) var(--ease), transform var(--t) var(--ease);
+}
+.guide-card:hover {
+    box-shadow: var(--shadow);
+    transform: translateY(-2px);
 }
 .guide-card h4 {
     font-size: 15px;
     font-weight: 700;
-    color: var(--navy);
+    color: var(--text);
     margin: 0 0 10px;
 }
 
 /* ---------- FAQ (네이티브 details) ---------- */
 .guide-faq {
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: var(--radius-sm);
     margin-bottom: 10px;
     background: var(--surface);
     overflow: hidden;
@@ -256,13 +299,14 @@
     padding: 16px 48px 16px 18px;
     font-size: 14.6px;
     font-weight: 600;
-    color: var(--navy);
+    color: var(--text);
     position: relative;
+    transition: color var(--t) var(--ease);
 }
 .guide-faq > summary::-webkit-details-marker { display: none; }
 .guide-faq > summary::before {
     content: "Q";
-    color: var(--purple);
+    color: var(--violet);
     font-weight: 800;
     margin-right: 8px;
 }
@@ -280,9 +324,9 @@
 .guide-faq-body {
     padding: 16px 18px;
     font-size: 14px;
-    color: var(--text);
+    color: var(--text-body);
     line-height: 1.7;
-    background: #FCFCFE;
+    background: var(--bg);
 }
 .guide-faq-body .guide-list { margin-bottom: 0; }
 
@@ -293,11 +337,11 @@
     font-weight: 700;
     border-radius: 999px;
     padding: 3px 9px;
-    background: var(--purple-lt);
-    color: var(--purple);
+    background: var(--lavender);
+    color: var(--violet);
     white-space: nowrap;
 }
-.guide-link { color: var(--purple); font-weight: 600; text-decoration: none; }
+.guide-link { color: var(--violet); font-weight: 600; text-decoration: none; transition: color var(--t) var(--ease); }
 .guide-link:hover { text-decoration: underline; }
 .guide-link.is-disabled { color: var(--text-sub); pointer-events: none; }
 
@@ -307,11 +351,11 @@
     align-items: center;
     justify-content: space-between;
     gap: 18px;
-    background: linear-gradient(135deg, var(--purple), var(--purple-soft));
-    border-radius: 18px;
+    background: var(--grad-cta);
+    border-radius: var(--radius);
     padding: 26px 30px;
     margin-top: 8px;
-    box-shadow: 0 14px 30px rgba(109, 63, 232, .3);
+    box-shadow: var(--shadow);
 }
 .guide-cta-title { font-size: 18px; font-weight: 800; color: #fff; margin: 0 0 4px; }
 .guide-cta-sub { font-size: 13.6px; color: rgba(255, 255, 255, .88); margin: 0; }
@@ -320,43 +364,46 @@
 /* ---------- 조회/계산 폼 (환율조회·환전계산기) ---------- */
 .guide-toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; }
 .guide-search-input {
-    flex: 1 1 240px; height: 46px; border: 1px solid var(--border); border-radius: 11px;
+    flex: 1 1 240px; height: 46px; border: 1px solid var(--border); border-radius: var(--radius-sm);
     background: var(--surface); padding: 0 16px; font-size: 14.5px; color: var(--text);
+    transition: border-color var(--t) var(--ease), box-shadow var(--t) var(--ease);
 }
-.guide-search-input:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(109, 63, 232, .15); }
+.guide-search-input:focus { outline: none; border-color: var(--violet); box-shadow: 0 0 0 3px rgba(109, 91, 255, .15); }
 
 .guide-form { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
 .guide-field { display: flex; flex-direction: column; gap: 8px; }
 .guide-field.full { grid-column: 1 / -1; }
-.guide-label { font-size: 13.5px; font-weight: 700; color: var(--navy); }
+.guide-label { font-size: 13.5px; font-weight: 700; color: var(--text); }
 .guide-input, .guide-select {
-    height: 48px; border: 1px solid var(--border); border-radius: 11px; background: var(--surface);
+    height: 48px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface);
     padding: 0 14px; font-size: 14.5px; color: var(--text); width: 100%;
+    transition: border-color var(--t) var(--ease), box-shadow var(--t) var(--ease);
 }
-.guide-input:focus, .guide-select:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(109, 63, 232, .15); }
+.guide-input:focus, .guide-select:focus { outline: none; border-color: var(--violet); box-shadow: 0 0 0 3px rgba(109, 91, 255, .15); }
 .guide-radio-group { display: flex; gap: 10px; }
 .guide-radio { flex: 1; position: relative; }
 .guide-radio input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
 .guide-radio span {
     display: block; text-align: center; padding: 12px 0; border: 1px solid var(--border);
-    border-radius: 11px; font-size: 14px; font-weight: 600; color: var(--text-sub); transition: .15s;
+    border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; color: var(--text-sub);
+    transition: border-color var(--t) var(--ease), background var(--t) var(--ease), color var(--t) var(--ease);
 }
-.guide-radio input:checked + span { border-color: var(--purple); background: var(--purple-lt); color: var(--purple); }
+.guide-radio input:checked + span { border-color: var(--violet); background: var(--lavender); color: var(--violet); }
 .guide-actions { display: flex; gap: 10px; margin-top: 4px; }
 
 /* 계산 결과 */
 .guide-result { margin-top: 24px; border-top: 1px dashed var(--border); padding-top: 22px; }
 .guide-result-big {
-    background: linear-gradient(135deg, var(--purple), var(--purple-soft));
-    color: #fff; border-radius: 16px; padding: 22px 24px; margin-bottom: 16px;
-    box-shadow: 0 14px 30px rgba(109, 63, 232, .3);
+    background: var(--grad-cta);
+    color: #fff; border-radius: var(--radius); padding: 22px 24px; margin-bottom: 16px;
+    box-shadow: var(--shadow);
 }
 .guide-result-big .label { font-size: 13px; opacity: .9; margin: 0 0 6px; }
 .guide-result-big .value { font-size: 30px; font-weight: 800; margin: 0; letter-spacing: -.5px; }
 .guide-result-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-.guide-result-item { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+.guide-result-item { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; }
 .guide-result-item .label { font-size: 12.5px; color: var(--text-sub); margin: 0 0 6px; }
-.guide-result-item .value { font-size: 16px; font-weight: 700; color: var(--navy); margin: 0; }
+.guide-result-item .value { font-size: 16px; font-weight: 700; color: var(--text); margin: 0; }
 .guide-foot-note { font-size: 12.5px; color: var(--text-sub); margin-top: 12px; line-height: 1.6; }
 
 /* ---------- 반응형 ---------- */
@@ -371,4 +418,105 @@
     .guide-section { padding: 22px 18px 16px; }
     .guide-cta { flex-direction: column; align-items: flex-start; }
     .guide-form, .guide-result-grid { grid-template-columns: 1fr; }
+}
+
+/* ========== 환율조회: 통화 셀 · 페이지네이션 ========== */
+.guide-rate-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.guide-rate-head .guide-section-title { margin: 0; }
+.guide-rate-count { font-size: 13px; color: var(--text-sub); }
+.guide-rate-count strong { color: var(--violet); font-weight: 800; }
+
+.rt-cur { display: flex; flex-direction: column; gap: 1px; }
+.rt-name { font-size: 13.5px; font-weight: 700; color: var(--text); }
+.rt-code { font-size: 11.5px; color: var(--text-sub); font-weight: 600; }
+.guide-rate-table td { font-variant-numeric: tabular-nums; }
+
+.guide-pager { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 20px; }
+.guide-page {
+  min-width: 34px; height: 34px; padding: 0 10px; border-radius: 9px;
+  border: 1px solid var(--border); background: var(--surface);
+  font-size: 13.5px; font-weight: 700; color: var(--text-sub); cursor: pointer;
+  transition: background var(--t) var(--ease), color var(--t) var(--ease), border-color var(--t) var(--ease);
+}
+.guide-page:hover:not(:disabled):not(.is-active) { background: var(--lavender); color: var(--violet); border-color: var(--violet-soft); }
+.guide-page.is-active { background: var(--grad-cta); color: #fff; border-color: transparent; }
+.guide-page:disabled { opacity: .4; cursor: default; }
+.guide-page-dots { display: inline-flex; align-items: center; padding: 0 4px; color: var(--text-sub); }
+
+/* ========== 환전계산기 레이아웃 ========== */
+.guide-calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; max-width: var(--container); margin: 0 auto; padding: 0 32px 72px; }
+.calc-form .guide-field { margin-bottom: 18px; }
+.calc-form .btn-block { width: 100%; margin-top: 4px; }
+
+/* 세그먼트 (살때/팔때) */
+.guide-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.seg-btn {
+  appearance: none; border: 1px solid var(--border); background: var(--surface);
+  border-radius: var(--radius-sm); padding: 12px 10px; font: inherit; font-size: 14px; font-weight: 600;
+  color: var(--text-sub); cursor: pointer; transition: background var(--t) var(--ease), color var(--t) var(--ease), border-color var(--t) var(--ease);
+}
+.seg-btn.is-active { background: var(--lavender); border-color: var(--violet); color: var(--violet); font-weight: 700; }
+
+/* 금액/우대율 입력 (suffix) */
+.guide-amount { display: flex; align-items: center; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); padding: 0 14px; height: 48px; }
+.guide-amount:focus-within { border-color: var(--violet); box-shadow: 0 0 0 3px rgba(109, 91, 255, .15); }
+.guide-amount input { flex: 1; border: 0; outline: none; background: transparent; font: inherit; font-size: 16px; font-weight: 700; color: var(--text); width: 100%; }
+.guide-amount-unit { font-size: 13px; font-weight: 700; color: var(--text-sub); padding-left: 8px; white-space: nowrap; }
+
+/* 우대율 칩 */
+.guide-chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.guide-chip {
+  border: 1px solid var(--border); background: var(--surface); border-radius: 999px;
+  padding: 6px 14px; font: inherit; font-size: 12.5px; font-weight: 700; color: var(--text-sub); cursor: pointer;
+  transition: background var(--t) var(--ease), color var(--t) var(--ease), border-color var(--t) var(--ease);
+}
+.guide-chip:hover { border-color: var(--violet-soft); color: var(--violet); }
+.guide-chip.is-active { background: var(--lavender); border-color: var(--violet); color: var(--violet); }
+
+/* 결과 패널 */
+.calc-hero {
+  position: relative; overflow: hidden;
+  background: linear-gradient(135deg, #F4F2FF, #FFFFFF);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 24px 26px; box-shadow: var(--shadow-sm);
+}
+.calc-hero::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--grad-cta); }
+.calc-hero-label { font-size: 13px; color: var(--text-sub); font-weight: 600; margin: 0 0 8px; }
+.calc-hero-value {
+  display: inline-block; font-size: 42px; font-weight: 800; letter-spacing: -1.2px; margin: 0; line-height: 1.05;
+  background: var(--grad-cta); -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.calc-hero-sub { font-size: 12.5px; color: var(--text-sub); margin: 10px 0 0; }
+
+/* 결과 등장 애니메이션 */
+.calc-result-panel.is-calc .calc-hero { animation: calcIn .42s var(--ease); }
+.calc-result-panel.is-calc .calc-hero-value { animation: calcPop .55s var(--ease); }
+.calc-result-panel.is-calc .calc-bd { animation: calcIn .42s var(--ease) backwards; }
+.calc-result-panel.is-calc .calc-bd:nth-of-type(1) { animation-delay: .05s; }
+.calc-result-panel.is-calc .calc-bd:nth-of-type(2) { animation-delay: .10s; }
+.calc-result-panel.is-calc .calc-bd:nth-of-type(3) { animation-delay: .15s; }
+.calc-result-panel.is-calc .calc-bd:nth-of-type(4) { animation-delay: .20s; }
+.calc-result-panel.is-calc .calc-bd:nth-of-type(5) { animation-delay: .25s; }
+.calc-result-panel.is-calc .calc-bd:nth-of-type(6) { animation-delay: .30s; }
+@keyframes calcIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes calcPop { 0% { transform: scale(.95); } 55% { transform: scale(1.03); } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) {
+  .calc-result-panel.is-calc .calc-hero,
+  .calc-result-panel.is-calc .calc-hero-value,
+  .calc-result-panel.is-calc .calc-bd { animation: none; }
+}
+.calc-breakdown { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 18px 0 4px; }
+.calc-bd { display: flex; flex-direction: column; gap: 5px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 13px 15px; }
+.calc-bd span { font-size: 12px; color: var(--text-sub); }
+.calc-bd strong { font-size: 16px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
+.calc-bd-accent { background: var(--lavender); border-color: var(--violet-soft); }
+.calc-bd-accent strong { color: var(--violet); }
+
+@media (max-width: 900px) {
+  .guide-calc-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 680px) {
+  .guide-calc-grid { padding-left: 20px; padding-right: 20px; }
+  .calc-breakdown { grid-template-columns: 1fr; }
+  .calc-hero-value { font-size: 30px; }
 }

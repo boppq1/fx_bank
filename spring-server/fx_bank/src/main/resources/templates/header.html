@@ -8,15 +8,39 @@
 <body>
 <header th:fragment="header" class="site-header">
 
-  <!-- 상단 유틸리티 바 : 묵직한 네이비, 신뢰감 강조 -->
+  <!-- 구글 번역 위젯 (숨김) + 다국어 드롭다운 스타일 -->
+  <style>
+    #google_translate_element{display:none !important;}
+    .goog-te-banner-frame,.skiptranslate{display:none !important;}
+    body{top:0 !important;position:static !important;}
+    .lang-select{position:relative;}
+    .util-lang{display:inline-flex;align-items:center;gap:4px;background:none;border:0;cursor:pointer;
+      font:inherit;font-size:12.5px;font-weight:700;color:#6D5BFF;padding:0;}
+    .lang-menu{position:absolute;top:26px;right:0;min-width:122px;background:#fff;
+      border:1px solid #ECEAF6;border-radius:10px;box-shadow:0 8px 24px rgba(109,91,255,.16);
+      padding:6px;display:none;z-index:300;}
+    .lang-menu.open{display:block;}
+    .lang-menu button{display:block;width:100%;text-align:left;background:none;border:0;cursor:pointer;
+      font:inherit;font-size:13px;color:#1A1A2E;padding:8px 10px;border-radius:7px;}
+    .lang-menu button:hover{background:#F2F0FB;color:#6D5BFF;}
+  </style>
+
+  <!-- 상단 유틸리티 바 -->
   <div class="util-bar">
     <div class="util-inner">
       <ul class="util-left">
         <li><a th:href="@{/fx/guide}">외환 안내</a></li>
-        <li><a th:href="@{/fx/exchange-rate}">환율조회</a></li>
       </ul>
       <ul class="util-right">
-        <li><a href="#" class="util-lang">🌐 KOR</a></li>
+        <li class="lang-select">
+          <button type="button" class="util-lang notranslate" id="langBtn">🌐 <span id="langCur">한국어</span> ▾</button>
+          <div class="lang-menu notranslate" id="langMenu">
+            <button type="button" data-lang="ko">한국어</button>
+            <button type="button" data-lang="en">English</button>
+            <button type="button" data-lang="ja">日本語</button>
+            <button type="button" data-lang="zh-CN">中文</button>
+          </div>
+        </li>
         <!-- 비로그인 상태 -->
         <li class="auth-guest"><a th:href="@{/login}">로그인</a></li>
         <li class="auth-guest"><a th:href="@{/register}">회원가입</a></li>
@@ -81,6 +105,65 @@
 
   <!-- 로그인 상태에 따라 헤더 표시 토글 + 사용자 이름 인사 -->
   <script th:src="@{/js/header-auth.js}"></script>
+
+  <!-- 다국어(구글 번역) -->
+  <div id="google_translate_element" class="notranslate"></div>
+  <script th:inline="none">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement(
+        { pageLanguage: 'ko', includedLanguages: 'en,ja,zh-CN', autoDisplay: false },
+        'google_translate_element');
+    }
+    (function () {
+      var LABEL = { ko: '한국어', en: 'English', ja: '日本語', 'zh-CN': '中文' };
+      function getCookie(n) {
+        var m = document.cookie.match('(^|;)\\s*' + n + '\\s*=\\s*([^;]+)');
+        return m ? m.pop() : '';
+      }
+      function applyLabel() {
+        var g = getCookie('googtrans'), cur = 'ko';
+        if (g) { var p = g.split('/'); if (p.length >= 3 && p[2]) cur = p[2]; }
+        var el = document.getElementById('langCur');
+        if (el) el.textContent = LABEL[cur] || '한국어';
+      }
+      function setLang(lang) {
+        if (lang === 'ko') {
+          document.cookie = 'googtrans=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+          document.cookie = 'googtrans=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=' + location.hostname;
+          location.reload();
+          return;
+        }
+        var tries = 0;
+        (function trySet() {
+          var combo = document.querySelector('.goog-te-combo');
+          if (combo) {
+            combo.value = lang;
+            combo.dispatchEvent(new Event('change'));
+            var cur = document.getElementById('langCur');
+            if (cur) cur.textContent = LABEL[lang] || lang;
+          } else if (tries++ < 20) {
+            setTimeout(trySet, 200);   // 위젯 로드 대기
+          } else {
+            document.cookie = 'googtrans=/ko/' + lang + ';path=/';
+            location.reload();
+          }
+        })();
+      }
+      document.addEventListener('DOMContentLoaded', function () {
+        applyLabel();
+        var btn = document.getElementById('langBtn'), menu = document.getElementById('langMenu');
+        if (btn && menu) {
+          btn.addEventListener('click', function (e) { e.stopPropagation(); menu.classList.toggle('open'); });
+          menu.addEventListener('click', function (e) {
+            var b = e.target.closest('button[data-lang]');
+            if (b) { setLang(b.getAttribute('data-lang')); menu.classList.remove('open'); }
+          });
+          document.addEventListener('click', function () { menu.classList.remove('open'); });
+        }
+      });
+    })();
+  </script>
+  <script th:inline="none" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
 </header>
 </body>

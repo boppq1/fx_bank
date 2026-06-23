@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.bank.fx.dto.FxCalcResultDto;
 import com.example.bank.fx.dto.FxDataDto;
+import com.example.bank.fx.dto.FxRateCardDto;
 import com.example.bank.fx.service.FxService;
 import com.example.bank.gloval.common.ApiResponse;
 
@@ -31,10 +32,22 @@ public class FxRateController {
         return ApiResponse.success("메인 환율 조회 성공", fxService.getMainRates());
     }
 
-    /** 전체 통화 최신 환율 (환율조회 표) */
+    /** 메인 페이지 환율 카드 상세 (전일대비 + 스파크라인) */
+    @GetMapping("/rates/main-detail")
+    public ApiResponse<List<FxRateCardDto>> mainRateDetails() {
+        return ApiResponse.success("메인 환율 상세 조회 성공", fxService.getMainRateDetails());
+    }
+
+    /** 전체 통화 최신 환율 (요약) */
     @GetMapping("/rates/latest")
     public ApiResponse<List<FxDataDto>> latestRates() {
         return ApiResponse.success("최신 환율 조회 성공", fxService.getLatestRates());
+    }
+
+    /** 전체 환율 이력 (환율조회 페이지) */
+    @GetMapping("/rates/all")
+    public ApiResponse<List<FxDataDto>> allRates() {
+        return ApiResponse.success("전체 환율 조회 성공", fxService.getAllRates());
     }
 
     /** 특정 통화 환율 이력 (환율조회 상세) */

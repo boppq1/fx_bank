@@ -39,7 +39,7 @@
         WHERE rn = 1
     </select>
 
-    <!-- 전체 통화별 최신 환율 (환율조회 표) -->
+    <!-- 전체 통화별 최신 환율 (메인/요약) -->
     <select id="selectAllLatestRates" resultType="com.example.bank.fx.dto.FxDataDto">
         SELECT <include refid="rateColumns"/>
         FROM (
@@ -49,6 +49,13 @@
         )
         WHERE rn = 1
         ORDER BY currency_code
+    </select>
+
+    <!-- 전체 환율 이력 (환율조회 페이지, 클라이언트 페이지네이션) -->
+    <select id="selectAll" resultType="com.example.bank.fx.dto.FxDataDto">
+        SELECT <include refid="rateColumns"/>
+        FROM exchange_rates
+        ORDER BY announced_at DESC, currency_code
     </select>
 
     <!-- 특정 통화 환율 이력 (환율조회 상세/차트) -->
