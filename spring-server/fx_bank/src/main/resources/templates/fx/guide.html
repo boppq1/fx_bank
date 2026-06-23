@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>외환 상품·서비스 안내 | BNK 부산은행</title>
+<link rel="stylesheet" th:href="@{/css/fx-home.css}">
+<link rel="stylesheet" th:href="@{/css/fx-guide.css}">
+</head>
+<body>
+
+<div th:replace="~{header :: header}"></div>
+
+<!-- ===================== 히어로 ===================== -->
+<section class="guide-hero">
+    <div class="guide-hero-inner">
+        <span class="guide-hero-badge">BNK 부산은행 외환</span>
+        <h1 class="guide-hero-title">외환 상품·서비스 안내</h1>
+        <p class="guide-hero-desc">환전·환율우대·외화예금·수수료부터 자주 묻는 질문과 외환 법규까지,
+            외환 거래에 필요한 정보를 한곳에 모았습니다.</p>
+    </div>
+</section>
+
+<main class="guide-wrap">
+
+    <!-- ===================== 탭 ===================== -->
+    <nav class="guide-tabs" role="tablist">
+        <button class="guide-tab-btn is-active" data-tab="exchange" type="button">환전안내</button>
+        <button class="guide-tab-btn" data-tab="rate" type="button">환율안내</button>
+        <button class="guide-tab-btn" data-tab="deposit" type="button">외화예금안내</button>
+        <button class="guide-tab-btn" data-tab="fee" type="button">수수료</button>
+        <button class="guide-tab-btn" data-tab="faq" type="button">FAQ</button>
+        <button class="guide-tab-btn" data-tab="law" type="button">법규</button>
+    </nav>
+
+    <!-- ===================== 1. 환전안내 ===================== -->
+    <section class="guide-panel is-active" data-panel="exchange">
+
+        <div class="guide-section">
+            <h2 class="guide-section-title">환전가능통화</h2>
+
+            <h3 class="guide-sub-title">이용가이드</h3>
+            <ul class="guide-list">
+                <li>부산은행에 오시면 전세계 17개국의 주화를 제외한 현찰 통화를 환전하실 수 있습니다.</li>
+                <li>미국 달러, 일본 엔화, 유로, 중국위안화 이외의 외국통화를 사시는 경우 미리 해당 통화 보유여부를 확인하시기 바랍니다.</li>
+                <li>공휴일 환전 가능 영업점은 연중 무휴로 운영됩니다.</li>
+            </ul>
+
+            <h3 class="guide-sub-title">지역별 환전 가능 통화 (외화현찰)</h3>
+            <div class="guide-table-wrap">
+                <table class="guide-table">
+                    <thead>
+                        <tr><th>지역</th><th>국가</th><th>통화코드</th><th>국가</th><th>통화코드</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><th rowspan="5">아시아</th><td>대만</td><td>TWD</td><td>베트남</td><td>VND</td></tr>
+                        <tr><td>싱가포르</td><td>SGD</td><td>인도네시아</td><td>IDR</td></tr>
+                        <tr><td>일본</td><td>JPY</td><td>중국</td><td>CNY</td></tr>
+                        <tr><td>태국</td><td>THB</td><td>필리핀</td><td>PHP</td></tr>
+                        <tr><td>홍콩</td><td>HKD</td><td>말레이시아</td><td>MYR</td></tr>
+                        <tr><th rowspan="2">오세아니아</th><td>뉴질랜드</td><td>NZD</td><td>호주</td><td>AUD</td></tr>
+                        <tr><td colspan="4"></td></tr>
+                        <tr><th>북아메리카</th><td>미국</td><td>USD</td><td>캐나다</td><td>CAD</td></tr>
+                        <tr><th rowspan="2">유럽</th><td>스위스</td><td>CHF</td><td>영국</td><td>GBP</td></tr>
+                        <tr><td>유럽연합</td><td>EUR</td><td></td><td></td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="guide-sub-title">외국동전 환전</h3>
+            <ul class="guide-list">
+                <li>파실 수 있는 동전 : 미국달러화(USD), 일본엔화(JPY)</li>
+                <li>사실 수 있는 동전 : 불가</li>
+                <li>적용 환율 : 통화별 기준환율의 50% <small>(예: 1달러 환율이 1,000원일 때 동전은 50%인 500원 적용)</small></li>
+            </ul>
+            <div class="guide-note">외국동전은 수요가 불규칙하므로 방문하실 영업점에 사전 확인이 필요하며, 국내에서는 환전이 어려우니 가급적 해당 국가에서 사용하시기를 권장드립니다. 입국 전 지폐로 교환하거나 공항 면세점 사용·유니세프 모금함 기부도 좋은 방법입니다.</div>
+        </div>
+
+        <div class="guide-section">
+            <h2 class="guide-section-title">환전가능금액</h2>
+            <ul class="guide-list">
+                <li>해외 여행자, 해외유학생 및 체재자, 북한지역 관광객, 보유목적 등 거래 목적에 따라 환전 가능 금액과 제출서류가 다를 수 있습니다.</li>
+                <li>자세한 사항은 가까운 영업점 또는 고객센터를 통해 확인하시기 바랍니다.</li>
+            </ul>
+
+            <div class="guide-cards">
+                <div class="guide-card">
+                    <h4>일반 해외여행자</h4>
+                    <ul class="guide-list">
+                        <li>외화현찰 환전한도 : 제한 없음</li>
+                        <li>제출서류 : 주민등록증, 여권 등 실명확인증표</li>
+                        <li>유의사항
+                            <ul>
+                                <li>미화 1만불 상당액 초과 휴대 출국 시 관할 세관에 신고</li>
+                                <li>동일자·동일인 기준 미화 1만불 초과 시 국세청·관세청 통보</li>
+                            </ul>
+                        </li>
+                        <li>신용/직불카드 : 연간 1만불 초과(국세청), 분기 5천불 이상(관세청) 통보</li>
+                    </ul>
+                </div>
+                <div class="guide-card">
+                    <h4>해외유학생 및 체재자</h4>
+                    <ul class="guide-list">
+                        <li>유학생 : 6개월 이상 수학·연구·연수 목적 체재자 / 체재자 : 30일 초과 체재자(취업 제외)</li>
+                        <li>외화현찰 환전한도 : 제한 없음</li>
+                        <li>연간 해외여행경비 지급액이 미화 10만불 초과 시 국세청 통보</li>
+                        <li>제출서류 : (유학생) 여권·입학허가서 등 / (체재자) 여권·출장파견 증명서</li>
+                    </ul>
+                </div>
+                <div class="guide-card">
+                    <h4>북한지역 관광객</h4>
+                    <ul class="guide-list">
+                        <li>외화현찰 환전한도 : 미화 2천불 이내</li>
+                        <li>제출서류 : 여권, 북한지역관광 경비 지급 영수증</li>
+                        <li>기본 경비 미화 2천불 상당액을 제외한 외화·원화·귀금속·증권은 수출입 불가</li>
+                    </ul>
+                </div>
+                <div class="guide-card">
+                    <h4>보유목적 환전</h4>
+                    <ul class="guide-list">
+                        <li>외화현찰 환전한도 : 제한 없음</li>
+                        <li>대상자 : 국민인 개인 또는 법인 거주자 (외국인거주자·비거주자는 불가)</li>
+                        <li>제출서류 : 주민등록증 또는 운전면허증, 사업자등록증 등</li>
+                        <li>동일자·동일인 기준 미화 1만불 초과 시 국세청·관세청 통보</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="guide-section">
+            <h2 class="guide-section-title">환전요령</h2>
+            <h3 class="guide-sub-title">여행가는 나라의 현지 화폐로 준비하세요</h3>
+            <p>무조건 미국 달러를 준비하기보다, 여행하고자 하는 국가의 화폐로 교환해 가는 것이 재환전에 따른 비용과 불편을 줄일 수 있습니다. 여행경비는 꼭 필요한 약 30% 정도만 외화현찰로 준비하고, 고액권과 소액권을 함께 준비하는 것이 좋습니다.</p>
+            <h3 class="guide-sub-title">비상시 대비하여 신용카드를 휴대하세요</h3>
+            <p>외화신용카드는 세계 대부분의 국가에서 사용할 수 있습니다. 비밀번호와 서명이 필요해 안전성이 뛰어나고, 부피가 작아 외화현찰이나 여행자수표보다 편리합니다.</p>
+        </div>
+
+        <div class="guide-section">
+            <h2 class="guide-section-title">위변조화폐 식별요령</h2>
+            <h3 class="guide-sub-title">변조화폐</h3>
+            <p>미화의 크기가 권종에 관계없이 동일하다는 점을 악용하여, 미화 1불·5불권 등 소액 지폐의 네 모퉁이 액면숫자를 오리거나 탈색시켜 100 또는 50 달러로 변조시킨 지폐입니다.</p>
+            <h3 class="guide-sub-title">모조화폐</h3>
+            <p>법정통화로 통용되지 않는 고액권을 모조한 지폐로, 언뜻 보면 법정통화와 같은 느낌을 주지만 지폐 내에 "유통 불능(Non-Negotiable)"이라는 표기가 되어 있습니다.</p>
+            <h3 class="guide-sub-title">위조화폐</h3>
+            <p>화폐발행권자가 아닌 자가 일반인이 진짜 화폐로 오인할 수 있을 정도의 가짜 화폐를 제조하여 유통시키는 지폐입니다.</p>
+            <div class="guide-note">국가별 외국통화 견양(진폐 이미지)은 한국은행 화폐박물관에서 확인하실 수 있습니다.
+                <a class="guide-link" href="https://www.bok.or.kr/museum/singl/crrncySearch/list.do?menuNo=700127" target="_blank" rel="noopener">한국은행 외국통화 견양 바로가기</a></div>
+        </div>
+    </section>
+
+    <!-- ===================== 2. 환율안내 ===================== -->
+    <section class="guide-panel" data-panel="rate">
+
+        <div class="guide-section">
+            <h2 class="guide-section-title">환율우대란?</h2>
+            <h3 class="guide-sub-title">현찰수수료(환전수수료)</h3>
+            <p>은행 거래 시 거래하는 외화의 현찰 매매율과 매매기준율의 차액을 현찰수수료 또는 환전수수료라고 합니다.</p>
+            <h3 class="guide-sub-title">환율우대</h3>
+            <p>고시된 대고객매매율(현찰매매율, 전신환매매율)과 매매기준율의 차액인 현찰수수료를 몇 % 우대해 준다는 의미입니다. 예를 들어 "외화현찰 환전 시 50% 우대"란 미국달러화(USD)의 현찰수수료 19.66원(현찰 사실 때 1,143.16 − 매매기준율 1,123.50)의 50%인 9.83원을 할인해 준다는 뜻입니다.</p>
+
+            <h3 class="guide-sub-title">외화현찰로 환전 시 예시 <small>(단위: 원)</small></h3>
+            <div class="guide-table-wrap">
+                <table class="guide-table">
+                    <thead>
+                        <tr><th>통화명</th><th>매매기준율 (A)</th><th>현찰 사실 때 (B)</th><th>현찰수수료 (C)=(B)−(A)</th><th>50% 우대금액 (D)</th><th>고객적용환율 (B−D)</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><th>미국달러화 (USD)</th><td>1,123.50</td><td>1,143.16</td><td>19.66</td><td>9.83</td><td>1,133.33</td></tr>
+                        <tr><th>일본엔화 (JPY)</th><td>1,381.32</td><td>1,405.49</td><td>24.17</td><td>12.08</td><td>1,393.41</td></tr>
+                        <tr><th>유럽연합유로화 (EUR)</th><td>1,555.48</td><td>1,582.70</td><td>27.22</td><td>13.61</td><td>1,569.09</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="guide-note">우대환율 = 매매기준율 + 〈현찰수수료 − (현찰수수료 × 우대율)〉</div>
+        </div>
+
+        <div class="guide-section">
+            <h2 class="guide-section-title">환율우대 종류</h2>
+            <p>부산은행은 우대쿠폰 소지 고객, 예금거래 고객, 유학생·이주 고객, 항공사 이용 고객 등에게 다양한 환율우대 서비스를 제공합니다.</p>
+            <div class="guide-note guide-warn">김해국제공항지점 및 국제여객터미널영업소에서 환전하는 경우에는 환율우대가 적용되지 않습니다.</div>
+
+            <h3 class="guide-sub-title">① 우대쿠폰 소지 고객</h3>
+            <ul class="guide-list">
+                <li>홈페이지 환율우대 쿠폰 : 모든 통화 30% 우대</li>
+                <li>이용방법 : 홈페이지 접속 → 금융상품 &gt; 외환 &gt; 환율 &gt; 환율우대쿠폰 → 쿠폰 출력 후 창구 제시</li>
+            </ul>
+
+            <h3 class="guide-sub-title">② 예금거래 고객</h3>
+            <div class="guide-table-wrap">
+                <table class="guide-table">
+                    <thead><tr><th>종류</th><th>대상</th><th>우대내용</th></tr></thead>
+                    <tbody>
+                        <tr><th>Good Friend 통장</th><td>통장 가입 외국인 거래 고객</td><td>외화현찰 최고 50% 우대</td></tr>
+                        <tr><th>매리트 급여통장</th><td>급여이체 실적 있는 거래 고객</td><td>외화현찰 최고 50% 우대</td></tr>
+                        <tr><th>사업파트너 통장</th><td>통장 가입 고객</td><td>외화현찰 최고 40% 우대</td></tr>
+                        <tr><th>여성프리미엄 통장</th><td>통장 가입 고객</td><td>외화현찰 최고 40% 우대</td></tr>
+                        <tr><th>BNK지역사랑 통장</th><td>통장 가입 고객</td><td>외화현찰 최고 40% 우대</td></tr>
+                        <tr><th>가족사랑 통장</th><td>통장 가입 고객</td><td>외화현찰 최고 40% 우대</td></tr>
+                        <tr><th>레지서포터스 통장</th><td>통장 가입 고객</td><td>외화현찰 최고 60% 우대</td></tr>
+                        <tr><th>꽃보다 당신통장</th><td>통장 가입 고객</td><td>외화현찰 최고 40% 우대</td></tr>
+                        <tr><th>오징어 통장</th><td>통장 가입 고객</td><td>외화현찰 최고 70% 우대(연 1회)</td></tr>
+                        <tr><th>달콤한 인생 통장</th><td>통장 가입 고객</td><td>외화현찰 최고 40% 우대</td></tr>
+                        <tr><th>아이사랑 자유적금</th><td>환전금액 미화 500불 상당액 이상</td><td>외화현찰 최고 60% 우대</td></tr>
+                        <tr><th>여성프리미엄 적금</th><td>통장 가입 고객</td><td>외화현찰 최고 40% 우대</td></tr>
+                        <tr><th>여성프리미엄 정기예금</th><td>통장 가입 고객</td><td>외화현찰 최고 40% 우대</td></tr>
+                        <tr><th>BNK청춘분배 통장</th><td>통장 가입 고객</td><td>외화현찰 최고 50% 우대</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="guide-sub-title">③ 유학생 및 이주 고객</h3>
+            <ul class="guide-list">
+                <li>대상 : 해외유학/해외이주를 준비 중이거나 진행 중인 고객의 창구 환전 시</li>
+                <li>우대내용 : 미국(USD)·일본(JPY) 50% 우대 / 그 외 통화 30% 우대</li>
+                <li>제출서류 : (유학) 여권 사본·입학허가서 등 / (이주) 여권 사본·VISA 또는 영주권 사본·해외이주신고 확인서 등</li>
+            </ul>
+
+            <h3 class="guide-sub-title">④ 항공사 이용 고객</h3>
+            <p class="guide-muted">에어부산 탑승권 및 국제선 전자항공권 여정안내서 소지 고객 대상</p>
+            <div class="guide-table-wrap">
+                <table class="guide-table">
+                    <thead><tr><th>환전 금액</th><th>USD·JPY·EUR 현찰</th><th>기타통화</th></tr></thead>
+                    <tbody>
+                        <tr><th>미화 1,000불 미만</th><td>50%</td><td>30%</td></tr>
+                        <tr><th>미화 1,000불 ~ 5,000불 미만</th><td>60%</td><td>35%</td></tr>
+                        <tr><th>미화 5,000불 초과</th><td>70%</td><td>40%</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="guide-section">
+            <h2 class="guide-section-title">환리스크 관리</h2>
+            <h3 class="guide-sub-title">환리스크란?</h3>
+            <p>외국통화로 표시된 자산·부채 또는 손익의 현금흐름을 보유하고 있을 때, 미래의 환율변동으로 이들 가치가 변동하게 될 위험을 환리스크라고 합니다.</p>
+            <h3 class="guide-sub-title">환리스크 크기의 결정요인</h3>
+            <ul class="guide-list">
+                <li><b>외환포지션</b> : 보유 외화 자산·부채의 차이. 포지션이 클수록 리스크 증가</li>
+                <li><b>익스포저 보유기간</b> : 기간이 길수록 환율 변동 가능성이 커져 리스크 증가</li>
+                <li><b>환율 변동성</b> : 변동성이 클수록 자산·부채 가치 변동폭이 커져 리스크 증가</li>
+            </ul>
+            <h3 class="guide-sub-title">관리방법</h3>
+            <ul class="guide-list">
+                <li>내부적 기법 : 매칭(Matching), 리딩·래깅(Leading &amp; Lagging), 상계(Netting), 가격정책, 자산·부채관리(ALM)</li>
+                <li>외부적 기법(은행 등 활용) :
+                    <ul>
+                        <li>선물환(Forwards) : 미래 특정 시점에 미리 약정한 환율로 결제</li>
+                        <li>옵션(Options) : 특정 통화를 미리 정한 환율로 매입·매도할 권리를 매매</li>
+                        <li>스왑(Swap) : 특정 통화를 다른 통화와 상호 교환</li>
+                        <li>기타 : 통화선물(Futures), 환변동보험(한국무역보험공사), 복합파생상품(타겟·레인지 포워드 등)</li>
+                    </ul>
+                </li>
+            </ul>
+            <div class="guide-note">선물환·외환스왑 등 파생상품 거래 및 환리스크 관리 컨설팅, 환율정보 제공 서비스(E-mail·SMS)는 자금운용부 파생상품 데스크를 통해 상담하실 수 있습니다.</div>
+        </div>
+    </section>
+
+    <!-- ===================== 3. 외화예금안내 ===================== -->
+    <section class="guide-panel" data-panel="deposit">
+
+        <div class="guide-section">
+            <h2 class="guide-section-title">외화예금 안내</h2>
+            <h3 class="guide-sub-title">특징</h3>
+            <ul class="guide-list">
+                <li>국제금리 수준에 따른 이자를 지급해 드립니다.</li>
+                <li>해외송금·해외여행경비로 사용할 경우 계좌에서 외화를 인출해 쓸 수 있어 환율변동 손실을 줄일 수 있습니다.</li>
+                <li>필요할 때 언제든지 제한 없이 원화로 찾으실 수 있습니다.</li>
+                <li>하나의 통장으로 최대 10개 통화까지 거래하는 <b>Multi Currency</b> 통장 서비스를 이용하실 수 있습니다.</li>
+            </ul>
+
+            <h3 class="guide-sub-title">예수 가능 통화</h3>
+            <p>미달러화(USD), 일본엔화(JPY), 유럽연합유로화(EUR), 영국파운드화(GBP), 스위스프랑화(CHF), 호주달러화(AUD), 캐나다달러화(CAD), 중국위안화(CNY) <span class="guide-muted">— 그 외 통화는 영업점 방문 후 사전 협의 시 가능</span></p>
+
+            <h3 class="guide-sub-title">신규 시 제출서류</h3>
+            <ul class="guide-list">
+                <li>개인 : 주민등록증, 여권, 외국인등록증 등 실명확인증표</li>
+                <li>법인 : 사업자등록증, 대표자 실명확인증표 (대리 개설 시 대리인 실명확인증표·위임관계 서류·인감증명서)</li>
+            </ul>
+            <div class="guide-note">이 예금은 예금자보호법에 따라 원금과 소정의 이자를 합하여 1인당 <b>최고 1억원</b>까지(본 은행의 여타 보호상품과 합산) 보호됩니다.</div>
+        </div>
+
+        <div class="guide-section">
+            <h2 class="guide-section-title">외화예금 우대서비스</h2>
+            <ul class="guide-list">
+                <li><b>이자율 우대</b> : 외화정기예금·통지예금 예수금액이 건당 미화 5만불(법인 10만불) 상당액 이상이면 고시 이자율의 10%까지 우대</li>
+                <li><b>대출한도 우대</b> : 종합통장대출(원화 마이너스대출) 한도 산정 시 외화예금 거래 실적 반영</li>
+                <li><b>시장정보 제공</b> : 요청 시 SMS·e-mail로 국내외 금리·환율 동향 분석자료 제공</li>
+                <li><b>금융기법 제공</b> : 요청 시 선물환·스왑·옵션 등 금리·환율 변동위험 제거 기법 제공</li>
+            </ul>
+
+            <h3 class="guide-sub-title">인터넷 외화예금 신규 시 환율우대</h3>
+            <div class="guide-table-wrap">
+                <table class="guide-table">
+                    <thead><tr><th>구분</th><th>미국(USD)</th><th>JPY·EUR·GBP·CHF·AUD·CAD</th></tr></thead>
+                    <tbody>
+                        <tr><th>5만불 이하</th><td>전신환매매수수료율의 50%</td><td>전신환매매수수료율의 30%</td></tr>
+                        <tr><th>5만불 초과 ~ 10만불 이하</th><td>전신환매매수수료율의 60%</td><td>전신환매매수수료율의 40%</td></tr>
+                        <tr><th>10만불 초과</th><td>전신환매매수수료율의 70%</td><td>전신환매매수수료율의 50%</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================== 4. 수수료 ===================== -->
+    <section class="guide-panel" data-panel="fee">
+
+        <div class="guide-section">
+            <h2 class="guide-section-title">환전 수수료 <small>(2026.05.18 기준)</small></h2>
+            <div class="guide-table-wrap">
+                <table class="guide-table">
+                    <thead><tr><th>구분</th><th>세부</th><th>수수료</th><th>비고</th></tr></thead>
+                    <tbody>
+                        <tr><th>외화현찰수수료</th><td>지폐</td><td>· CNY·IDR·MYR·PHP·THB·TWD : 6.0%<br>· 그 외 통화 : 1.75%</td><td>-</td></tr>
+                        <tr><th>외화현찰수수료</th><td>주화</td><td>50%</td><td>고객이 파실 때만 50% 적용</td></tr>
+                        <tr><th>외화수표 매입(추심)</th><td>매입·추심수수료<br>(여행자수표 포함)</td><td>· 미화 100불 이하 : 3,000원<br>· 1천불 이하 : 7,000원<br>· 1천불 초과 : 10,000원</td><td>동일 통화·동일 지급지는 총액을 1건으로 취급</td></tr>
+                        <tr><th>외화수표 매입(추심)</th><td>우편료</td><td>특사배달료 : 지역별 10,000 ~ 23,000원</td><td>매입·추심 시 지역별 특사배달료</td></tr>
+                        <tr><th>기타</th><td>외화대체료</td><td>0.1%</td><td>-</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="guide-section">
+            <h2 class="guide-section-title">해외송금 수수료 <small>(창구, 국내 → 해외)</small></h2>
+
+            <h3 class="guide-sub-title">각자 부담 (Share)</h3>
+            <div class="guide-table-wrap">
+                <table class="guide-table">
+                    <thead><tr><th>송금액</th><th>당발송금수수료</th><th>전신료</th></tr></thead>
+                    <tbody>
+                        <tr><th>미화 5백불 이하</th><td>5,000원</td><td>8,000원</td></tr>
+                        <tr><th>미화 2천불 이하</th><td>10,000원</td><td>8,000원</td></tr>
+                        <tr><th>미화 5천불 이하</th><td>15,000원</td><td>8,000원</td></tr>
+                        <tr><th>미화 1만불 이하</th><td>20,000원</td><td>8,000원</td></tr>
+                        <tr><th>미화 1만불 초과</th><td>25,000원</td><td>8,000원</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="guide-muted">당행 수수료는 신청인 부담, 결제·수취은행 수수료는 수취인 부담</p>
+
+            <h3 class="guide-sub-title">수취인 부담 (Beneficiary)</h3>
+            <div class="guide-table-wrap">
+                <table class="guide-table">
+                    <thead><tr><th>송금액</th><th>당발송금수수료</th><th>전신료</th></tr></thead>
+                    <tbody>
+                        <tr><th>미화 5백불 이하</th><td>USD 15 상당액</td><td>없음</td></tr>
+                        <tr><th>미화 2천불 이하</th><td>USD 20 상당액</td><td>없음</td></tr>
+                        <tr><th>미화 5천불 이하</th><td>USD 25 상당액</td><td>없음</td></tr>
+                        <tr><th>미화 1만불 이하</th><td>USD 30 상당액</td><td>없음</td></tr>
+                        <tr><th>미화 1만불 초과</th><td>USD 35 상당액</td><td>없음</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="guide-muted">모든 수수료를 수취인이 부담하며, 송금 원금에서 차감 후 처리됩니다. 우대 혜택은 없습니다.</p>
+
+            <h3 class="guide-sub-title">신청인 부담 (Applicant)</h3>
+            <div class="guide-table-wrap">
+                <table class="guide-table">
+                    <thead><tr><th>송금액</th><th>당발송금수수료</th><th>전신료</th></tr></thead>
+                    <tbody>
+                        <tr><th>미화 5백불 이하</th><td>5,000원 + USD 20 상당액</td><td>8,000원</td></tr>
+                        <tr><th>미화 2천불 이하</th><td>10,000원 + USD 20 상당액</td><td>8,000원</td></tr>
+                        <tr><th>미화 5천불 이하</th><td>15,000원 + USD 20 상당액</td><td>8,000원</td></tr>
+                        <tr><th>미화 1만불 이하</th><td>20,000원 + USD 20 상당액</td><td>8,000원</td></tr>
+                        <tr><th>미화 1만불 초과</th><td>25,000원 + USD 20 상당액</td><td>8,000원</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="guide-muted">당행·결제은행 수수료는 신청인 부담, 수취은행 수수료는 수취인 부담</p>
+        </div>
+
+        <div class="guide-section">
+            <h2 class="guide-section-title">인터넷송금 수수료</h2>
+            <h3 class="guide-sub-title">인터넷뱅킹 해외송금 (각자 부담)</h3>
+            <div class="guide-table-wrap">
+                <table class="guide-table">
+                    <thead><tr><th>송금액</th><th>당발송금수수료</th><th>전신료</th></tr></thead>
+                    <tbody>
+                        <tr><th>미화 5백불 이하</th><td>5,000원</td><td>3,000원</td></tr>
+                        <tr><th>미화 2천불 이하</th><td>10,000원</td><td>3,000원</td></tr>
+                        <tr><th>미화 5천불 이하</th><td>15,000원</td><td>3,000원</td></tr>
+                        <tr><th>미화 1만불 이하</th><td>20,000원</td><td>3,000원</td></tr>
+                        <tr><th>미화 1만불 초과</th><td>25,000원</td><td>3,000원</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <h3 class="guide-sub-title">해외즉시당발송금 (웨스턴유니온)</h3>
+            <div class="guide-table-wrap">
+                <table class="guide-table">
+                    <thead><tr><th>송금금액</th><th>수수료</th></tr></thead>
+                    <tbody>
+                        <tr><th>USD 500 이하</th><td>USD 10</td></tr>
+                        <tr><th>USD 500 초과 ~ 2,000 이하</th><td>USD 14</td></tr>
+                        <tr><th>USD 2,000 초과 ~ 3,000 이하</th><td>USD 18</td></tr>
+                        <tr><th>USD 3,000 초과 ~ 7,000 이하</th><td>USD 20</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="guide-muted">미국달러화(USD)만 송금 가능하며, 송금한도는 건당·당일 USD 7,000 이하입니다.</p>
+        </div>
+
+        <div class="guide-section">
+            <h2 class="guide-section-title">국내외화송금 수수료 <small>(국내 → 국내, 창구·인터넷 동일)</small></h2>
+            <h3 class="guide-sub-title">당발송금</h3>
+            <div class="guide-table-wrap">
+                <table class="guide-table">
+                    <thead><tr><th>부담 구분</th><th>송금액</th><th>당발송금수수료</th></tr></thead>
+                    <tbody>
+                        <tr><th>각자 부담</th><td>USD 10,000 상당액 이하</td><td>5,000원</td></tr>
+                        <tr><th>각자 부담</th><td>USD 10,000 상당액 초과</td><td>10,000원</td></tr>
+                        <tr><th>수취인 부담</th><td>USD 10,000 상당액 이하</td><td>USD 5 상당액</td></tr>
+                        <tr><th>수취인 부담</th><td>USD 10,000 상당액 초과</td><td>USD 10 상당액</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <h3 class="guide-sub-title">타발송금</h3>
+            <ul class="guide-list">
+                <li>USD 100 상당액 미만 : 면제</li>
+                <li>USD 100 상당액 이상 : 건당 10,000원</li>
+            </ul>
+        </div>
+
+        <div class="guide-section">
+            <h2 class="guide-section-title">BNK 국가간송금 수수료</h2>
+            <div class="guide-table-wrap">
+                <table class="guide-table">
+                    <thead><tr><th>구분</th><th>송금금액</th><th>수수료</th></tr></thead>
+                    <tbody>
+                        <tr><th>당발송금</th><td>미화 5백불 이하</td><td>15,000원</td></tr>
+                        <tr><th>당발송금</th><td>미화 2천불 이하</td><td>20,000원</td></tr>
+                        <tr><th>당발송금</th><td>미화 5천불 이하</td><td>30,000원</td></tr>
+                        <tr><th>타발송금</th><td colspan="2">건당 미화 10불 (송금의뢰인 부담)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="guide-muted">당발송금은 수수료와 별도로 타기관지급비용(결제·중계·지급은행 비용)이 청구되며, 금액은 지급은행별로 상이합니다.</p>
+        </div>
+    </section>
+
+    <!-- ===================== 5. FAQ ===================== -->
+    <section class="guide-panel" data-panel="faq">
+        <div class="guide-section">
+            <h2 class="guide-section-title">자주 묻는 질문 (FAQ)</h2>
+
+            <details class="guide-faq">
+                <summary>수입신용장 거래 관련 영수증 출력은 어떻게 하나요?</summary>
+                <div class="guide-faq-body">인터넷뱅킹 접속 → 외환 &gt; 수입신용장 &gt; 납부수수료내역조회. M32~로 시작하는 참조번호로 개별 조회하거나 기간을 설정해 조회할 수 있습니다.</div>
+            </details>
+            <details class="guide-faq">
+                <summary>외환서식 프로그램은 어떻게 설치하나요?</summary>
+                <div class="guide-faq-body">인터넷뱅킹 접속 → 금융상품 &gt; 외환 &gt; 부가서비스 &gt; 외환서식프로그램 → 신(新) 외환서식 프로그램 바로가기 → 프로그램 설치.</div>
+            </details>
+            <details class="guide-faq">
+                <summary>유학 간 자녀에게 매달 송금하려고 합니다. 방법이 있나요?</summary>
+                <div class="guide-faq-body">
+                    <ul class="guide-list">
+                        <li><b>자동송금</b> : 일정 주기(1·2·3개월)마다 지정일에 자동·반복 송금</li>
+                        <li><b>예약송금</b> : 고객이 지정한 일자에 1회 송금</li>
+                        <li><b>BNK바로모아송금</b> : 지정 금액에 도달하면 자동 송금</li>
+                        <li><b>BNK ONE SHOT 송금</b> : 송금전용계좌 입금액에서 수수료 차감 후 자동 송금</li>
+                    </ul>
+                </div>
+            </details>
+            <details class="guide-faq">
+                <summary>외화를 가지고 출국할 때 신고·제출 서류가 있나요?</summary>
+                <div class="guide-faq-body">USD 1만불 초과 환전 시, 국민인 거주자는 별도 서류 없이 세관신고 후 출국하며, 외국인 거주자·비거주자는 은행에서 발급받은 외국환신고필증을 지참해 세관신고 후 출국합니다. (신고필증 발급 서류는 방문 영업점 문의)</div>
+            </details>
+            <details class="guide-faq">
+                <summary>원샷 송금이 무엇인가요?</summary>
+                <div class="guide-faq-body">본인의 송금전용계좌로 송금 대금을 입금하면, 입금액에서 수수료를 차감하여 지정된 해외수취인에게 자동 송금하는 방식입니다.</div>
+            </details>
+            <details class="guide-faq">
+                <summary>베트남에 부산은행이 있나요?</summary>
+                <div class="guide-faq-body">네, 부산은행 호치민지점이 있습니다. ☎ 84-28-7301-6200 (1502, Kumho Asiana Plaza Saigon Bld, 39 Le Duan Street, District 1, Ho Chi Minh City, Vietnam)</div>
+            </details>
+            <details class="guide-faq">
+                <summary>유학생 경비 지급 절차는 어떻게 되나요?</summary>
+                <div class="guide-faq-body">지정거래외국환은행 전산등록 후 송금 가능합니다. 본인 신청 시 여권 및 입학허가증(또는 재학증명서), 가족 대리 신청 시 본인 서류와 주민등록등본·대리인 신분증이 필요합니다. (매년 재학증명서 또는 직전학기 성적증명서 제출)</div>
+            </details>
+            <details class="guide-faq">
+                <summary>인터넷(모바일) 환전은 어떻게 이용하나요?</summary>
+                <div class="guide-faq-body">인터넷·모바일뱅킹에서 환전 신청 후 선택한 방법으로 수령합니다. (인터넷뱅킹: 외환 &gt; 환전 &gt; ONE환전 / 모바일: 메뉴 &gt; 외환 &gt; 환율·환전 &gt; ONE환전) 수령 방법은 방문 수령, 금고 보관, 배송 수령 중 선택할 수 있습니다.</div>
+            </details>
+            <details class="guide-faq">
+                <summary>외화수표를 받았는데 환전은 어떻게 하나요?</summary>
+                <div class="guide-faq-body">외화수표는 매입(추심) 후 환전 가능합니다. 매입·추심수수료는 100불 이하 3,000원, 1천불 이하 7,000원, 1천불 초과 10,000원이며 우편료는 국가별로 상이합니다. (추심 시 최대 2개월 소요)</div>
+            </details>
+            <details class="guide-faq">
+                <summary>외화정기예금 만기 시 방문 없이 기간 연장이 되나요?</summary>
+                <div class="guide-faq-body">불가합니다. 외화정기예금은 영업점에서 갱신하셔야 합니다.</div>
+            </details>
+            <details class="guide-faq">
+                <summary>외화통장은 반드시 외화가 있어야 개설되나요?</summary>
+                <div class="guide-faq-body">아니요. 외화통장은 0원(잔액 없음) 통장으로도 신규 개설이 가능합니다.</div>
+            </details>
+            <details class="guide-faq">
+                <summary>해외여행경비는 1년에 얼마까지 환전 가능한가요?</summary>
+                <div class="guide-faq-body">해외경비 환전은 제한이 없습니다. 단, USD 기준 1만불 초과 현금 지참 시 세관신고가 필요합니다.</div>
+            </details>
+            <details class="guide-faq">
+                <summary>외국에서 송금을 받을 때 금액 제한이 있나요?</summary>
+                <div class="guide-faq-body">금액 제한은 없으나 취득경위 입증서류가 필요할 수 있습니다. 거주자(외국인거주자 제외)의 미화 10만불 이하 지급은 입증서류가 면제되며, 10만불 초과 시 영수확인서를 작성합니다.</div>
+            </details>
+            <details class="guide-faq">
+                <summary>해외에서 국내로 외화를 반입할 때 제한이 있나요?</summary>
+                <div class="guide-faq-body">USD 기준 1만불 초과 시 세관신고가 필요합니다.</div>
+            </details>
+            <details class="guide-faq">
+                <summary>외화통장 외화현찰 입출금 시 수수료가 부과되나요?</summary>
+                <div class="guide-faq-body">외화현찰 이외의 수단으로 입금된 자금(외화송금 수취, 원화→외화 이체 등)을 외화현찰로 인출할 경우 수수료가 발생합니다. 본인 명의 계좌에 외화현찰로 입금하거나, 입금 범위 내 동종 외화현찰로 인출하는 경우 등은 면제됩니다.</div>
+            </details>
+            <details class="guide-faq">
+                <summary>다문화가족 해당 여부는 어떻게 확인하나요?</summary>
+                <div class="guide-faq-body">외국인등록증(비자 F-6, 한국국적 취득 시 기본증명서 상세), 주민등록증, 가족관계증명서(결혼이민자 포함 주민등록등본) 등으로 확인합니다.</div>
+            </details>
+            <details class="guide-faq">
+                <summary>부산지역 외 거주 다문화가족도 우대가 되나요?</summary>
+                <div class="guide-faq-body">네, 거주지역 구분 없이 우대 가능합니다.</div>
+            </details>
+            <details class="guide-faq">
+                <summary>다문화가족 외환 거래 우대 내용은 무엇인가요? (영업점 기준)</summary>
+                <div class="guide-faq-body">
+                    <ul class="guide-list">
+                        <li>환전 환율우대 : USD·JPY 80%, EUR·CNY 50%, GBP·CAD·CHF·HKD·AUD·SGD·NZD·THB 30%, IDR·VND 20%</li>
+                        <li>송금 환율우대 : USD·JPY 80%, 기타통화 50%</li>
+                        <li>송금 수수료우대 : 보내실 때 송금수수료 전액 면제(전신료 8천원 별도), 받으실 때 전액 면제. 단, 웨스턴유니온·BNK국가간송금은 수수료 면제 불가(환율우대만 적용)</li>
+                    </ul>
+                </div>
+            </details>
+        </div>
+    </section>
+
+    <!-- ===================== 6. 법규 ===================== -->
+    <section class="guide-panel" data-panel="law">
+        <div class="guide-section">
+            <h2 class="guide-section-title">외환 법규 / 규정</h2>
+            <p>외국환거래법, 대외무역법, 외국인투자촉진법 등 외환 거래와 관련된 주요 법규·규정 자료입니다.</p>
+            <div class="guide-table-wrap">
+                <table class="guide-table">
+                    <thead><tr><th>분류</th><th>제목</th><th>바로가기</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="guide-cat">대외무역법</span></td><td>대외무역관리규정</td><td><a class="guide-link" href="https://www.law.go.kr/LSW//admRulLsInfoP.do?admRulSeq=2100000200040" target="_blank" rel="noopener">이동</a></td></tr>
+                        <tr><td><span class="guide-cat">대외무역법</span></td><td>대외무역법 시행령</td><td><a class="guide-link" href="https://www.law.go.kr/LSW//lsInfoP.do?lsiSeq=228915" target="_blank" rel="noopener">이동</a></td></tr>
+                        <tr><td><span class="guide-cat">외국환거래법</span></td><td>외국환거래법</td><td><a class="guide-link" href="https://www.law.go.kr/" target="_blank" rel="noopener">이동</a></td></tr>
+                        <tr><td><span class="guide-cat">기타</span></td><td>한국은행 금융중개지원대출관련 무역금융지원 프로그램 운용절차</td><td><span class="guide-link is-disabled">준비중</span></td></tr>
+                        <tr><td><span class="guide-cat">기타</span></td><td>한국은행 금융중개지원대출관련 무역금융지원 프로그램 운용세칙</td><td><span class="guide-link is-disabled">준비중</span></td></tr>
+                        <tr><td><span class="guide-cat">기타</span></td><td>대북투자 등에 관한 외국환거래지침</td><td><a class="guide-link" href="https://www.law.go.kr/LSW//admRulInfoP.do?admRulSeq=2100000176450" target="_blank" rel="noopener">이동</a></td></tr>
+                        <tr><td><span class="guide-cat">대외무역법</span></td><td>대외무역법</td><td><a class="guide-link" href="https://www.law.go.kr/" target="_blank" rel="noopener">이동</a></td></tr>
+                        <tr><td><span class="guide-cat">외국인투자촉진법</span></td><td>외국인투자촉진법 시행규칙</td><td><a class="guide-link" href="https://www.law.go.kr/" target="_blank" rel="noopener">이동</a></td></tr>
+                        <tr><td><span class="guide-cat">외국환거래법</span></td><td>외국환거래법 시행령</td><td><a class="guide-link" href="https://www.law.go.kr/" target="_blank" rel="noopener">이동</a></td></tr>
+                        <tr><td><span class="guide-cat">외국인투자촉진법</span></td><td>외국인투자촉진법 시행령</td><td><a class="guide-link" href="https://www.law.go.kr/" target="_blank" rel="noopener">이동</a></td></tr>
+                        <tr><td><span class="guide-cat">외국환거래법</span></td><td>외국환거래규정</td><td><a class="guide-link" href="https://www.law.go.kr/LSW/admRulInfoP.do?admRulSeq=2100000194223" target="_blank" rel="noopener">이동</a></td></tr>
+                        <tr><td><span class="guide-cat">외국인투자촉진법</span></td><td>외국인투자촉진법</td><td><a class="guide-link" href="https://www.law.go.kr/" target="_blank" rel="noopener">이동</a></td></tr>
+                        <tr><td><span class="guide-cat">기타</span></td><td>신용장통일규칙 (UCP600)</td><td><a class="guide-link" th:href="@{/pdf/foreign/export_rule.pdf}" target="_blank" rel="noopener">PDF</a></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="guide-note">법령 원문은 국가법령정보센터(law.go.kr)에서 최신본을 확인하시기 바랍니다. 일부 항목은 추후 링크가 연결될 예정입니다.</div>
+        </div>
+    </section>
+
+    <!-- ===================== 하단 CTA ===================== -->
+    <div class="guide-cta">
+        <div>
+            <p class="guide-cta-title">지금 환율을 확인하고 환전 금액을 계산해 보세요</p>
+            <p class="guide-cta-sub">실시간 고시환율과 우대율을 반영한 예상 환전 금액을 바로 확인할 수 있습니다.</p>
+        </div>
+        <a class="btn btn-light" th:href="@{/fx/exchange-calculator}">환전계산기 바로가기</a>
+    </div>
+
+</main>
+
+<div th:replace="~{footer :: footer}"></div>
+
+<script th:src="@{/js/fx-guide.js}"></script>
+</body>
+</html>

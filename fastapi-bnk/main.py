@@ -5,7 +5,7 @@ import shutil, uuid, os
 app = FastAPI()
 
 # 모델 로드 (서버 시작 시 한 번만)
-model = YOLO("bnk_best.pt")
+model = YOLO("best.pt")
 
 UPLOAD_DIR = "/tmp/uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
