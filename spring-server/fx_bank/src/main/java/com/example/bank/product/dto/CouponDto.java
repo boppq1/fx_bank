@@ -9,7 +9,6 @@ import lombok.Data;
 public class CouponDto {
     private Long couponNo;
     private Long userNo;
-    private Long eventPk;
     private Long productNo;
     private BigDecimal preferentialRate;
     private String isUsed;

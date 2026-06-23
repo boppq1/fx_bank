@@ -568,7 +568,6 @@
         SELECT
             coupon_no AS couponNo,
             user_no AS userNo,
-            event_pk AS eventPk,
             product_no AS productNo,
             preferential_rate AS preferentialRate,
             is_used AS isUsed,
@@ -585,7 +584,6 @@
         SELECT
             coupon_no AS couponNo,
             user_no AS userNo,
-            event_pk AS eventPk,
             product_no AS productNo,
             preferential_rate AS preferentialRate,
             is_used AS isUsed,
