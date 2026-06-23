@@ -73,7 +73,7 @@ document.getElementById('termsForm').addEventListener('submit', async event => {
     });
     const body = await response.json();
     if (!body.success) { document.getElementById('message').textContent = body.message; return; }
-    location.href = `/product/join/${productNo}/form`;
+    location.href = `/product/join/${productNo}/coupon`;
 });
 </script>
 </body>

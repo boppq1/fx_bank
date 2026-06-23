@@ -5,6 +5,8 @@ import com.example.bank.personal.dto.UserEntity;
 import com.example.bank.personal.service.OcrService;
 import com.example.bank.personal.service.SolapiSmsService;
 import com.example.bank.product.dto.ProductJoinCompleteDto;
+import com.example.bank.product.dto.CouponDto;
+import com.example.bank.product.dto.CouponSelectionRequestDto;
 import com.example.bank.product.dto.ProductJoinEligibilityDto;
 import com.example.bank.product.dto.IdentityVerificationRequirementDto;
 import com.example.bank.product.dto.ProductJoinFormRequestDto;
@@ -99,6 +101,34 @@ public class ProductJoinController {
         try {
             productJoinService.saveJoinFormToSession(dto, getUserNoFromRedis(authentication), session);
             return ApiResponse.success("가입 정보 저장 성공", null);
+        } catch (RuntimeException e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @GetMapping("/{productNo}/coupons")
+    public ApiResponse<List<CouponDto>> getAvailableCoupons(
+            @PathVariable("productNo") Long productNo,
+            Authentication authentication
+    ) {
+        try {
+            Long userNo = getUserNoFromRedis(authentication);
+            return ApiResponse.success("사용 가능한 우대금리 쿠폰 조회 성공",
+                    productJoinService.getAvailableCoupons(userNo, productNo));
+        } catch (RuntimeException e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @PostMapping("/coupon")
+    public ApiResponse<Void> saveCoupon(
+            @RequestBody CouponSelectionRequestDto dto,
+            Authentication authentication,
+            HttpSession session
+    ) {
+        try {
+            productJoinService.saveCouponToSession(dto, getUserNoFromRedis(authentication), session);
+            return ApiResponse.success("우대금리 쿠폰 선택이 저장되었습니다.", null);
         } catch (RuntimeException e) {
             return ApiResponse.error(e.getMessage());
         }

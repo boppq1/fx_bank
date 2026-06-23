@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>상품 가입 - 우대금리 쿠폰</title>
+    <style>
+        body { max-width: 760px; margin: 40px auto; color: #202124; font-family: 'Malgun Gothic', Arial, sans-serif; }
+        .muted { color: #69707c; } .coupon-list { margin-top: 24px; border-top: 1px solid #dfe3e8; }
+        .coupon { display: flex; align-items: center; gap: 14px; padding: 18px 8px; border-bottom: 1px solid #dfe3e8; cursor: pointer; }
+        .coupon:has(input:checked) { background: #eef6ff; } .rate { margin-left: auto; color: #0b66c3; font-size: 20px; font-weight: 700; }
+        .empty { padding: 28px 8px; border-bottom: 1px solid #dfe3e8; color: #69707c; }
+        .actions { display: flex; gap: 10px; margin-top: 28px; } button, .button { padding: 10px 14px; border: 1px solid #222; background: #111; color: #fff; text-decoration: none; cursor: pointer; }
+        .secondary { background: #fff; color: #222; } .error { margin-top: 12px; color: #b00020; }
+    </style>
+</head>
+<body>
+<h1>우대금리 쿠폰</h1>
+<p><strong th:text="${product.productName}">상품명</strong> <span class="muted">보유한 쿠폰이 있으면 이번 가입 금리에 적용할 수 있어요.</span></p>
+<input id="productNo" type="hidden" th:value="${product.productNo}">
+<section id="couponList" class="coupon-list" aria-live="polite"></section>
+<div class="actions">
+    <a class="button secondary" th:href="@{/product/join/{productNo}/terms(productNo=${product.productNo})}">이전</a>
+    <button id="skipButton" type="button">쿠폰 없이 진행</button>
+    <button id="applyButton" type="button">쿠폰 적용</button>
+</div>
+<div id="message" class="error"></div>
+
+<script>
+const productNo = Number(document.getElementById('productNo').value);
+const couponList = document.getElementById('couponList');
+const message = document.getElementById('message');
+
+async function ensureAccessToken() {
+    if (window.accessToken) return window.accessToken;
+    const response = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'same-origin' });
+    const body = await response.json();
+    if (!body.success || !body.data?.accessToken) { location.href = '/login'; return null; }
+    window.accessToken = body.data.accessToken;
+    return window.accessToken;
+}
+
+function formatRate(rate) {
+    return `+${Number(rate).toFixed(2)}%p`;
+}
+
+async function saveSelection(couponNo) {
+    const token = await ensureAccessToken();
+    if (!token) return;
+    const response = await fetch('/api/product/join/coupon', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        credentials: 'same-origin',
+        body: JSON.stringify({ productNo, couponNo })
+    });
+    const body = await response.json();
+    if (!body.success) { message.textContent = body.message; return; }
+    location.href = `/product/join/${productNo}/form`;
+}
+
+async function loadCoupons() {
+    const token = await ensureAccessToken();
+    if (!token) return;
+    const response = await fetch(`/api/product/join/${productNo}/coupons`, {
+        headers: { 'Authorization': 'Bearer ' + token }, credentials: 'same-origin'
+    });
+    const body = await response.json();
+    if (!body.success) { message.textContent = body.message; return; }
+    if (!body.data.length) {
+        couponList.innerHTML = '<div class="empty">현재 사용할 수 있는 우대금리 쿠폰이 없습니다.</div>';
+        document.getElementById('applyButton').disabled = true;
+        return;
+    }
+    couponList.innerHTML = body.data.map(coupon => `
+        <label class="coupon">
+            <input type="radio" name="couponNo" value="${coupon.couponNo}">
+            <span>우대금리 쿠폰</span>
+            <strong class="rate">${formatRate(coupon.preferentialRate)}</strong>
+        </label>
+    `).join('');
+}
+
+document.getElementById('skipButton').addEventListener('click', () => saveSelection(null));
+document.getElementById('applyButton').addEventListener('click', () => {
+    const selected = document.querySelector('input[name="couponNo"]:checked');
+    if (!selected) { message.textContent = '적용할 쿠폰을 선택해주세요.'; return; }
+    saveSelection(Number(selected.value));
+});
+
+loadCoupons();
+</script>
+</body>
+</html>

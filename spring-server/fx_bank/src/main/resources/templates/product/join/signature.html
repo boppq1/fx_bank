@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>상품 가입 - 전자서명</title>
+    <style>
+        body { max-width: 760px; margin: 40px auto; color: #202124; font-family: 'Malgun Gothic', Arial, sans-serif; }
+        .step { color: #69707c; font-size: 14px; } .summary { margin-top: 20px; border-top: 1px solid #dfe3e8; }
+        .summary-row { display: flex; justify-content: space-between; gap: 20px; padding: 13px 4px; border-bottom: 1px solid #dfe3e8; }
+        .summary-row span { color: #69707c; } .signature-box { margin-top: 28px; padding: 20px; border: 1px solid #d9a24b; background: #fff8eb; }
+        .signature-box h2 { margin-top: 0; font-size: 19px; } canvas { width: 100%; height: 190px; display: block; background: #fff; border: 1px solid #c7cbd1; touch-action: none; }
+        .actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; } button, .button { padding: 10px 14px; border: 1px solid #222; background: #111; color: #fff; text-decoration: none; cursor: pointer; }
+        .secondary { background: #fff; color: #222; } button:disabled { border-color: #bbb; background: #ddd; color: #777; cursor: not-allowed; }
+        .check { display: flex; align-items: center; gap: 8px; margin-top: 16px; } .check input { width: 18px; height: 18px; } .error { margin-top: 12px; color: #b00020; }
+    </style>
+</head>
+<body>
+<p class="step">입력 확인 &gt; 전자서명</p>
+<h1>입력 내용 확인</h1>
+<p><strong th:text="${product.productName}">상품명</strong> 가입 내용을 확인한 후 전자서명해주세요.</p>
+
+<section class="summary" id="summary">
+    <div class="summary-row"><span>통화</span><strong id="currency">-</strong></div>
+    <div class="summary-row"><span>가입 금액</span><strong id="amount">-</strong></div>
+    <div class="summary-row"><span>가입 기간</span><strong id="period">-</strong></div>
+    <div class="summary-row"><span>적용 금리</span><strong id="rate">-</strong></div>
+</section>
+
+<section class="signature-box">
+    <h2>전자서명</h2>
+    <p>아래 서명란에 직접 서명해주세요.</p>
+    <canvas id="signatureCanvas" aria-label="전자서명 입력란"></canvas>
+    <div class="actions"><button class="secondary" id="clearButton" type="button">서명 지우기</button></div>
+    <label class="check"><input id="agreement" type="checkbox"> 입력한 상품 가입 내용과 약관을 확인했으며 전자서명에 동의합니다.</label>
+</section>
+
+<div class="actions">
+    <a class="button secondary" th:href="@{/product/join/{productNo}/form(productNo=${product.productNo})}">입력 수정</a>
+    <button id="completeButton" type="button" disabled>전자서명 완료 및 가입하기</button>
+</div>
+<div id="error" class="error"></div>
+
+<script th:inline="javascript">
+const productNo = /*[[${product.productNo}]]*/ 0;
+const savedForm = sessionStorage.getItem(`product-join-form:${productNo}`);
+if (!savedForm) location.href = `/product/join/${productNo}/form`;
+
+const form = savedForm ? JSON.parse(savedForm) : null;
+if (form) {
+    document.getElementById('currency').textContent = form.currencyCode;
+    document.getElementById('amount').textContent = Number(form.amount).toLocaleString('ko-KR');
+    document.getElementById('period').textContent = `${form.periodMonth}개월`;
+    document.getElementById('rate').textContent = `${Number(form.appliedRate).toFixed(2)}%`;
+}
+
+const canvas = document.getElementById('signatureCanvas');
+const context = canvas.getContext('2d');
+let drawing = false;
+let signed = false;
+
+function resizeCanvas() {
+    const ratio = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * ratio;
+    canvas.height = rect.height * ratio;
+    context.scale(ratio, ratio);
+    context.lineWidth = 2;
+    context.lineCap = 'round';
+    context.strokeStyle = '#202124';
+}
+
+function point(event) {
+    const rect = canvas.getBoundingClientRect();
+    return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+}
+
+function updateButton() {
+    document.getElementById('completeButton').disabled = !(signed && document.getElementById('agreement').checked);
+}
+
+canvas.addEventListener('pointerdown', event => {
+    drawing = true; signed = true; canvas.setPointerCapture(event.pointerId);
+    const p = point(event); context.beginPath(); context.moveTo(p.x, p.y); updateButton();
+});
+canvas.addEventListener('pointermove', event => {
+    if (!drawing) return;
+    const p = point(event); context.lineTo(p.x, p.y); context.stroke();
+});
+canvas.addEventListener('pointerup', () => { drawing = false; });
+canvas.addEventListener('pointercancel', () => { drawing = false; });
+document.getElementById('agreement').addEventListener('change', updateButton);
+document.getElementById('clearButton').addEventListener('click', () => {
+    context.clearRect(0, 0, canvas.width, canvas.height); signed = false; updateButton();
+});
+
+async function ensureAccessToken() {
+    if (window.accessToken) return window.accessToken;
+    const response = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'same-origin' });
+    const body = await response.json();
+    if (!body.success || !body.data?.accessToken) { location.href = '/login'; return null; }
+    window.accessToken = body.data.accessToken;
+    return window.accessToken;
+}
+
+document.getElementById('completeButton').addEventListener('click', async () => {
+    const token = await ensureAccessToken();
+    if (!token) return;
+    const response = await fetch('/api/product/join/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        credentials: 'same-origin',
+        body: JSON.stringify({ productNo, signatureImageData: canvas.toDataURL('image/png') })
+    });
+    const body = await response.json();
+    if (!body.success) { document.getElementById('error').textContent = body.message; return; }
+    sessionStorage.removeItem(`product-join-form:${productNo}`);
+    location.href = `/product/join/${productNo}/complete?subscriptionNo=${body.data}`;
+});
+
+resizeCanvas();
+</script>
+</body>
+</html>
