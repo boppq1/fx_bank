@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+python-dotenv
+PyJWT
+redis
+python-multipart
+openai
+chromadb
+oracledb
