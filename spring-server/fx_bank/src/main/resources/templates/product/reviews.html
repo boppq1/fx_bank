@@ -2,20 +2,71 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>상품 리뷰</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상품 리뷰 | BNK 부산은행</title>
+    <link rel="stylesheet" th:href="@{/css/fx-home.css}">
+    <link rel="stylesheet" th:href="@{/css/fx-guide.css}">
     <style>
-        body { max-width: 760px; margin: 40px auto; color: #202124; font-family: 'Malgun Gothic', Arial, sans-serif; }
-        a { color: #0b5cab; } .review { padding: 18px 0; border-bottom: 1px solid #dfe3e8; } .review p { margin: 5px 0; }
-        .empty { padding: 18px; background: #f7f8fa; color: #626975; }
+        /* 리뷰 목록 전용(공용 대응 없음) — 토큰으로 재스타일 */
+        .review { margin-bottom: 14px; }
+        .review:last-child { margin-bottom: 0; }
+        .review-meta {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 0 0 8px;
+            font-size: 13.5px;
+            color: var(--text-sub);
+        }
+        .review-meta .review-author { font-weight: 700; color: var(--text); font-size: 14.5px; }
+        .review-meta .review-rating {
+            display: inline-block;
+            font-size: 11.5px;
+            font-weight: 700;
+            border-radius: 999px;
+            padding: 3px 9px;
+            background: var(--lavender);
+            color: var(--violet);
+            white-space: nowrap;
+        }
+        .review-text { margin: 0; color: var(--text-body); line-height: 1.7; }
     </style>
 </head>
 <body>
-<a th:href="@{/product/detail/{productNo}(productNo=${product.productNo})}">상품 상세로</a>
-<h1 th:text="${product.productName} + ' 리뷰'">상품 리뷰</h1>
-<div class="empty" th:if="${#lists.isEmpty(reviews)}">아직 리뷰가 없습니다.</div>
-<article class="review" th:each="review : ${reviews}">
-    <p><strong th:text="${review.userName}">작성자</strong> · <span th:text="${review.rating}">5</span>점 · <span th:text="${#dates.format(review.createdDt, 'yyyy-MM-dd')}">2026-06-22</span></p>
-    <p th:text="${review.reviewText}">리뷰 내용</p>
-</article>
+
+<div th:replace="~{header :: header}"></div>
+
+<section class="guide-hero">
+    <div class="guide-hero-inner">
+        <span class="guide-hero-badge">상품 리뷰</span>
+        <h1 class="guide-hero-title" th:text="${product.productName} + ' 리뷰'">상품 리뷰</h1>
+        <p class="guide-hero-desc">실제 가입 고객이 남긴 솔직한 이용 후기를 확인해보세요.</p>
+    </div>
+</section>
+
+<main class="guide-wrap">
+    <div class="guide-section">
+        <p>
+            <a class="guide-link" th:href="@{/product/detail/{productNo}(productNo=${product.productNo})}">← 상품 상세로</a>
+        </p>
+
+        <h2 class="guide-section-title">고객 리뷰</h2>
+
+        <div class="guide-note" th:if="${#lists.isEmpty(reviews)}">아직 리뷰가 없습니다.</div>
+
+        <article class="guide-card review" th:each="review : ${reviews}">
+            <p class="review-meta">
+                <span class="review-author" th:text="${review.userName}">작성자</span>
+                <span class="review-rating"><span th:text="${review.rating}">5</span>점</span>
+                <span th:text="${#dates.format(review.createdDt, 'yyyy-MM-dd')}">2026-06-22</span>
+            </p>
+            <p class="review-text" th:text="${review.reviewText}">리뷰 내용</p>
+        </article>
+    </div>
+</main>
+
+<div th:replace="~{footer :: footer}"></div>
+
 </body>
 </html>

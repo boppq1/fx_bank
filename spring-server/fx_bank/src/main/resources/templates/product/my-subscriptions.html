@@ -1,29 +1,51 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>내 가입 상품</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>내 가입 상품 | BNK 부산은행</title>
+    <link rel="stylesheet" th:href="@{/css/fx-home.css}">
+    <link rel="stylesheet" th:href="@{/css/fx-guide.css}">
     <style>
-        body { max-width: 1000px; margin: 40px auto; color: #202124; font-family: 'Malgun Gothic', Arial, sans-serif; }
-        table { width: 100%; border-collapse: collapse; margin-top: 16px; }
-        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
-        th { background: #f7f8fa; }
-        .message { margin-top: 16px; color: #666; }
-        .error { color: #b00020; }
-        a { color: #222; }
+        /* 상태 메시지: JS 가 classList.add('error') / textContent / hidden 을 직접 토글 → 클래스명(message/error) 유지, 토큰 재스타일 */
+        #message.message { margin-top: 14px; color: var(--text-sub); font-size: 13.5px; font-weight: 600; }
+        #message.message.error { color: var(--up); }
+        /* 리뷰 링크: JS 가 innerHTML 로 .review-link 를 생성하고 hidden 토글 → 클래스명 유지, 토큰 재스타일 */
+        .review-link { color: var(--violet); font-weight: 600; text-decoration: none; }
+        .review-link:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
-<a href="/product/list">상품 목록으로</a>
-<h1>내 가입 상품</h1>
-<p>현재 로그인한 회원의 상품 가입 정보와 연결된 외화 계좌입니다.</p>
-<div id="message" class="message">가입 상품을 조회하고 있습니다.</div>
-<table id="subscriptionTable" hidden>
-    <thead>
-    <tr><th>상품명</th><th>상품유형</th><th>계좌번호</th><th>통화</th><th>가입금액</th><th>계좌잔액</th><th>가입일</th><th>상태</th><th>리뷰</th></tr>
-    </thead>
-    <tbody id="subscriptionBody"></tbody>
-</table>
+
+<div th:replace="~{header :: header}"></div>
+
+<section class="guide-hero">
+    <div class="guide-hero-inner">
+        <span class="guide-hero-badge">상품</span>
+        <h1 class="guide-hero-title">내 가입 상품</h1>
+        <p class="guide-hero-desc">현재 로그인한 회원의 상품 가입 정보와 연결된 외화 계좌입니다.</p>
+    </div>
+</section>
+
+<main class="guide-wrap">
+    <div class="guide-section">
+        <h2 class="guide-section-title">가입 상품 목록</h2>
+        <p><a class="guide-link" href="/product/list">상품 목록으로</a></p>
+
+        <div id="message" class="message">가입 상품을 조회하고 있습니다.</div>
+
+        <div class="guide-table-wrap">
+            <table id="subscriptionTable" class="guide-table" hidden>
+                <thead>
+                <tr><th>상품명</th><th>상품유형</th><th>계좌번호</th><th>통화</th><th>가입금액</th><th>계좌잔액</th><th>가입일</th><th>상태</th><th>리뷰</th></tr>
+                </thead>
+                <tbody id="subscriptionBody"></tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{footer :: footer}"></div>
 
 <script>
 async function ensureAccessToken() {
