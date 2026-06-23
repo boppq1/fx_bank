@@ -37,8 +37,8 @@
   display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start;
 }
 
-/* ===== 좌측 소개 (스크롤 시 따라오도록 sticky) ===== */
-.auth-intro{padding-right:8px;position:sticky;top:32px;align-self:start;}
+/* ===== 좌측 소개 (상단 고정 배치, 움직임 없음) ===== */
+.auth-intro{padding-right:8px;align-self:start;}
 .intro-logo{
   display:inline-block;font-size:28px;font-weight:800;
   letter-spacing:-.5px;color:var(--violet);margin-bottom:18px;

@@ -38,6 +38,7 @@ public class SecurityConfig {
 
                 .requestMatchers("/a","/", "/login","/register","/reauth", "/api/auth/**","/products", "/product/**","/fx/**", "/api/fx/**","/css/**", "/js/**", "/admin/**", "/error", "/event/**").permitAll()
 
+
                 // 2) ⭐ 대출 API 권한 명시 (반드시 anyRequest보다 위에 적어야 함!)
                 // .requestMatchers("/api/bank/loan").authenticated() // 또는 권한 적용 시 .hasRole("USER")
                 
