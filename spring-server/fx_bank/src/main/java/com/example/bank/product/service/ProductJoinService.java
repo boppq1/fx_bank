@@ -3,6 +3,8 @@ package com.example.bank.product.service;
 import java.util.List;
 
 import com.example.bank.product.dto.ProductJoinCompleteDto;
+import com.example.bank.product.dto.CouponDto;
+import com.example.bank.product.dto.CouponSelectionRequestDto;
 import com.example.bank.product.dto.ProductJoinEligibilityDto;
 import com.example.bank.product.dto.IdentityVerificationRequirementDto;
 import com.example.bank.product.dto.ProductMySubscriptionDto;
@@ -40,6 +42,10 @@ public interface ProductJoinService {
     void saveJoinFormToSession(ProductJoinFormRequestDto dto, Long userNo, HttpSession session);
 
     List<WithdrawableForeignAccountDto> getWithdrawableForeignAccounts(Long userNo, String currencyCode);
+
+    List<CouponDto> getAvailableCoupons(Long userNo, Long productNo);
+
+    void saveCouponToSession(CouponSelectionRequestDto dto, Long userNo, HttpSession session);
 
     // 전자서명 후 최종 가입 저장
     Long completeJoin(ProductJoinSubmitRequestDto dto, Long userNo, HttpSession session);

@@ -22,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.bank.product.dao.IProductJoinDao;
 import com.example.bank.product.dto.ElectronicSignatureDto;
+import com.example.bank.product.dto.CouponDto;
+import com.example.bank.product.dto.CouponSelectionRequestDto;
 import com.example.bank.product.dto.ForeignAccountBalanceInsertDto;
 import com.example.bank.product.dto.ForeignAccountInsertDto;
 import com.example.bank.product.dto.IdVerificationDto;
@@ -57,6 +59,7 @@ public class ProductJoinServiceImpl implements ProductJoinService {
     private static final String SESSION_FORM = "PRODUCT_JOIN_FORM";
     private static final String SESSION_VERIFICATION_NO = "PRODUCT_JOIN_VERIFICATION_NO";
     private static final String SESSION_PHONE_VERIFIED_PRODUCT_NO = "PRODUCT_JOIN_PHONE_VERIFIED_PRODUCT_NO";
+    private static final String SESSION_COUPON = "PRODUCT_JOIN_COUPON";
     private static final String BANK_NAME = "BUSAN BANK";
     private static final BigDecimal DEFAULT_LIMIT_ONCE = new BigDecimal("1000000");
     private static final BigDecimal DEFAULT_LIMIT_DAILY = new BigDecimal("5000000");
@@ -342,6 +345,31 @@ public class ProductJoinServiceImpl implements ProductJoinService {
         return productJoinDao.selectWithdrawableForeignAccounts(userNo, currencyCode);
     }
 
+    @Override
+    public List<CouponDto> getAvailableCoupons(Long userNo, Long productNo) {
+        if (userNo == null || productNo == null) {
+            throw new IllegalArgumentException("쿠폰 조회에 필요한 정보가 없습니다.");
+        }
+        return productJoinDao.selectAvailableCoupons(userNo, productNo);
+    }
+
+    @Override
+    public void saveCouponToSession(CouponSelectionRequestDto dto, Long userNo, HttpSession session) {
+        if (dto == null || dto.getProductNo() == null) {
+            throw new IllegalArgumentException("쿠폰 선택 정보가 없습니다.");
+        }
+        if (dto.getCouponNo() == null) {
+            session.removeAttribute(SESSION_COUPON);
+            return;
+        }
+
+        CouponDto coupon = productJoinDao.selectAvailableCouponByNo(dto.getCouponNo(), userNo, dto.getProductNo());
+        if (coupon == null) {
+            throw new IllegalArgumentException("사용할 수 있는 우대금리 쿠폰이 아닙니다.");
+        }
+        session.setAttribute(SESSION_COUPON, coupon);
+    }
+
     // =====================================================
     // 5. 최종 가입 저장
     // =====================================================
@@ -371,6 +399,9 @@ public class ProductJoinServiceImpl implements ProductJoinService {
         ProductJoinFormRequestDto formDto =
                 (ProductJoinFormRequestDto) session.getAttribute(SESSION_FORM);
 
+        CouponDto selectedCoupon =
+                (CouponDto) session.getAttribute(SESSION_COUPON);
+
         Long verificationNo =
                 (Long) session.getAttribute(SESSION_VERIFICATION_NO);
 
@@ -395,6 +426,30 @@ public class ProductJoinServiceImpl implements ProductJoinService {
         ProductDetailDto product = productJoinDao.selectProductForJoin(productNo);
         if (product == null) {
             throw new IllegalArgumentException("가입 가능한 상품이 아닙니다.");
+        }
+
+        BigDecimal appliedRate = formDto.getAppliedRate();
+        if (selectedCoupon != null) {
+            // 화면에서 골랐던 쿠폰도 최종 저장 직전에 다시 확인해 이미 사용된 쿠폰의 중복 적용을 막는다.
+            CouponDto availableCoupon = productJoinDao.selectAvailableCouponByNo(
+                    selectedCoupon.getCouponNo(), userNo, productNo
+            );
+            if (availableCoupon == null) {
+                throw new IllegalArgumentException("선택한 우대금리 쿠폰을 사용할 수 없습니다.");
+            }
+
+            BigDecimal preferentialRate = availableCoupon.getPreferentialRate() == null
+                    ? BigDecimal.ZERO : availableCoupon.getPreferentialRate();
+            appliedRate = appliedRate.add(preferentialRate);
+
+            // 상품이 정한 최고 금리를 넘지 않도록 제한한다.
+            if (product.getMaxRate() != null && appliedRate.compareTo(product.getMaxRate()) > 0) {
+                appliedRate = product.getMaxRate();
+            }
+
+            if (productJoinDao.markCouponUsed(availableCoupon.getCouponNo(), userNo) == 0) {
+                throw new IllegalArgumentException("우대금리 쿠폰이 이미 사용되었습니다.");
+            }
         }
 
         ProductJoinEligibilityDto joinEligibility = getJoinEligibility(productNo, userNo);
@@ -470,7 +525,7 @@ public class ProductJoinServiceImpl implements ProductJoinService {
         subscriptionDto.setProductNo(productNo);
         subscriptionDto.setUserNo(userNo);
         subscriptionDto.setRateNo(formDto.getRateNo());
-        subscriptionDto.setType("FOREIGN_DEPOSIT");
+        subscriptionDto.setType(resolveSubscriptionType(product));
         // 상품 가입 정보에는 방금 만든 실제 외화 계좌번호를 연결한다.
         // 현재 DDL에 FK는 없지만, foreign_accounts.account_no와 같은 값을 넣어 업무적으로 연결한다.
         subscriptionDto.setAcntNo(accountNo);
@@ -480,7 +535,7 @@ public class ProductJoinServiceImpl implements ProductJoinService {
         subscriptionDto.setVerificationNo(verificationNo);
         subscriptionDto.setSubscriptionStatus("가입완료");
         subscriptionDto.setMaturityDt(calculateMaturityDate(formDto.getPeriodMonth()));
-        subscriptionDto.setAppliedRate(formDto.getAppliedRate());
+        subscriptionDto.setAppliedRate(appliedRate);
         subscriptionDto.setRateChangedDt(new Date());
 
         productJoinDao.insertProductSubscription(subscriptionDto);
@@ -513,7 +568,7 @@ public class ProductJoinServiceImpl implements ProductJoinService {
         signatureDto.setUserNo(userNo);
         signatureDto.setVerificationNo(verificationNo);
         signatureDto.setSignaturePath(signaturePath);
-        signatureDto.setSignedContent(makeSignedContent(subscriptionNo, productNo, formDto, termsDto));
+        signatureDto.setSignedContent(makeSignedContent(subscriptionNo, productNo, formDto, termsDto, appliedRate));
         signatureDto.setSignedDt(new Date());
 
         productJoinDao.insertElectronicSignature(signatureDto);
@@ -588,6 +643,24 @@ public class ProductJoinServiceImpl implements ProductJoinService {
                 && (productType.contains("통장") || productType.contains("입출금") || productType.contains("예금"));
     }
 
+    // 상품명에 의존하지 않고 products.product_type 값으로 가입 유형을 결정한다.
+    private String resolveSubscriptionType(ProductDetailDto product) {
+        String productType = product == null ? null : product.getProductType();
+        if (productType == null || productType.isBlank()) {
+            throw new IllegalArgumentException("상품 유형이 없어 가입 유형을 결정할 수 없습니다.");
+        }
+        if (productType.contains("적금")) {
+            return "FOREIGN_SAVINGS";
+        }
+        if (productType.contains("정기")) {
+            return "FOREIGN_TIME_DEPOSIT";
+        }
+        if (isDemandDepositProduct(product)) {
+            return "FOREIGN_DEMAND_DEPOSIT";
+        }
+        throw new IllegalArgumentException("지원하지 않는 외화 상품 유형입니다: " + productType);
+    }
+
     private String saveSignatureImage(Long subscriptionNo, String signatureImageData) {
         try {
             String base64Data = signatureImageData;
@@ -619,7 +692,8 @@ public class ProductJoinServiceImpl implements ProductJoinService {
             Long subscriptionNo,
             Long productNo,
             ProductJoinFormRequestDto formDto,
-            ProductJoinTermsRequestDto termsDto
+            ProductJoinTermsRequestDto termsDto,
+            BigDecimal appliedRate
     ) {
         Map<String, Object> signedContent = new LinkedHashMap<>();
 
@@ -629,7 +703,7 @@ public class ProductJoinServiceImpl implements ProductJoinService {
         signedContent.put("currencyCode", formDto.getCurrencyCode());
         signedContent.put("amount", formDto.getAmount());
         signedContent.put("periodMonth", formDto.getPeriodMonth());
-        signedContent.put("appliedRate", formDto.getAppliedRate());
+        signedContent.put("appliedRate", appliedRate);
         signedContent.put("requiredTermsCodes", safeList(termsDto.getRequiredTermsCodes()));
         signedContent.put("optionalTermsCodes", safeList(termsDto.getOptionalTermsCodes()));
         signedContent.put("signedAt", LocalDateTime.now().toString());
@@ -645,5 +719,6 @@ public class ProductJoinServiceImpl implements ProductJoinService {
         session.removeAttribute(SESSION_TERMS);
         session.removeAttribute(SESSION_FORM);
         session.removeAttribute(SESSION_VERIFICATION_NO);
+        session.removeAttribute(SESSION_COUPON);
     }
 }

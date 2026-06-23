@@ -563,4 +563,47 @@
         ORDER BY ps.subscribed_dt DESC, ps.subscription_no DESC
     </select>
 
+    <!-- 약관 동의 다음 단계에서 사용할 수 있는 우대금리 쿠폰 조회 -->
+    <select id="selectAvailableCoupons" resultType="com.example.bank.product.dto.CouponDto">
+        SELECT
+            coupon_no AS couponNo,
+            user_no AS userNo,
+            product_no AS productNo,
+            preferential_rate AS preferentialRate,
+            is_used AS isUsed,
+            issued_dt AS issuedDt,
+            used_dt AS usedDt
+        FROM coupon
+        WHERE user_no = #{userNo}
+          AND is_used = 'N'
+          AND (product_no IS NULL OR product_no = #{productNo})
+        ORDER BY issued_dt DESC
+    </select>
+
+    <select id="selectAvailableCouponByNo" resultType="com.example.bank.product.dto.CouponDto">
+        SELECT
+            coupon_no AS couponNo,
+            user_no AS userNo,
+            product_no AS productNo,
+            preferential_rate AS preferentialRate,
+            is_used AS isUsed,
+            issued_dt AS issuedDt,
+            used_dt AS usedDt
+        FROM coupon
+        WHERE coupon_no = #{couponNo}
+          AND user_no = #{userNo}
+          AND is_used = 'N'
+          AND (product_no IS NULL OR product_no = #{productNo})
+    </select>
+
+    <!-- 가입 완료 트랜잭션 안에서만 사용 처리한다. -->
+    <update id="markCouponUsed">
+        UPDATE coupon
+        SET is_used = 'Y',
+            used_dt = SYSDATE
+        WHERE coupon_no = #{couponNo}
+          AND user_no = #{userNo}
+          AND is_used = 'N'
+    </update>
+
 </mapper>

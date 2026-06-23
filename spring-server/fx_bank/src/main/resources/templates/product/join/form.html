@@ -75,15 +75,14 @@
     <input id="accountPassword" type="password" required minlength="4" maxlength="20" placeholder="계좌 비밀번호 입력">
 
     <div class="actions">
-        <a class="button secondary" th:href="@{/product/join/{productNo}/terms(productNo=${product.productNo})}">이전</a>
-        <button id="submitButton" type="submit">가입 완료</button>
+        <a class="button secondary" th:href="@{/product/join/{productNo}/coupon(productNo=${product.productNo})}">이전</a>
+        <button id="submitButton" type="submit">입력 내용 확인</button>
     </div>
     <div id="message" class="message"></div>
     <div id="error" class="error"></div>
 </form>
 
 <script th:inline="javascript">
-const tinySignature = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAI9jU77yQAAAABJRU5ErkJggg==';
 const productType = /*[[${product.productType}]]*/ '';
 const requiresWithdrawalAccount = productType.includes('정기') || productType.includes('적금');
 let ocrVerified = false;
@@ -254,13 +253,10 @@ document.getElementById('joinForm').addEventListener('submit', async (event) => 
     let body = await response.json();
     if (!body.success) { setError(body.message); return; }
 
-    response = await apiFetch('/api/product/join/complete', {
-        method: 'POST', body: JSON.stringify({ productNo, signatureImageData: tinySignature })
-    });
-    if (!response) return;
-    body = await response.json();
-    if (!body.success) { setError(body.message); return; }
-    location.href = `/product/join/${productNo}/complete?subscriptionNo=${body.data}`;
+    // 전자서명 화면에서 입력 내용을 다시 보여주기 위한 화면용 데이터다.
+    // 실제 가입 데이터는 위 /form API가 서버 세션에 저장한 값을 사용한다.
+    sessionStorage.setItem(`product-join-form:${productNo}`, JSON.stringify(formPayload));
+    location.href = `/product/join/${productNo}/signature`;
 });
 
 loadIdentityVerificationRequirement();
