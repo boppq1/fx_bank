@@ -29,3 +29,4 @@ replay_pid*
 spring-server/.metadata/
 spring-server/fx_bank/.metadata/
 **/application-local.properties
+/.metadata/
