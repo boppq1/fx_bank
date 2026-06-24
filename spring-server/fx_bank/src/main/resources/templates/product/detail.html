@@ -165,7 +165,7 @@
     <div class="guide-section">
         <div class="guide-actions">
             <a class="btn btn-light" th:href="@{/product/list}">상품 목록으로</a>
-            <a class="btn btn-primary" th:href="@{/product/join/{productNo}/terms(productNo=${product.productNo})}">가입하기</a>
+            <button type="button" id="joinBtn" class="btn btn-primary">가입하기</button>
         </div>
     </div>
 
@@ -189,6 +189,36 @@
         if (body.success && body.data) {
             document.getElementById('writeReviewLink').hidden = false;
         }
+    }
+
+    // 가입하기: 비회원이면 로그인 후 이 상품 가입 화면으로 복귀(returnUrl)
+    async function getAccessToken() {
+        if (window.accessToken) return window.accessToken;
+        const r = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'same-origin' });
+        const b = await r.json();
+        if (!b.success || !b.data || !b.data.accessToken) return null;
+        window.accessToken = b.data.accessToken;
+        return window.accessToken;
+    }
+
+    const joinBtn = document.getElementById('joinBtn');
+    if (joinBtn) {
+        joinBtn.addEventListener('click', async () => {
+            const target = '/product/join/' + productNo + '/terms';
+            const token = await getAccessToken();
+            if (!token) {
+                alert('로그인이 필요합니다.');
+                location.href = '/login?returnUrl=' + encodeURIComponent(target);
+                return;
+            }
+            const response = await fetch(`/api/product/join/${productNo}/join-eligibility`, {
+                headers: { 'Authorization': 'Bearer ' + token }, credentials: 'same-origin'
+            });
+            const body = await response.json();
+            if (!body.success) { alert(body.message || '가입 가능 여부를 확인하지 못했습니다.'); return; }
+            if (body.data.canJoin) { location.href = target; return; }
+            alert(body.data.reason);
+        });
     }
 
     showReviewWriteLink();

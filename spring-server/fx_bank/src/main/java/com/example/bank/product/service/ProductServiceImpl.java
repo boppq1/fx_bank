@@ -8,6 +8,7 @@ import com.example.bank.product.dao.IProductDao;
 import com.example.bank.product.dto.ProductCurrencyDto;
 import com.example.bank.product.dto.ProductDetailDto;
 import com.example.bank.product.dto.ProductListDto;
+import com.example.bank.product.dto.ProductListPageDto;
 import com.example.bank.product.dto.ProductPreferentialRateDto;
 import com.example.bank.product.dto.ProductRateDto;
 import com.example.bank.product.dto.ProductReviewDto;
@@ -24,6 +25,36 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<ProductListDto> getForeignProductList() {
         return productDao.selectForeignProductList();
+    }
+
+    @Override
+    public ProductListPageDto getForeignProductPage(String keyword, String type, int page, int size) {
+        // 검색어 정규화: 공백 제거, 빈값이면 null(=전체)
+        String normalizedKeyword = (keyword == null || keyword.isBlank()) ? null : keyword.trim();
+        // 카테고리 화이트리스트: DEPOSIT/SAVINGS 만 허용, 그 외는 null(=전체)
+        String normalizedType = "DEPOSIT".equals(type) || "SAVINGS".equals(type) ? type : null;
+        int pageSize = size <= 0 ? 10 : size;
+        int currentPage = Math.max(page, 1);
+
+        long totalCount = productDao.countForeignProduct(normalizedKeyword, normalizedType);
+        int totalPages = (int) Math.max(1, Math.ceil((double) totalCount / pageSize));
+        if (currentPage > totalPages) {
+            currentPage = totalPages;
+        }
+        int offset = (currentPage - 1) * pageSize;
+
+        List<ProductListDto> products =
+                productDao.selectForeignProductPage(normalizedKeyword, normalizedType, offset, pageSize);
+
+        ProductListPageDto result = new ProductListPageDto();
+        result.setProducts(products);
+        result.setTotalCount(totalCount);
+        result.setPage(currentPage);
+        result.setSize(pageSize);
+        result.setTotalPages(totalPages);
+        result.setKeyword(normalizedKeyword);
+        result.setType(normalizedType);
+        return result;
     }
 
     @Override
