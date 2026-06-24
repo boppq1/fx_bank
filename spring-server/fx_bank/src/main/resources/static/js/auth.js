@@ -107,7 +107,10 @@ async function handleLogin() {
         location.href = "/reauth";
         return;
       }
-      location.href = "/";
+      // returnUrl 이 있고 내부 경로("/"로 시작, "//" 아님)일 때만 그쪽으로 복귀, 없으면 기존처럼 메인.
+      // (JWT 발급/Redis/토큰 보관 등 인증 로직과 무관한 화면 이동만 분기 — 오픈 리다이렉트 방지)
+      const returnUrl = new URLSearchParams(location.search).get("returnUrl");
+      location.href = (returnUrl && returnUrl.startsWith("/") && !returnUrl.startsWith("//")) ? returnUrl : "/";
     } else {
       alert(result.message);
     }

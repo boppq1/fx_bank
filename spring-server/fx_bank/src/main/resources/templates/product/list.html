@@ -23,6 +23,15 @@
         }
         .join-button:hover { filter: brightness(1.05); transform: translateY(-1px); }
         .join-button:disabled { opacity: .55; cursor: default; transform: none; }
+
+        /* 검색 / 카테고리 툴바 */
+        .list-toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin: 4px 0 18px; }
+        .cat-tabs { display: flex; gap: 8px; }
+        .cat-tabs .guide-chip { text-decoration: none; }
+        .search-form { display: flex; gap: 8px; flex: 1 1 320px; max-width: 480px; }
+        .search-form .guide-search-input { flex: 1; }
+        /* 페이저 비활성 링크 */
+        .guide-page.is-disabled { opacity: .4; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -33,7 +42,7 @@
     <div class="guide-hero-inner">
         <span class="guide-hero-badge">외환 상품</span>
         <h1 class="guide-hero-title">외화 상품 목록</h1>
-        <p class="guide-hero-desc">BNK 부산은행이 제공하는 외화 예금·적금 상품을 한눈에 비교하고 가입하세요. 현재 총 <strong th:text="${#lists.size(products)}">0</strong>개 상품을 운영 중입니다.</p>
+        <p class="guide-hero-desc">BNK 부산은행이 제공하는 외화 예금·적금 상품을 한눈에 비교하고 가입하세요. 현재 총 <strong th:text="${totalCount}">0</strong>개 상품을 운영 중입니다.</p>
     </div>
 </section>
 
@@ -42,6 +51,23 @@
         <div class="guide-rate-head">
             <h2 class="guide-section-title">상품 목록</h2>
             <a class="btn btn-light" href="/product/my-subscriptions">내 가입 상품</a>
+        </div>
+
+        <div class="list-toolbar">
+            <div class="cat-tabs">
+                <a class="guide-chip" th:classappend="${type == null or type == ''} ? ' is-active'"
+                   th:href="@{/product/list(keyword=${keyword})}">전체</a>
+                <a class="guide-chip" th:classappend="${type == 'DEPOSIT'} ? ' is-active'"
+                   th:href="@{/product/list(type='DEPOSIT', keyword=${keyword})}">예금</a>
+                <a class="guide-chip" th:classappend="${type == 'SAVINGS'} ? ' is-active'"
+                   th:href="@{/product/list(type='SAVINGS', keyword=${keyword})}">적금</a>
+            </div>
+            <form class="search-form" method="get" action="/product/list">
+                <input type="hidden" name="type" th:value="${type}">
+                <input type="text" name="keyword" class="guide-search-input" th:value="${keyword}"
+                       placeholder="상품명·유형·가입대상 검색 (예: 예금, 외국인)">
+                <button type="submit" class="btn btn-primary">검색</button>
+            </form>
         </div>
 
         <div class="guide-table-wrap">
@@ -68,8 +94,21 @@
                                 th:attr="data-product-no=${product.productNo},data-product-type=${product.productType}">가입하기</button>
                     </td>
                 </tr>
+                <tr th:if="${#lists.isEmpty(products)}">
+                    <td colspan="11" style="text-align:center;color:var(--text-sub);padding:28px">검색 결과가 없습니다.</td>
+                </tr>
                 </tbody>
             </table>
+        </div>
+
+        <div class="guide-pager" th:if="${totalPages > 1}">
+            <a class="guide-page" th:classappend="${page &lt;= 1} ? ' is-disabled'"
+               th:href="@{/product/list(type=${type}, keyword=${keyword}, page=${page - 1})}">이전</a>
+            <a class="guide-page" th:each="i : ${#numbers.sequence(1, totalPages)}"
+               th:classappend="${i == page} ? ' is-active'"
+               th:href="@{/product/list(type=${type}, keyword=${keyword}, page=${i})}" th:text="${i}">1</a>
+            <a class="guide-page" th:classappend="${page &gt;= totalPages} ? ' is-disabled'"
+               th:href="@{/product/list(type=${type}, keyword=${keyword}, page=${page + 1})}">다음</a>
         </div>
 
         <p class="guide-foot-note">
@@ -85,16 +124,21 @@ async function getAccessToken() {
     if (window.accessToken) return window.accessToken;
     const response = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'same-origin' });
     const body = await response.json();
-    if (!body.success || !body.data?.accessToken) { location.href = '/login'; return null; }
+    if (!body.success || !body.data?.accessToken) return null; // 비회원: 리다이렉트는 호출부에서 returnUrl 과 함께 처리
     window.accessToken = body.data.accessToken;
     return window.accessToken;
 }
 
 document.querySelectorAll('.join-button').forEach(button => {
     button.addEventListener('click', async () => {
-        const token = await getAccessToken();
-        if (!token) return;
         const productNo = button.dataset.productNo;
+        const token = await getAccessToken();
+        if (!token) {
+            alert('로그인이 필요합니다.');
+            const target = '/product/join/' + productNo + '/terms';
+            location.href = '/login?returnUrl=' + encodeURIComponent(target);
+            return;
+        }
         const response = await fetch(`/api/product/join/${productNo}/join-eligibility`, {
             headers: { 'Authorization': 'Bearer ' + token }, credentials: 'same-origin'
         });
