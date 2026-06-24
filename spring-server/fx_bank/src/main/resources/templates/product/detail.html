@@ -2,116 +2,193 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>외화 상품 상세</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>외화 상품 상세 | BNK 부산은행</title>
+    <link rel="stylesheet" th:href="@{/css/fx-home.css}">
+    <link rel="stylesheet" th:href="@{/css/fx-guide.css}">
     <style>
-        :root { --line: #dfe3e8; --muted: #626975; --surface: #f7f8fa; --ink: #202124; --accent: #0b5cab; }
-        * { box-sizing: border-box; }
-        body { max-width: 1000px; margin: 38px auto 80px; color: var(--ink); font-family: 'Malgun Gothic', Arial, sans-serif; line-height: 1.55; }
-        a { color: var(--accent); } .back { display: inline-block; margin-bottom: 24px; color: #444; text-decoration: none; }
-        .hero { padding-bottom: 24px; border-bottom: 2px solid var(--ink); }
-        h1 { margin: 0; font-size: 30px; } h2 { margin: 38px 0 14px; font-size: 20px; }
-        .description { margin: 10px 0 0; color: var(--muted); }
-        .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
-        .summary-item { min-height: 88px; padding: 15px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-        .label { display: block; color: var(--muted); font-size: 13px; } .value { display: block; margin-top: 6px; font-weight: 700; }
-        .data-table { width: 100%; border-collapse: collapse; } .data-table th, .data-table td { padding: 12px 14px; border-bottom: 1px solid var(--line); text-align: left; }
-        .data-table th { background: var(--surface); font-weight: 700; }
-        .chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; list-style: none; }
-        .chip { padding: 7px 10px; border: 1px solid #b7c9dc; color: #174f84; background: #f2f7fc; font-size: 14px; }
+        /* 기본 정보 요약 그리드 (공용 표가 아닌 카드형 구조 전용) */
+        .detail-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin: 6px 0 4px;
+        }
+        .detail-summary-item {
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--surface);
+            padding: 14px 16px;
+            min-height: 78px;
+        }
+        .detail-summary-item .label { display: block; color: var(--text-sub); font-size: 13px; }
+        .detail-summary-item .value { display: block; margin-top: 8px; font-weight: 700; color: var(--text); }
+
+        /* 약관 아코디언 (details/summary 구조 전용) */
         .terms-list { display: grid; gap: 10px; }
-        .term { border: 1px solid var(--line); background: #fff; }
-        .term summary { display: flex; align-items: center; gap: 10px; padding: 15px; cursor: pointer; list-style: none; }
+        .term {
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--surface);
+            overflow: hidden;
+        }
+        .term summary {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 16px;
+            cursor: pointer;
+            list-style: none;
+        }
         .term summary::-webkit-details-marker { display: none; }
-        .term-title { flex: 1; font-weight: 700; } .term-type { color: var(--muted); font-size: 13px; }
-        .badge { padding: 3px 7px; border-radius: 4px; font-size: 12px; font-weight: 700; }
-        .badge.required { color: #a33a00; background: #fff0e7; } .badge.optional { color: #4e5968; background: #edf0f3; }
-        .term-content { margin: 0; padding: 18px; border-top: 1px solid var(--line); background: var(--surface); white-space: pre-wrap; word-break: break-all; font-size: 14px; line-height: 1.8; }
-        .term-link { display: inline-block; margin: 0 18px 16px; font-size: 14px; }
-        .empty { padding: 18px; color: var(--muted); background: var(--surface); }
-        .review { padding: 16px 0; border-bottom: 1px solid var(--line); } .review p { margin: 5px 0; }
+        .term summary::after {
+            content: '⌄';
+            width: 24px;
+            height: 24px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            color: var(--text-sub);
+            background: var(--lavender);
+            font-size: 18px;
+            transition: transform .18s ease;
+        }
+        .term[open] summary::after { transform: rotate(180deg); }
+        .term-title { flex: 1; font-weight: 700; color: var(--text); }
+        .term-type { color: var(--text-sub); font-size: 13px; }
+        .badge { padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+        .badge.required { color: #a33a00; background: #FFF0E7; }
+        .badge.optional { color: var(--text-sub); background: var(--lavender); }
+        .term-content {
+            margin: 0;
+            padding: 16px;
+            border-top: 1px solid var(--border);
+            background: #fff;
+            white-space: pre-wrap;
+            word-break: break-all;
+            font-size: 14px;
+            line-height: 1.8;
+            color: var(--text-body);
+            max-height: 320px;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+        }
+        .term-link { display: inline-block; margin: 0 16px 16px; font-size: 14px; color: var(--violet); font-weight: 600; text-decoration: none; }
+        .term-link:hover { text-decoration: underline; }
+
+        /* 리뷰 목록 (반복 article 구조 전용) */
+        .review { padding: 16px 0; border-bottom: 1px solid var(--border); }
+        .review:last-of-type { border-bottom: none; }
+        .review p { margin: 5px 0; color: var(--text-body); }
+        .review p strong { color: var(--text); }
         .review-actions { display: flex; gap: 14px; margin-top: 16px; }
-        .join-action { margin-top: 42px; padding-top: 24px; border-top: 1px solid var(--line); }
-        .join-button { display: inline-block; padding: 12px 18px; background: #111; color: #fff; text-decoration: none; }
-        @media (max-width: 700px) { body { margin: 24px 16px 60px; } .summary-grid { grid-template-columns: repeat(2, 1fr); } }
+        .review-actions a { color: var(--violet); font-weight: 600; text-decoration: none; }
+        .review-actions a:hover { text-decoration: underline; }
+
+        @media (max-width: 700px) {
+            .detail-summary { grid-template-columns: repeat(2, 1fr); }
+        }
     </style>
 </head>
 <body>
-<a class="back" th:href="@{/product/list}">상품 목록으로</a>
 
-<header class="hero">
-    <h1 th:text="${product.productName}">상품명</h1>
-    <p class="description" th:text="${product.description}">상품 설명</p>
-</header>
+<div th:replace="~{header :: header}"></div>
 
-<section>
-    <h2>기본 정보</h2>
-    <div class="summary-grid">
-        <div class="summary-item"><span class="label">상품번호</span><span class="value" th:text="${product.productNo}">900001</span></div>
-        <div class="summary-item"><span class="label">상품유형</span><span class="value" th:text="${product.productType}">외화예금</span></div>
-        <div class="summary-item"><span class="label">가입기간</span><span class="value"><span th:text="${product.minPeriodMonth}">6</span>개월 ~ <span th:text="${product.maxPeriodMonth}">12</span>개월</span></div>
-        <div class="summary-item"><span class="label">기본금리</span><span class="value" th:text="${product.baseRate} + '%'">3.20%</span></div>
-        <div class="summary-item"><span class="label">최고금리</span><span class="value" th:text="${product.maxRate} + '%'">4.50%</span></div>
-        <div class="summary-item"><span class="label">이자지급방식</span><span class="value" th:text="${product.interestPaymentType}">만기일시지급</span></div>
-        <div class="summary-item"><span class="label">최소금액</span><span class="value" th:text="${#numbers.formatInteger(product.minAmount, 0, 'COMMA')} + '원'">500,000원</span></div>
-        <div class="summary-item"><span class="label">최대금액</span><span class="value" th:text="${product.maxAmount == null ? '제한 없음' : #numbers.formatInteger(product.maxAmount, 0, 'COMMA') + '원'}">제한 없음</span></div>
-        <div class="summary-item"><span class="label">평점</span><span class="value"><span th:text="${product.avgRating}">4.8</span> (<span th:text="${product.reviewCount}">0</span>개 리뷰)</span></div>
+<section class="guide-hero">
+    <div class="guide-hero-inner">
+        <span class="guide-hero-badge">외화 상품</span>
+        <h1 class="guide-hero-title" th:text="${product.productName}">상품명</h1>
+        <p class="guide-hero-desc" th:text="${product.description}">상품 설명</p>
     </div>
 </section>
 
-<section>
-    <h2>가입 가능 통화</h2>
-    <ul class="chips">
-        <li class="chip" th:each="currency : ${currencies}"><span th:text="${currency.currencyCode}">USD</span> · <span th:text="${currency.currencyName}">미국 달러</span></li>
-    </ul>
-</section>
+<main class="guide-wrap">
 
-<section>
-    <h2>기간별 금리</h2>
-    <table class="data-table"><thead><tr><th>가입기간</th><th>금리</th></tr></thead>
-        <tbody><tr th:each="rate : ${rates}"><td th:text="${rate.periodMonth} + '개월'">12개월</td><td th:text="${rate.interestRate} + '%'">4.50%</td></tr></tbody>
-    </table>
-</section>
-
-<section>
-    <h2>우대금리</h2>
-    <table class="data-table"><thead><tr><th>우대 조건</th><th>우대 금리</th></tr></thead>
-        <tbody><tr th:each="pref : ${preferentialRates}"><td th:text="${pref.preferentialCondition}">급여이체</td><td th:text="'+' + ${pref.preferentialRate} + '%'">+0.50%</td></tr></tbody>
-    </table>
-</section>
-
-<section>
-    <h2>약관</h2>
-    <div class="terms-list">
-        <details class="term" th:each="term : ${terms}">
-            <summary>
-                <span th:class="${term.requiredYn == 'Y'} ? 'badge required' : 'badge optional'"
-                      th:text="${term.requiredYn == 'Y'} ? '필수' : '선택'">필수</span>
-                <span class="term-title" th:text="${term.termsTitle}">상품 약관</span>
-                <span class="term-type" th:text="${term.termsType}">약관 구분</span>
-            </summary>
-            <p class="term-content" th:text="${term.termsText}">약관 내용</p>
-            <a class="term-link" th:if="${not #strings.isEmpty(term.pdfPath)}"
-               th:href="@{/api/product/join/{productNo}/terms/{termsCode}/pdf(productNo=${product.productNo}, termsCode=${term.termsCode})}"
-               target="_blank" rel="noopener">PDF 원문 보기</a>
-        </details>
-        <div class="empty" th:if="${#lists.isEmpty(terms)}">등록된 약관이 없습니다.</div>
+    <div class="guide-section">
+        <h2 class="guide-section-title">기본 정보</h2>
+        <div class="detail-summary">
+            <div class="detail-summary-item"><span class="label">상품번호</span><span class="value" th:text="${product.productNo}">900001</span></div>
+            <div class="detail-summary-item"><span class="label">상품유형</span><span class="value" th:text="${product.productType}">외화예금</span></div>
+            <div class="detail-summary-item"><span class="label">가입기간</span><span class="value"><span th:text="${product.minPeriodMonth}">6</span>개월 ~ <span th:text="${product.maxPeriodMonth}">12</span>개월</span></div>
+            <div class="detail-summary-item"><span class="label">기본금리</span><span class="value" th:text="${product.baseRate} + '%'">3.20%</span></div>
+            <div class="detail-summary-item"><span class="label">최고금리</span><span class="value" th:text="${product.maxRate} + '%'">4.50%</span></div>
+            <div class="detail-summary-item"><span class="label">이자지급방식</span><span class="value" th:text="${product.interestPaymentType}">만기일시지급</span></div>
+            <div class="detail-summary-item"><span class="label">최소금액</span><span class="value" th:text="${#numbers.formatInteger(product.minAmount, 0, 'COMMA')} + '원'">500,000원</span></div>
+            <div class="detail-summary-item"><span class="label">최대금액</span><span class="value" th:text="${product.maxAmount == null ? '제한 없음' : #numbers.formatInteger(product.maxAmount, 0, 'COMMA') + '원'}">제한 없음</span></div>
+            <div class="detail-summary-item"><span class="label">평점</span><span class="value"><span th:text="${product.avgRating}">4.8</span> (<span th:text="${product.reviewCount}">0</span>개 리뷰)</span></div>
+        </div>
     </div>
-</section>
 
-<section>
-    <h2>리뷰</h2>
-    <div class="empty" th:if="${#lists.isEmpty(reviews)}">아직 리뷰가 없습니다.</div>
-    <article class="review" th:each="review : ${reviews}">
-        <p><strong th:text="${review.userName}">작성자</strong> · <span th:text="${review.rating}">4.8</span>점 · <span th:text="${#dates.format(review.createdDt, 'yyyy-MM-dd')}">2026-06-16</span></p>
-        <p th:text="${review.reviewText}">리뷰 내용</p>
-    </article>
-    <div class="review-actions">
-        <a th:if="${hasMoreReviews}" th:href="@{/product/{productNo}/reviews(productNo=${product.productNo})}">리뷰 더보기</a>
-        <a id="writeReviewLink" th:href="@{/product/{productNo}/reviews/new(productNo=${product.productNo})}" hidden>리뷰 작성</a>
+    <div class="guide-section">
+        <h2 class="guide-section-title">가입 가능 통화</h2>
+        <div>
+            <span class="guide-cat" th:each="currency : ${currencies}"><span th:text="${currency.currencyCode}">USD</span> · <span th:text="${currency.currencyName}">미국 달러</span></span>
+        </div>
     </div>
-</section>
 
-<p class="join-action"><a class="join-button" th:href="@{/product/join/{productNo}/terms(productNo=${product.productNo})}">가입하기</a></p>
+    <div class="guide-section">
+        <h2 class="guide-section-title">기간별 금리</h2>
+        <div class="guide-table-wrap">
+            <table class="guide-table">
+                <thead><tr><th>가입기간</th><th>금리</th></tr></thead>
+                <tbody><tr th:each="rate : ${rates}"><td th:text="${rate.periodMonth} + '개월'">12개월</td><td th:text="${rate.interestRate} + '%'">4.50%</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="guide-section">
+        <h2 class="guide-section-title">우대금리</h2>
+        <div class="guide-table-wrap">
+            <table class="guide-table">
+                <thead><tr><th>우대 조건</th><th>우대 금리</th></tr></thead>
+                <tbody><tr th:each="pref : ${preferentialRates}"><td th:text="${pref.preferentialCondition}">급여이체</td><td th:text="'+' + ${pref.preferentialRate} + '%'">+0.50%</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="guide-section">
+        <h2 class="guide-section-title">약관</h2>
+        <div class="terms-list">
+            <details class="term" th:each="term : ${terms}">
+                <summary>
+                    <span th:class="${term.requiredYn == 'Y'} ? 'badge required' : 'badge optional'"
+                          th:text="${term.requiredYn == 'Y'} ? '필수' : '선택'">필수</span>
+                    <span class="term-title" th:text="${term.termsTitle}">상품 약관</span>
+                    <span class="term-type" th:text="${term.termsType}">약관 구분</span>
+                </summary>
+                <p class="term-content" th:text="${term.termsText}">약관 내용</p>
+                <a class="term-link" th:if="${not #strings.isEmpty(term.pdfPath)}"
+                   th:href="@{/api/product/join/{productNo}/terms/{termsCode}/pdf(productNo=${product.productNo}, termsCode=${term.termsCode})}"
+                   target="_blank" rel="noopener">PDF 원문 보기</a>
+            </details>
+            <p class="guide-note" th:if="${#lists.isEmpty(terms)}">등록된 약관이 없습니다.</p>
+        </div>
+    </div>
+
+    <div class="guide-section">
+        <h2 class="guide-section-title">리뷰</h2>
+        <p class="guide-note" th:if="${#lists.isEmpty(reviews)}">아직 리뷰가 없습니다.</p>
+        <article class="review" th:each="review : ${reviews}">
+            <p><strong th:text="${review.userName}">작성자</strong> · <span th:text="${review.rating}">4.8</span>점 · <span th:text="${#dates.format(review.createdDt, 'yyyy-MM-dd')}">2026-06-16</span></p>
+            <p th:text="${review.reviewText}">리뷰 내용</p>
+        </article>
+        <div class="review-actions">
+            <a th:if="${hasMoreReviews}" th:href="@{/product/{productNo}/reviews(productNo=${product.productNo})}">리뷰 더보기</a>
+            <a id="writeReviewLink" th:href="@{/product/{productNo}/reviews/new(productNo=${product.productNo})}" hidden>리뷰 작성</a>
+        </div>
+    </div>
+
+    <div class="guide-section">
+        <div class="guide-actions">
+            <a class="btn btn-light" th:href="@{/product/list}">상품 목록으로</a>
+            <button type="button" id="joinBtn" class="btn btn-primary">가입하기</button>
+        </div>
+    </div>
+
+</main>
+
+<div th:replace="~{footer :: footer}"></div>
+
 <script th:inline="javascript">
     const productNo = /*[[${product.productNo}]]*/ 0;
 
@@ -130,7 +207,57 @@
         }
     }
 
+    // 가입하기: 비회원이면 로그인 후 이 상품 가입 화면으로 복귀(returnUrl)
+    async function getAccessToken() {
+        if (window.accessToken) return window.accessToken;
+        const r = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'same-origin' });
+        const b = await r.json();
+        if (!b.success || !b.data || !b.data.accessToken) return null;
+        window.accessToken = b.data.accessToken;
+        return window.accessToken;
+    }
+
+    const joinBtn = document.getElementById('joinBtn');
+    if (joinBtn) {
+        joinBtn.addEventListener('click', async () => {
+            const target = '/product/join/' + productNo + '/terms';
+            const token = await getAccessToken();
+            if (!token) {
+                alert('로그인이 필요합니다.');
+                location.href = '/login?returnUrl=' + encodeURIComponent(target);
+                return;
+            }
+            const response = await fetch(`/api/product/join/${productNo}/join-eligibility`, {
+                headers: { 'Authorization': 'Bearer ' + token }, credentials: 'same-origin'
+            });
+            const body = await response.json();
+            if (!body.success) { alert(body.message || '가입 가능 여부를 확인하지 못했습니다.'); return; }
+            if (body.data.canJoin) { location.href = target; return; }
+            alert(body.data.reason);
+        });
+    }
+
     showReviewWriteLink();
+
+    const joinButton = document.querySelector('a[href*="/product/join/"]');
+    joinButton?.addEventListener('click', async event => {
+        event.preventDefault();
+
+        const refreshResponse = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'same-origin' });
+        const refreshBody = await refreshResponse.json();
+        if (!refreshBody.success || !refreshBody.data?.accessToken) { location.href = '/login'; return; }
+
+        const response = await fetch(`/api/product/join/${productNo}/join-eligibility`, {
+            headers: { 'Authorization': 'Bearer ' + refreshBody.data.accessToken },
+            credentials: 'same-origin'
+        });
+        const body = await response.json();
+        if (!body.success) { alert(body.message || '가입 가능 여부를 확인하지 못했습니다.'); return; }
+        if (body.data.canJoin) { location.href = `/product/join/${productNo}/terms`; return; }
+
+        alert(body.data.reason + '\n\n상품 목록에서 외화 입출금 예금 상품을 먼저 선택해주세요.');
+        location.href = '/product/list';
+    });
 </script>
 </body>
 </html>

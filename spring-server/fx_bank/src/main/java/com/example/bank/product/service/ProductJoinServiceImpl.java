@@ -16,12 +16,17 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.bank.product.constant.JoinProgressStep;
 import com.example.bank.product.dao.IProductJoinDao;
+import com.example.bank.product.dao.IProductJoinProgressDao;
 import com.example.bank.product.dto.ElectronicSignatureDto;
+import com.example.bank.product.dto.CouponDto;
+import com.example.bank.product.dto.CouponSelectionRequestDto;
 import com.example.bank.product.dto.ForeignAccountBalanceInsertDto;
 import com.example.bank.product.dto.ForeignAccountInsertDto;
 import com.example.bank.product.dto.IdVerificationDto;
@@ -29,6 +34,8 @@ import com.example.bank.product.dto.IdentityVerificationRequirementDto;
 import com.example.bank.product.dto.ProductDetailDto;
 import com.example.bank.product.dto.ProductJoinCompleteDto;
 import com.example.bank.product.dto.ProductJoinEligibilityDto;
+import com.example.bank.product.dto.ProductJoinProgressDto;
+import com.example.bank.product.dto.ProductJoinResumeDto;
 import com.example.bank.product.dto.ProductMySubscriptionDto;
 import com.example.bank.product.dto.ProductJoinFormRequestDto;
 import com.example.bank.product.dto.ProductJoinSubmitRequestDto;
@@ -37,6 +44,7 @@ import com.example.bank.product.dto.ProductSubscriptionInsertDto;
 import com.example.bank.product.dto.ProductTermDto;
 import com.example.bank.product.dto.WithdrawableForeignAccountDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.servlet.http.HttpSession;
@@ -47,6 +55,7 @@ import lombok.RequiredArgsConstructor;
 public class ProductJoinServiceImpl implements ProductJoinService {
 
     private final IProductJoinDao productJoinDao;
+    private final IProductJoinProgressDao progressDao;
     private final ObjectMapper objectMapper;
     private final BCryptPasswordEncoder passwordEncoder;
 
@@ -57,6 +66,7 @@ public class ProductJoinServiceImpl implements ProductJoinService {
     private static final String SESSION_FORM = "PRODUCT_JOIN_FORM";
     private static final String SESSION_VERIFICATION_NO = "PRODUCT_JOIN_VERIFICATION_NO";
     private static final String SESSION_PHONE_VERIFIED_PRODUCT_NO = "PRODUCT_JOIN_PHONE_VERIFIED_PRODUCT_NO";
+    private static final String SESSION_COUPON = "PRODUCT_JOIN_COUPON";
     private static final String BANK_NAME = "BUSAN BANK";
     private static final BigDecimal DEFAULT_LIMIT_ONCE = new BigDecimal("1000000");
     private static final BigDecimal DEFAULT_LIMIT_DAILY = new BigDecimal("5000000");
@@ -139,7 +149,7 @@ public class ProductJoinServiceImpl implements ProductJoinService {
     // =====================================================
 
     @Override
-    public void saveTermsToSession(ProductJoinTermsRequestDto dto, HttpSession session) {
+    public void saveTermsToSession(ProductJoinTermsRequestDto dto, Long userNo, HttpSession session) {
         if (dto == null || dto.getProductNo() == null) {
             throw new IllegalArgumentException("약관 동의 정보가 없습니다.");
         }
@@ -167,6 +177,9 @@ public class ProductJoinServiceImpl implements ProductJoinService {
         sessionDto.setOptionalTermsCodes(optionalTermsCodes);
 
         session.setAttribute(SESSION_TERMS, sessionDto);
+
+        // 임시저장 체크포인트 (TERMS)
+        saveProgressSnapshot(userNo, productNo, JoinProgressStep.TERMS, session);
     }
 
     // =====================================================
@@ -216,6 +229,9 @@ public class ProductJoinServiceImpl implements ProductJoinService {
 
         session.setAttribute(SESSION_VERIFICATION_NO, verificationNo);
 
+        // 임시저장 체크포인트 (VERIFY)
+        saveProgressSnapshot(userNo, productNo, JoinProgressStep.VERIFY, session);
+
         return verificationNo;
     }
 
@@ -261,6 +277,9 @@ public class ProductJoinServiceImpl implements ProductJoinService {
         productJoinDao.insertIdVerification(verificationDto);
 
         session.setAttribute(SESSION_VERIFICATION_NO, verificationNo);
+
+        // 임시저장 체크포인트 (VERIFY)
+        saveProgressSnapshot(userNo, productNo, JoinProgressStep.VERIFY, session);
         return verificationNo;
     }
 
@@ -332,6 +351,9 @@ public class ProductJoinServiceImpl implements ProductJoinService {
         }
 
         session.setAttribute(SESSION_FORM, dto);
+
+        // 임시저장 체크포인트 (FORM)
+        saveProgressSnapshot(userNo, productNo, JoinProgressStep.FORM, session);
     }
 
     @Override
@@ -340,6 +362,33 @@ public class ProductJoinServiceImpl implements ProductJoinService {
             throw new IllegalArgumentException("출금 계좌 조회에 필요한 정보가 없습니다.");
         }
         return productJoinDao.selectWithdrawableForeignAccounts(userNo, currencyCode);
+    }
+
+    @Override
+    public List<CouponDto> getAvailableCoupons(Long userNo, Long productNo) {
+        if (userNo == null || productNo == null) {
+            throw new IllegalArgumentException("쿠폰 조회에 필요한 정보가 없습니다.");
+        }
+        return productJoinDao.selectAvailableCoupons(userNo, productNo);
+    }
+
+    @Override
+    public void saveCouponToSession(CouponSelectionRequestDto dto, Long userNo, HttpSession session) {
+        if (dto == null || dto.getProductNo() == null) {
+            throw new IllegalArgumentException("쿠폰 선택 정보가 없습니다.");
+        }
+        if (dto.getCouponNo() == null) {
+            session.removeAttribute(SESSION_COUPON);
+        } else {
+            CouponDto coupon = productJoinDao.selectAvailableCouponByNo(dto.getCouponNo(), userNo, dto.getProductNo());
+            if (coupon == null) {
+                throw new IllegalArgumentException("사용할 수 있는 우대금리 쿠폰이 아닙니다.");
+            }
+            session.setAttribute(SESSION_COUPON, coupon);
+        }
+
+        // 임시저장 체크포인트 (COUPON) — 쿠폰 자체는 progress 에 저장하지 않음(이어서 시 재선택)
+        saveProgressSnapshot(userNo, dto.getProductNo(), JoinProgressStep.COUPON, session);
     }
 
     // =====================================================
@@ -371,6 +420,9 @@ public class ProductJoinServiceImpl implements ProductJoinService {
         ProductJoinFormRequestDto formDto =
                 (ProductJoinFormRequestDto) session.getAttribute(SESSION_FORM);
 
+        CouponDto selectedCoupon =
+                (CouponDto) session.getAttribute(SESSION_COUPON);
+
         Long verificationNo =
                 (Long) session.getAttribute(SESSION_VERIFICATION_NO);
 
@@ -395,6 +447,30 @@ public class ProductJoinServiceImpl implements ProductJoinService {
         ProductDetailDto product = productJoinDao.selectProductForJoin(productNo);
         if (product == null) {
             throw new IllegalArgumentException("가입 가능한 상품이 아닙니다.");
+        }
+
+        BigDecimal appliedRate = formDto.getAppliedRate();
+        if (selectedCoupon != null) {
+            // 화면에서 골랐던 쿠폰도 최종 저장 직전에 다시 확인해 이미 사용된 쿠폰의 중복 적용을 막는다.
+            CouponDto availableCoupon = productJoinDao.selectAvailableCouponByNo(
+                    selectedCoupon.getCouponNo(), userNo, productNo
+            );
+            if (availableCoupon == null) {
+                throw new IllegalArgumentException("선택한 우대금리 쿠폰을 사용할 수 없습니다.");
+            }
+
+            BigDecimal preferentialRate = availableCoupon.getPreferentialRate() == null
+                    ? BigDecimal.ZERO : availableCoupon.getPreferentialRate();
+            appliedRate = appliedRate.add(preferentialRate);
+
+            // 상품이 정한 최고 금리를 넘지 않도록 제한한다.
+            if (product.getMaxRate() != null && appliedRate.compareTo(product.getMaxRate()) > 0) {
+                appliedRate = product.getMaxRate();
+            }
+
+            if (productJoinDao.markCouponUsed(availableCoupon.getCouponNo(), userNo) == 0) {
+                throw new IllegalArgumentException("우대금리 쿠폰이 이미 사용되었습니다.");
+            }
         }
 
         ProductJoinEligibilityDto joinEligibility = getJoinEligibility(productNo, userNo);
@@ -470,7 +546,7 @@ public class ProductJoinServiceImpl implements ProductJoinService {
         subscriptionDto.setProductNo(productNo);
         subscriptionDto.setUserNo(userNo);
         subscriptionDto.setRateNo(formDto.getRateNo());
-        subscriptionDto.setType("FOREIGN_DEPOSIT");
+        subscriptionDto.setType(resolveSubscriptionType(product));
         // 상품 가입 정보에는 방금 만든 실제 외화 계좌번호를 연결한다.
         // 현재 DDL에 FK는 없지만, foreign_accounts.account_no와 같은 값을 넣어 업무적으로 연결한다.
         subscriptionDto.setAcntNo(accountNo);
@@ -480,7 +556,7 @@ public class ProductJoinServiceImpl implements ProductJoinService {
         subscriptionDto.setVerificationNo(verificationNo);
         subscriptionDto.setSubscriptionStatus("가입완료");
         subscriptionDto.setMaturityDt(calculateMaturityDate(formDto.getPeriodMonth()));
-        subscriptionDto.setAppliedRate(formDto.getAppliedRate());
+        subscriptionDto.setAppliedRate(appliedRate);
         subscriptionDto.setRateChangedDt(new Date());
 
         productJoinDao.insertProductSubscription(subscriptionDto);
@@ -513,10 +589,17 @@ public class ProductJoinServiceImpl implements ProductJoinService {
         signatureDto.setUserNo(userNo);
         signatureDto.setVerificationNo(verificationNo);
         signatureDto.setSignaturePath(signaturePath);
-        signatureDto.setSignedContent(makeSignedContent(subscriptionNo, productNo, formDto, termsDto));
+        signatureDto.setSignedContent(makeSignedContent(subscriptionNo, productNo, formDto, termsDto, appliedRate));
         signatureDto.setSignedDt(new Date());
 
         productJoinDao.insertElectronicSignature(signatureDto);
+
+        // 임시저장 진행행을 완료로 마킹(감사용 보존). 미러 작업 실패가 가입 확정을 막지 않도록 best-effort.
+        try {
+            progressDao.markCompleted(userNo, productNo);
+        } catch (Exception e) {
+            System.err.println("[progress] 완료 마킹 실패(무시): " + e.getMessage());
+        }
 
         clearJoinSession(session);
 
@@ -588,6 +671,24 @@ public class ProductJoinServiceImpl implements ProductJoinService {
                 && (productType.contains("통장") || productType.contains("입출금") || productType.contains("예금"));
     }
 
+    // 상품명에 의존하지 않고 products.product_type 값으로 가입 유형을 결정한다.
+    private String resolveSubscriptionType(ProductDetailDto product) {
+        String productType = product == null ? null : product.getProductType();
+        if (productType == null || productType.isBlank()) {
+            throw new IllegalArgumentException("상품 유형이 없어 가입 유형을 결정할 수 없습니다.");
+        }
+        if (productType.contains("적금")) {
+            return "FOREIGN_SAVINGS";
+        }
+        if (productType.contains("정기")) {
+            return "FOREIGN_TIME_DEPOSIT";
+        }
+        if (isDemandDepositProduct(product)) {
+            return "FOREIGN_DEMAND_DEPOSIT";
+        }
+        throw new IllegalArgumentException("지원하지 않는 외화 상품 유형입니다: " + productType);
+    }
+
     private String saveSignatureImage(Long subscriptionNo, String signatureImageData) {
         try {
             String base64Data = signatureImageData;
@@ -619,7 +720,8 @@ public class ProductJoinServiceImpl implements ProductJoinService {
             Long subscriptionNo,
             Long productNo,
             ProductJoinFormRequestDto formDto,
-            ProductJoinTermsRequestDto termsDto
+            ProductJoinTermsRequestDto termsDto,
+            BigDecimal appliedRate
     ) {
         Map<String, Object> signedContent = new LinkedHashMap<>();
 
@@ -629,7 +731,7 @@ public class ProductJoinServiceImpl implements ProductJoinService {
         signedContent.put("currencyCode", formDto.getCurrencyCode());
         signedContent.put("amount", formDto.getAmount());
         signedContent.put("periodMonth", formDto.getPeriodMonth());
-        signedContent.put("appliedRate", formDto.getAppliedRate());
+        signedContent.put("appliedRate", appliedRate);
         signedContent.put("requiredTermsCodes", safeList(termsDto.getRequiredTermsCodes()));
         signedContent.put("optionalTermsCodes", safeList(termsDto.getOptionalTermsCodes()));
         signedContent.put("signedAt", LocalDateTime.now().toString());
@@ -645,5 +747,203 @@ public class ProductJoinServiceImpl implements ProductJoinService {
         session.removeAttribute(SESSION_TERMS);
         session.removeAttribute(SESSION_FORM);
         session.removeAttribute(SESSION_VERIFICATION_NO);
+        session.removeAttribute(SESSION_COUPON);
+        // 완료 후 휴대폰 인증 플래그가 다음 가입 재개에 끼지 않도록 함께 정리
+        session.removeAttribute(SESSION_PHONE_VERIFIED_PRODUCT_NO);
+    }
+
+    // =====================================================
+    // 임시저장 / 이어서 가입
+    // =====================================================
+
+    /**
+     * 현재 세션 누적분을 스냅샷으로 만들어 product_join_progress 에 저장 (best-effort: 실패해도 라이브 흐름 유지).
+     * 정상은 MERGE upsert. (user_no, product_no) 부분 유니크 인덱스가 적용된 환경에서
+     * 동시 INSERT 충돌(ORA-00001 → DuplicateKeyException)이 나면 UPDATE 로 폴백한다.
+     * 인덱스가 없는 환경에서는 충돌이 발생하지 않으므로 동작 차이가 없다(기존 재개-시-중복정리 방어 유지).
+     */
+    private void saveProgressSnapshot(Long userNo, Long productNo, JoinProgressStep step, HttpSession session) {
+        if (userNo == null || productNo == null) {
+            return;
+        }
+
+        ProductJoinProgressDto p;
+        try {
+            p = buildProgressSnapshot(userNo, productNo, step, session);
+        } catch (Exception e) {
+            System.err.println("[progress] 스냅샷 생성 실패(무시) step=" + step + " : " + e.getMessage());
+            return;
+        }
+
+        try {
+            progressDao.upsertProgress(p); // 정상 경로: MERGE
+        } catch (DuplicateKeyException dup) {
+            // 부분 유니크 인덱스 적용 환경에서 동시 INSERT 충돌 → UPDATE 폴백
+            try {
+                progressDao.updateInProgress(p);
+            } catch (Exception e2) {
+                System.err.println("[progress] 동시성 폴백 UPDATE 실패(무시) step=" + step + " : " + e2.getMessage());
+            }
+        } catch (Exception e) {
+            // 그 밖의 미러 저장 실패도 세션 기반 가입 흐름을 막지 않도록 무시(로그만)
+            System.err.println("[progress] 체크포인트 저장 실패(무시) step=" + step + " : " + e.getMessage());
+        }
+    }
+
+    /** 세션 누적분 → product_join_progress 스냅샷 DTO (계좌비번/출금계좌·쿠폰은 미포함). */
+    private ProductJoinProgressDto buildProgressSnapshot(Long userNo, Long productNo, JoinProgressStep step, HttpSession session) {
+        ProductJoinProgressDto p = new ProductJoinProgressDto();
+        p.setUserNo(userNo);
+        p.setProductNo(productNo);
+        p.setCurrentStep(step.name());
+        p.setProgressStatus(JoinProgressStep.STATUS_IN_PROGRESS);
+
+        ProductJoinTermsRequestDto terms = (ProductJoinTermsRequestDto) session.getAttribute(SESSION_TERMS);
+        if (terms != null) {
+            p.setRequiredTermsCodes(toJsonArray(terms.getRequiredTermsCodes()));
+            p.setOptionalTermsCodes(toJsonArray(terms.getOptionalTermsCodes()));
+        }
+
+        p.setVerificationNo((Long) session.getAttribute(SESSION_VERIFICATION_NO));
+
+        ProductJoinFormRequestDto form = (ProductJoinFormRequestDto) session.getAttribute(SESSION_FORM);
+        if (form != null) {
+            p.setRateNo(form.getRateNo());
+            p.setCurrencyCode(form.getCurrencyCode());
+            p.setAmount(form.getAmount());
+            p.setPeriodMonth(form.getPeriodMonth());
+            // 참고용 저장(쿠폰 우대분 섞였을 수 있음). 재개 표시 금리로는 쓰지 않는다.
+            p.setAppliedRate(form.getAppliedRate());
+        }
+        return p;
+    }
+
+    @Override
+    public ProductJoinResumeDto getResumeInfo(Long userNo, Long productNo) {
+        if (userNo == null || productNo == null) {
+            return ProductJoinResumeDto.notAvailable();
+        }
+
+        ProductJoinProgressDto progress = progressDao.selectLatestInProgress(userNo, productNo);
+        if (progress == null) {
+            return ProductJoinResumeDto.notAvailable();
+        }
+
+        // C 방어: 중복 IN_PROGRESS 정리(최신만 유지)
+        try {
+            progressDao.expireOtherInProgress(userNo, productNo, progress.getJoinProgressNo());
+        } catch (Exception ignore) {
+            // 정리 실패는 무시
+        }
+
+        // B: 상품 판매 유효성 (selectProductForJoin 은 active='Y' 만 반환)
+        ProductDetailDto product = productJoinDao.selectProductForJoin(productNo);
+        if (product == null) {
+            progressDao.expireAllInProgress(userNo, productNo);
+            return ProductJoinResumeDto.notAvailable();
+        }
+
+        // B: 금리 유효성 (폼까지 진행해 rate_no 가 있는 경우만)
+        if (progress.getRateNo() != null && progress.getPeriodMonth() != null
+                && productJoinDao.countProductRate(productNo, progress.getRateNo(), progress.getPeriodMonth()) == 0) {
+            progressDao.expireAllInProgress(userNo, productNo);
+            return ProductJoinResumeDto.notAvailable();
+        }
+
+        ProductJoinResumeDto dto = new ProductJoinResumeDto();
+        dto.setAvailable(true);
+        dto.setProductNo(productNo);
+        dto.setProductName(product.getProductName());
+        dto.setCurrentStep(progress.getCurrentStep());
+        dto.setRateNo(progress.getRateNo());
+        dto.setCurrencyCode(progress.getCurrencyCode());
+        dto.setAmount(progress.getAmount());
+        dto.setPeriodMonth(progress.getPeriodMonth());
+        dto.setUpdatedDt(progress.getUpdatedDt() != null ? progress.getUpdatedDt() : progress.getCreatedDt());
+        dto.setExpiredDt(progress.getExpiredDt());
+
+        // A: 표시 금리는 rate_no 기본금리(저장된 applied_rate 가 아님)
+        if (progress.getRateNo() != null) {
+            dto.setBaseRate(progressDao.selectRateInterest(productNo, progress.getRateNo()));
+        }
+
+        // D: 인증 유효성을 폼/쿠폰보다 먼저 판정해 라우팅
+        IdentityVerificationRequirementDto requirement = getIdentityVerificationRequirement(productNo, userNo);
+        boolean identityRequired = requirement.isRequired();
+        boolean identityVerified = progress.getVerificationNo() != null
+                && productJoinDao.countValidVerification(progress.getVerificationNo(), userNo, productNo) > 0;
+        dto.setIdentityRequired(identityRequired);
+        dto.setIdentityVerified(identityVerified);
+
+        if (identityRequired && !identityVerified) {
+            dto.setRouteStep("VERIFY");
+            dto.setRouteUrl("/product/join/" + productNo + "/form"); // 본인인증은 폼 화면에서 수행
+        } else {
+            dto.setRouteStep("COUPON");
+            dto.setRouteUrl("/product/join/" + productNo + "/coupon");
+        }
+
+        return dto;
+    }
+
+    @Override
+    public ProductJoinResumeDto resumeIntoSession(Long userNo, Long productNo, HttpSession session) {
+        ProductJoinResumeDto info = getResumeInfo(userNo, productNo);
+        if (!info.isAvailable()) {
+            throw new IllegalArgumentException("이어서 진행할 가입 정보가 없습니다. 처음부터 진행해주세요.");
+        }
+
+        ProductJoinProgressDto progress = progressDao.selectLatestInProgress(userNo, productNo);
+        if (progress == null) {
+            throw new IllegalArgumentException("이어서 진행할 가입 정보가 없습니다. 처음부터 진행해주세요.");
+        }
+
+        // 약관(비민감) 복원 — 세션 활성 작업본으로 주입
+        ProductJoinTermsRequestDto terms = new ProductJoinTermsRequestDto();
+        terms.setProductNo(productNo);
+        terms.setRequiredTermsCodes(fromJsonArray(progress.getRequiredTermsCodes()));
+        terms.setOptionalTermsCodes(fromJsonArray(progress.getOptionalTermsCodes()));
+        session.setAttribute(SESSION_TERMS, terms);
+
+        // OCR 인증은 "유효할 때만" 복원 (만료/무효면 재인증 유도)
+        if (info.isIdentityVerified() && progress.getVerificationNo() != null) {
+            session.setAttribute(SESSION_VERIFICATION_NO, progress.getVerificationNo());
+        } else {
+            session.removeAttribute(SESSION_VERIFICATION_NO);
+        }
+
+        // 민감/시간민감 항목은 복원하지 않음: 폼(계좌비번 포함)·쿠폰·휴대폰인증은 재입력/재선택
+        session.removeAttribute(SESSION_FORM);
+        session.removeAttribute(SESSION_COUPON);
+        session.removeAttribute(SESSION_PHONE_VERIFIED_PRODUCT_NO);
+
+        return info; // routeStep/routeUrl + 프리필(rateNo/currency/amount/period/baseRate)
+    }
+
+    @Override
+    public void discardProgress(Long userNo, Long productNo) {
+        if (userNo == null || productNo == null) {
+            return;
+        }
+        progressDao.expireAllInProgress(userNo, productNo);
+    }
+
+    private String toJsonArray(List<String> list) {
+        try {
+            return objectMapper.writeValueAsString(safeList(list));
+        } catch (JsonProcessingException e) {
+            return "[]";
+        }
+    }
+
+    private List<String> fromJsonArray(String json) {
+        if (json == null || json.isBlank()) {
+            return new ArrayList<>();
+        }
+        try {
+            return objectMapper.readValue(json, new TypeReference<List<String>>() {});
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
     }
 }

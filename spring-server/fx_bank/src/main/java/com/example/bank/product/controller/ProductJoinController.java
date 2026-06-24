@@ -5,9 +5,12 @@ import com.example.bank.personal.dto.UserEntity;
 import com.example.bank.personal.service.OcrService;
 import com.example.bank.personal.service.SolapiSmsService;
 import com.example.bank.product.dto.ProductJoinCompleteDto;
+import com.example.bank.product.dto.CouponDto;
+import com.example.bank.product.dto.CouponSelectionRequestDto;
 import com.example.bank.product.dto.ProductJoinEligibilityDto;
 import com.example.bank.product.dto.IdentityVerificationRequirementDto;
 import com.example.bank.product.dto.ProductJoinFormRequestDto;
+import com.example.bank.product.dto.ProductJoinResumeDto;
 import com.example.bank.product.dto.ProductJoinSubmitRequestDto;
 import com.example.bank.product.dto.ProductJoinTermsRequestDto;
 import com.example.bank.product.dto.PhoneVerificationRequestDto;
@@ -65,10 +68,11 @@ public class ProductJoinController {
     @PostMapping("/terms")
     public ApiResponse<Void> saveTerms(
             @RequestBody ProductJoinTermsRequestDto dto,
+            Authentication authentication,
             HttpSession session
     ) {
         try {
-            productJoinService.saveTermsToSession(dto, session);
+            productJoinService.saveTermsToSession(dto, getUserNoFromRedis(authentication), session);
             return ApiResponse.success("약관 동의 저장 성공", null);
         } catch (RuntimeException e) {
             return ApiResponse.error(e.getMessage());
@@ -99,6 +103,34 @@ public class ProductJoinController {
         try {
             productJoinService.saveJoinFormToSession(dto, getUserNoFromRedis(authentication), session);
             return ApiResponse.success("가입 정보 저장 성공", null);
+        } catch (RuntimeException e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @GetMapping("/{productNo}/coupons")
+    public ApiResponse<List<CouponDto>> getAvailableCoupons(
+            @PathVariable("productNo") Long productNo,
+            Authentication authentication
+    ) {
+        try {
+            Long userNo = getUserNoFromRedis(authentication);
+            return ApiResponse.success("사용 가능한 우대금리 쿠폰 조회 성공",
+                    productJoinService.getAvailableCoupons(userNo, productNo));
+        } catch (RuntimeException e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @PostMapping("/coupon")
+    public ApiResponse<Void> saveCoupon(
+            @RequestBody CouponSelectionRequestDto dto,
+            Authentication authentication,
+            HttpSession session
+    ) {
+        try {
+            productJoinService.saveCouponToSession(dto, getUserNoFromRedis(authentication), session);
+            return ApiResponse.success("우대금리 쿠폰 선택이 저장되었습니다.", null);
         } catch (RuntimeException e) {
             return ApiResponse.error(e.getMessage());
         }
@@ -263,6 +295,53 @@ public class ProductJoinController {
         try {
             Long userNo = getUserNoFromRedis(authentication);
             return ApiResponse.success("내 가입 상품 조회 성공", productJoinService.getMySubscriptions(userNo));
+        } catch (RuntimeException e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    // ===== 임시저장 / 이어서 가입 =====
+
+    /** 약관 페이지 진입 시 호출: 재개 가능 여부 + 모달/프리필 요약 */
+    @GetMapping("/{productNo}/resume")
+    public ApiResponse<ProductJoinResumeDto> getResume(
+            @PathVariable("productNo") Long productNo,
+            Authentication authentication
+    ) {
+        try {
+            Long userNo = getUserNoFromRedis(authentication);
+            return ApiResponse.success("이어서 가입 정보 조회 성공", productJoinService.getResumeInfo(userNo, productNo));
+        } catch (RuntimeException e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    /** "이어서 하기": 세션 복원 후 라우팅/프리필 반환 */
+    @PostMapping("/{productNo}/resume")
+    public ApiResponse<ProductJoinResumeDto> resume(
+            @PathVariable("productNo") Long productNo,
+            Authentication authentication,
+            HttpSession session
+    ) {
+        try {
+            Long userNo = getUserNoFromRedis(authentication);
+            return ApiResponse.success("이어서 가입을 시작합니다.",
+                    productJoinService.resumeIntoSession(userNo, productNo, session));
+        } catch (RuntimeException e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    /** "새로 시작": 기존 진행행 만료 처리 */
+    @PostMapping("/{productNo}/resume/discard")
+    public ApiResponse<Void> discardResume(
+            @PathVariable("productNo") Long productNo,
+            Authentication authentication
+    ) {
+        try {
+            Long userNo = getUserNoFromRedis(authentication);
+            productJoinService.discardProgress(userNo, productNo);
+            return ApiResponse.success("새로 시작합니다.", null);
         } catch (RuntimeException e) {
             return ApiResponse.error(e.getMessage());
         }

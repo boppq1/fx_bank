@@ -2,72 +2,153 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>외화 상품 목록</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>외화 상품 목록 | BNK 부산은행</title>
+    <link rel="stylesheet" th:href="@{/css/fx-home.css}">
+    <link rel="stylesheet" th:href="@{/css/fx-guide.css}">
     <style>
-        body { max-width: 1100px; margin: 40px auto; color: #202124; font-family: 'Malgun Gothic', Arial, sans-serif; }
-        .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
-        .button, .join-button { display: inline-block; padding: 10px 14px; border: 1px solid #333; background: #111; color: #fff; text-decoration: none; cursor: pointer; }
-        .join-button { padding: 6px 10px; font: inherit; font-size: 13px; }
-        table { width: 100%; margin-top: 18px; border-collapse: collapse; }
-        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
-        th { background: #f7f8fa; }
+        /* 가입하기 버튼: JS 가 .join-button 셀렉터로 잡고 dataset 을 읽으므로 클래스명 유지 → 토큰으로 재스타일 */
+        .join-button {
+            display: inline-block;
+            padding: 7px 14px;
+            border: 0;
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--violet), #8B7BFF);
+            color: #fff;
+            font: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: filter var(--t, .15s) ease, transform var(--t, .15s) ease;
+        }
+        .join-button:hover { filter: brightness(1.05); transform: translateY(-1px); }
+        .join-button:disabled { opacity: .55; cursor: default; transform: none; }
+
+        /* 검색 / 카테고리 툴바 */
+        .list-toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin: 4px 0 18px; }
+        .cat-tabs { display: flex; gap: 8px; }
+        .cat-tabs .guide-chip { text-decoration: none; }
+        .search-form { display: flex; gap: 8px; flex: 1 1 320px; max-width: 480px; }
+        .search-form .guide-search-input { flex: 1; }
+        /* 페이저 비활성 링크 */
+        .guide-page.is-disabled { opacity: .4; pointer-events: none; }
     </style>
 </head>
 <body>
-<div class="topbar">
-    <div>
-        <h1>외화 상품 목록</h1>
-        <p>총 <strong th:text="${#lists.size(products)}">0</strong>개 상품</p>
-    </div>
-    <a class="button" href="/product/my-subscriptions">내 가입 상품</a>
-</div>
 
-<table>
-    <thead>
-    <tr>
-        <th>상품번호</th><th>상품명</th><th>유형</th><th>통화</th><th>기본금리</th><th>최고금리</th><th>가입기간</th><th>최소금액</th><th>평점</th><th>상세</th><th>가입</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="product : ${products}">
-        <td th:text="${product.productNo}">900001</td>
-        <td th:text="${product.productName}">프리미엄 달러 외화예금</td>
-        <td th:text="${product.productType}">외화예금</td>
-        <td th:text="${product.currencyCodes}">USD</td>
-        <td th:text="${product.baseRate} + '%'">3.20%</td>
-        <td th:text="${product.maxRate} + '%'">4.50%</td>
-        <td><span th:text="${product.minPeriodMonth}">6</span>개월 ~ <span th:text="${product.maxPeriodMonth}">12</span>개월</td>
-        <td th:text="${#numbers.formatInteger(product.minAmount, 0, 'COMMA')} + '원'">500,000원</td>
-        <td><span th:text="${product.avgRating}">4.8</span> (<span th:text="${product.reviewCount}">0</span>)</td>
-        <td><a th:href="@{/product/detail/{productNo}(productNo=${product.productNo})}">상세보기</a></td>
-        <td>
-            <button type="button" class="join-button"
-                    th:attr="data-product-no=${product.productNo},data-product-type=${product.productType}">가입하기</button>
-        </td>
-    </tr>
-    </tbody>
-</table>
+<div th:replace="~{header :: header}"></div>
+
+<section class="guide-hero">
+    <div class="guide-hero-inner">
+        <span class="guide-hero-badge">외환 상품</span>
+        <h1 class="guide-hero-title">외화 상품 목록</h1>
+        <p class="guide-hero-desc">BNK 부산은행이 제공하는 외화 예금·적금 상품을 한눈에 비교하고 가입하세요. 현재 총 <strong th:text="${totalCount}">0</strong>개 상품을 운영 중입니다.</p>
+    </div>
+</section>
+
+<main class="guide-wrap">
+    <div class="guide-section">
+        <div class="guide-rate-head">
+            <h2 class="guide-section-title">상품 목록</h2>
+            <a class="btn btn-light" href="/product/my-subscriptions">내 가입 상품</a>
+        </div>
+
+        <div class="list-toolbar">
+            <div class="cat-tabs">
+                <a class="guide-chip" th:classappend="${type == null or type == ''} ? ' is-active'"
+                   th:href="@{/product/list(keyword=${keyword})}">전체</a>
+                <a class="guide-chip" th:classappend="${type == 'DEPOSIT'} ? ' is-active'"
+                   th:href="@{/product/list(type='DEPOSIT', keyword=${keyword})}">예금</a>
+                <a class="guide-chip" th:classappend="${type == 'SAVINGS'} ? ' is-active'"
+                   th:href="@{/product/list(type='SAVINGS', keyword=${keyword})}">적금</a>
+            </div>
+            <form class="search-form" method="get" action="/product/list">
+                <input type="hidden" name="type" th:value="${type}">
+                <input type="text" name="keyword" class="guide-search-input" th:value="${keyword}"
+                       placeholder="상품명·유형·가입대상 검색 (예: 예금, 외국인)">
+                <button type="submit" class="btn btn-primary">검색</button>
+            </form>
+        </div>
+
+        <div class="guide-table-wrap">
+            <table class="guide-table">
+                <thead>
+                <tr>
+                    <th>상품번호</th><th>상품명</th><th>유형</th><th>통화</th><th>기본금리</th><th>최고금리</th><th>가입기간</th><th>최소금액</th><th>평점</th><th>상세</th><th>가입</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="product : ${products}">
+                    <td th:text="${product.productNo}">900001</td>
+                    <td th:text="${product.productName}">프리미엄 달러 외화예금</td>
+                    <td><span class="guide-cat" th:text="${product.productType}">외화예금</span></td>
+                    <td th:text="${product.currencyCodes}">USD</td>
+                    <td th:text="${product.baseRate} + '%'">3.20%</td>
+                    <td th:text="${product.maxRate} + '%'">4.50%</td>
+                    <td><span th:text="${product.minPeriodMonth}">6</span>개월 ~ <span th:text="${product.maxPeriodMonth}">12</span>개월</td>
+                    <td th:text="${#numbers.formatInteger(product.minAmount, 0, 'COMMA')} + '원'">500,000원</td>
+                    <td><span th:text="${product.avgRating}">4.8</span> (<span th:text="${product.reviewCount}">0</span>)</td>
+                    <td><a class="guide-link" th:href="@{/product/detail/{productNo}(productNo=${product.productNo})}">상세보기</a></td>
+                    <td>
+                        <button type="button" class="join-button"
+                                th:attr="data-product-no=${product.productNo},data-product-type=${product.productType}">가입하기</button>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(products)}">
+                    <td colspan="11" style="text-align:center;color:var(--text-sub);padding:28px">검색 결과가 없습니다.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="guide-pager" th:if="${totalPages > 1}">
+            <a class="guide-page" th:classappend="${page &lt;= 1} ? ' is-disabled'"
+               th:href="@{/product/list(type=${type}, keyword=${keyword}, page=${page - 1})}">이전</a>
+            <a class="guide-page" th:each="i : ${#numbers.sequence(1, totalPages)}"
+               th:classappend="${i == page} ? ' is-active'"
+               th:href="@{/product/list(type=${type}, keyword=${keyword}, page=${i})}" th:text="${i}">1</a>
+            <a class="guide-page" th:classappend="${page &gt;= totalPages} ? ' is-disabled'"
+               th:href="@{/product/list(type=${type}, keyword=${keyword}, page=${page + 1})}">다음</a>
+        </div>
+
+        <p class="guide-foot-note">
+            * 표시된 금리는 가입 기간·통화·시점에 따라 달라질 수 있으며, 실제 적용 금리는 상품 상세 및 가입 화면에서 확인하실 수 있습니다.
+        </p>
+    </div>
+</main>
+
+<div th:replace="~{footer :: footer}"></div>
+
 <script>
 async function getAccessToken() {
     if (window.accessToken) return window.accessToken;
     const response = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'same-origin' });
     const body = await response.json();
-    if (!body.success || !body.data?.accessToken) { location.href = '/login'; return null; }
+    if (!body.success || !body.data?.accessToken) return null; // 비회원: 리다이렉트는 호출부에서 returnUrl 과 함께 처리
     window.accessToken = body.data.accessToken;
     return window.accessToken;
 }
 
 document.querySelectorAll('.join-button').forEach(button => {
     button.addEventListener('click', async () => {
-        const token = await getAccessToken();
-        if (!token) return;
         const productNo = button.dataset.productNo;
+        const token = await getAccessToken();
+        if (!token) {
+            alert('로그인이 필요합니다.');
+            const target = '/product/join/' + productNo + '/terms';
+            location.href = '/login?returnUrl=' + encodeURIComponent(target);
+            return;
+        }
         const response = await fetch(`/api/product/join/${productNo}/join-eligibility`, {
             headers: { 'Authorization': 'Bearer ' + token }, credentials: 'same-origin'
         });
         const body = await response.json();
         if (!body.success) { alert(body.message || '가입 가능 여부를 확인하지 못했습니다.'); return; }
         if (body.data.canJoin) { location.href = `/product/join/${productNo}/terms`; return; }
+
+        // 이미 상품 목록 화면이므로 특정 입출금 상품 가입 화면으로 강제 이동하지 않는다.
+        alert(body.data.reason + '\n\n상품 목록에서 외화 입출금 예금 상품을 먼저 선택해주세요.');
+        return;
 
         const demandProduct = Array.from(document.querySelectorAll('.join-button')).find(candidate => {
             const type = candidate.dataset.productType || '';

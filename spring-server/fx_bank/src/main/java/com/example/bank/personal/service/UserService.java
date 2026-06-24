@@ -42,6 +42,19 @@ public class UserService {
         return user != null;
     }
 
+    /** 신분증 OCR 성공 시 발급하는 1회용 인증 토큰 TTL (30분) */
+    private static final long OCR_TOKEN_TTL_MS = 30 * 60 * 1000L;
+
+    /**
+     * [OCR 인증 토큰 발급] 신분증 OCR 성공 시 1회용 토큰을 Redis 에 저장하고 반환한다.
+     * 회원가입(registerUser)에서 이 토큰을 검증·소비하므로, OCR 없이는 가입이 불가능하다.
+     */
+    public String issueOcrToken() {
+        String token = java.util.UUID.randomUUID().toString();
+        redisUtil.setDataExpire("OCR_VERIFIED:" + token, "1", OCR_TOKEN_TTL_MS);
+        return token;
+    }
+
     /**
      * [회원가입] users + user_sensitive_infos 두 테이블을 하나의 트랜잭션으로 묶어 INSERT.
      * 둘 중 하나라도 실패하면 @Transactional 에 의해 전체 롤백된다.
@@ -54,6 +67,12 @@ public class UserService {
         // ① 약관 동의(필수) 서버 검증
         if (!registerRequest.isPrivacyAgreed()) {
             throw new IllegalArgumentException("개인정보 수집 및 이용 동의가 필요합니다.");
+        }
+        // ①-OCR 신분증 OCR 인증 필수: OCR 성공 시 발급된 1회용 토큰이 Redis 에 살아있어야 가입 가능
+        String ocrToken = registerRequest.getOcrToken();
+        if (ocrToken == null || ocrToken.trim().isEmpty()
+                || redisUtil.getData("OCR_VERIFIED:" + ocrToken.trim()) == null) {
+            throw new IllegalArgumentException("신분증 OCR 인증을 먼저 완료해 주세요.");
         }
         // ①-0 DB NOT NULL 필수값 검증 (비어 있으면 NPE/제약위반 대신 명확한 메시지)
         requireText(registerRequest.getUserId(), "아이디");
@@ -96,6 +115,9 @@ public class UserService {
         saveSensitiveInfo(registerRequest.getUserNo(),
                 registerRequest.getRrn().trim(),
                 registerRequest.getRrnMasked());
+
+        // ⑥ 사용한 OCR 인증 토큰 소비(1회용) — 재사용 방지
+        redisUtil.deleteData("OCR_VERIFIED:" + ocrToken.trim());
     }
 
     /**

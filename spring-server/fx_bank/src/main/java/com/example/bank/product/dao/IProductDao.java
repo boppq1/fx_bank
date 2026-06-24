@@ -16,8 +16,22 @@ import com.example.bank.product.dto.ProductTermDto;
 @Mapper
 public interface IProductDao {
 
-    // 외화 상품 목록
+    // 외화 상품 목록 (기존: 전체)
     List<ProductListDto> selectForeignProductList();
+
+    // 외화 상품 목록 (검색 + 카테고리 + 페이징)
+    List<ProductListDto> selectForeignProductPage(
+            @Param("keyword") String keyword,
+            @Param("type") String type,
+            @Param("offset") int offset,
+            @Param("size") int size
+    );
+
+    // 외화 상품 목록 전체 건수 (검색 + 카테고리)
+    long countForeignProduct(
+            @Param("keyword") String keyword,
+            @Param("type") String type
+    );
 
     // 상품 상세 기본 정보
     ProductDetailDto selectProductDetail(@Param("productNo") Long productNo);
