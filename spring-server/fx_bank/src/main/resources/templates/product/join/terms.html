@@ -2,41 +2,79 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>상품 가입 - 약관 동의</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>약관 동의 | 상품 가입 | BNK 부산은행</title>
+    <link rel="stylesheet" th:href="@{/css/fx-home.css}">
+    <link rel="stylesheet" th:href="@{/css/fx-guide.css}">
     <style>
-        body { max-width: 760px; margin: 40px auto; color: #202124; font-family: 'Malgun Gothic', Arial, sans-serif; }
-        .muted { color: #666; } .terms-list { margin-top: 22px; border-top: 1px solid #dfe3e8; }
-        .term-row { display: flex; align-items: center; gap: 12px; min-height: 68px; border-bottom: 1px solid #dfe3e8; }
-        .term-row label { flex: 1; font-weight: 700; } .term-row input:disabled { cursor: not-allowed; }
-        .badge { padding: 3px 7px; border-radius: 4px; font-size: 12px; } .required { background: #fff0e7; color: #a33a00; } .optional { background: #edf0f3; color: #4e5968; }
-        .read-state { color: #69707c; font-size: 13px; } .arrow { padding: 10px; color: #202124; text-decoration: none; font-size: 22px; }
-        .actions { display: flex; gap: 10px; margin-top: 28px; } button, .button { padding: 10px 14px; border: 1px solid #222; background: #111; color: #fff; text-decoration: none; cursor: pointer; }
-        button:disabled { border-color: #bbb; background: #ddd; color: #777; cursor: not-allowed; } .error { margin-top: 12px; color: #b00020; }
+        /* 약관 행: terms.html JS 가 .term-row / .read-state 를 직접 참조하므로 클래스명 유지(토큰으로 재스타일) */
+        .terms-list { margin-top: 4px; }
+        .term-row { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 0 4px; border-bottom: 1px solid var(--border); }
+        .term-row:last-child { border-bottom: 0; }
+        .term-row label { flex: 1; font-weight: 700; color: var(--text); font-size: 14.5px; }
+        .term-row input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--violet); }
+        .term-row input:disabled { cursor: not-allowed; }
+        .badge { padding: 3px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 700; white-space: nowrap; }
+        .badge.required { background: #FFF0E7; color: #A33A00; }
+        .badge.optional { background: var(--lavender); color: var(--violet); }
+        .read-state { color: var(--text-sub); font-size: 12.5px; white-space: nowrap; }
+        .arrow { padding: 8px; color: var(--text-sub); text-decoration: none; font-size: 22px; line-height: 1; }
+        .arrow:hover { color: var(--violet); }
+        .muted { color: var(--text-sub); }
+        .error { margin-top: 14px; color: var(--up); font-size: 13.5px; font-weight: 600; }
     </style>
 </head>
 <body>
-<h1>약관 동의</h1>
-<p><strong th:text="${product.productName}">상품명</strong> <span class="muted">상품 가입을 위해 약관을 확인해주세요.</span></p>
 
-<form id="termsForm">
-    <input type="hidden" id="productNo" th:value="${product.productNo}">
-    <div class="terms-list">
-        <div class="term-row" th:each="term : ${terms}">
-            <input type="checkbox" name="termsCode" th:id="|term-${term.termsCode}|" th:value="${term.termsCode}"
-                   th:attr="data-required=${term.requiredYn},data-terms-code=${term.termsCode}" disabled>
-            <label th:for="|term-${term.termsCode}|" th:text="${term.termsTitle}">약관 제목</label>
-            <span th:class="${term.requiredYn == 'Y'} ? 'badge required' : 'badge optional'"
-                  th:text="${term.requiredYn == 'Y'} ? '필수' : '선택'">필수</span>
-            <span class="read-state">읽기 전</span>
-            <a class="arrow" th:href="@{/product/join/{productNo}/terms/{termsCode}(productNo=${product.productNo}, termsCode=${term.termsCode})}" aria-label="약관 읽기">›</a>
-        </div>
+<div th:replace="~{header :: header}"></div>
+
+<section class="guide-hero">
+    <div class="guide-hero-inner">
+        <span class="guide-hero-badge">상품 가입</span>
+        <h1 class="guide-hero-title">약관 동의</h1>
+        <p class="guide-hero-desc"><strong th:text="${product.productName}">상품명</strong> · 상품 가입을 위해 약관을 확인하고 동의해주세요.</p>
     </div>
-    <div class="actions">
-        <a class="button" th:href="@{/product/detail/{productNo}(productNo=${product.productNo})}">상품 상세로</a>
-        <button type="submit">다음</button>
+</section>
+
+<main class="guide-wrap">
+    <div class="guide-section">
+        <h2 class="guide-section-title">약관 확인 및 동의</h2>
+
+        <form id="termsForm">
+            <input type="hidden" id="productNo" th:value="${product.productNo}">
+            <div class="terms-list">
+                <div class="term-row" th:each="term : ${terms}">
+                    <input type="checkbox" name="termsCode" th:id="|term-${term.termsCode}|" th:value="${term.termsCode}"
+                           th:attr="data-required=${term.requiredYn},data-terms-code=${term.termsCode}" disabled>
+                    <label th:for="|term-${term.termsCode}|" th:text="${term.termsTitle}">약관 제목</label>
+                    <span th:class="${term.requiredYn == 'Y'} ? 'badge required' : 'badge optional'"
+                          th:text="${term.requiredYn == 'Y'} ? '필수' : '선택'">필수</span>
+                    <span class="read-state">읽기 전</span>
+                    <a class="arrow" th:href="@{/product/join/{productNo}/terms/{termsCode}(productNo=${product.productNo}, termsCode=${term.termsCode})}" aria-label="약관 읽기">›</a>
+                </div>
+            </div>
+            <div class="guide-actions">
+                <a class="btn btn-light" th:href="@{/product/detail/{productNo}(productNo=${product.productNo})}">상품 상세로</a>
+                <button type="submit" class="btn btn-primary">다음</button>
+            </div>
+            <div id="message" class="error"></div>
+        </form>
     </div>
-    <div id="message" class="error"></div>
-</form>
+</main>
+
+<div th:replace="~{footer :: footer}"></div>
+
+<!-- 이어서 가입(임시저장 복원) 모달 -->
+<div id="resumeOverlay" style="display:none;position:fixed;inset:0;background:rgba(26,26,46,.45);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#fff;max-width:420px;width:90%;border-radius:14px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.25);">
+    <h2 style="margin:0 0 8px;font-size:18px;color:#1A1A2E;">진행 중이던 가입이 있어요</h2>
+    <p id="resumeDesc" class="muted" style="margin:0 0 18px;font-size:14px;line-height:1.5;">이어서 진행하시겠어요?</p>
+    <div style="display:flex;gap:10px;">
+      <button type="button" id="resumeStartNew" style="flex:1;background:#fff;color:#333;border:1px solid #cfcfe0;border-radius:8px;padding:11px;">새로 시작</button>
+      <button type="button" id="resumeContinue" style="flex:1;background:#6D5BFF;border-color:#6D5BFF;border-radius:8px;padding:11px;">이어서 하기</button>
+    </div>
+  </div>
+</div>
 
 <script>
 const productNo = document.getElementById('productNo').value;
@@ -46,6 +84,8 @@ document.querySelectorAll('input[name="termsCode"]').forEach(checkbox => {
     const code = checkbox.dataset.termsCode;
     if (sessionStorage.getItem(readKey(code)) === 'Y') {
         checkbox.disabled = false;
+        // 약관 열람 화면에서 '확인했습니다'를 누른 것은 해당 약관 동의 의사로 본다.
+        checkbox.checked = true;
         checkbox.closest('.term-row').querySelector('.read-state').textContent = '읽기 완료';
     }
 });
@@ -73,8 +113,54 @@ document.getElementById('termsForm').addEventListener('submit', async event => {
     });
     const body = await response.json();
     if (!body.success) { document.getElementById('message').textContent = body.message; return; }
-    location.href = `/product/join/${productNo}/form`;
+    location.href = `/product/join/${productNo}/coupon`;
 });
+
+// ===== 이어서 가입(임시저장 복원) =====
+const STEP_LABEL = { TERMS: '약관 동의', COUPON: '우대금리 쿠폰', VERIFY: '본인인증', FORM: '가입 정보 입력' };
+(async function checkResume() {
+    const token = await ensureAccessToken();
+    if (!token) return;
+    let body;
+    try {
+        const res = await fetch(`/api/product/join/${productNo}/resume`, {
+            headers: { 'Authorization': 'Bearer ' + token }, credentials: 'same-origin'
+        });
+        body = await res.json();
+    } catch (e) { return; }
+    if (!body || !body.success || !body.data || !body.data.available) return;
+
+    const info = body.data;
+    const overlay = document.getElementById('resumeOverlay');
+    const desc = document.getElementById('resumeDesc');
+    const when = info.updatedDt ? new Date(info.updatedDt).toLocaleString('ko-KR') : '';
+    const stepLabel = STEP_LABEL[info.currentStep] || info.currentStep || '';
+    desc.textContent = `${info.productName || '이 상품'} 가입을 "${stepLabel}" 단계까지 진행했어요${when ? ' (' + when + ')' : ''}. 이어서 하시겠어요? 쿠폰·계좌비밀번호 등 일부 정보는 보안을 위해 다시 입력해야 합니다.`;
+    overlay.style.display = 'flex';
+
+    document.getElementById('resumeContinue').addEventListener('click', async () => {
+        const res = await fetch(`/api/product/join/${productNo}/resume`, {
+            method: 'POST', headers: { 'Authorization': 'Bearer ' + token }, credentials: 'same-origin'
+        });
+        const b = await res.json();
+        if (!b.success) { alert(b.message || '이어서 진행할 수 없습니다.'); overlay.style.display = 'none'; return; }
+        const d = b.data;
+        // 폼 프리필(비민감 값만)을 sessionStorage 에 보관 — 계좌비밀번호/출금계좌는 제외
+        sessionStorage.setItem(`join-prefill:${productNo}`, JSON.stringify({
+            rateNo: d.rateNo, currencyCode: d.currencyCode, amount: d.amount,
+            periodMonth: d.periodMonth, baseRate: d.baseRate
+        }));
+        location.href = d.routeUrl || `/product/join/${productNo}/coupon`;
+    });
+
+    document.getElementById('resumeStartNew').addEventListener('click', async () => {
+        await fetch(`/api/product/join/${productNo}/resume/discard`, {
+            method: 'POST', headers: { 'Authorization': 'Bearer ' + token }, credentials: 'same-origin'
+        });
+        sessionStorage.removeItem(`join-prefill:${productNo}`);
+        overlay.style.display = 'none';
+    });
+})();
 </script>
 </body>
 </html>

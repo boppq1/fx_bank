@@ -29,4 +29,18 @@ replay_pid*
 spring-server/.metadata/
 spring-server/fx_bank/.metadata/
 **/application-local.properties
+<<<<<<< HEAD
 /.metadata/
+=======
+
+# Python virtual environment
+venv/
+.venv/
+fastapi-agent/venv/
+fastapi-agent/.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+>>>>>>> d42e94a66e32125d34299064774d935b6b400142

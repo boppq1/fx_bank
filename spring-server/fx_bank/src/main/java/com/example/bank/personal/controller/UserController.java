@@ -32,7 +32,10 @@ public class UserController {
     @PostMapping("/ocr/id-card")
     public ApiResponse<Map<String, Object>> ocrIdCard(@RequestParam("file") MultipartFile file) {
         try {
-            return ApiResponse.success("신분증 인식 완료", ocrService.recognizeIdCard(file));
+            // OCR 결과 + 회원가입에서 검증할 1회용 인증 토큰을 함께 내려준다.
+            Map<String, Object> data = new HashMap<>(ocrService.recognizeIdCard(file));
+            data.put("ocrToken", userService.issueOcrToken());
+            return ApiResponse.success("신분증 인식 완료", data);
         } catch (RuntimeException e) {
             return ApiResponse.error(e.getMessage());
         }

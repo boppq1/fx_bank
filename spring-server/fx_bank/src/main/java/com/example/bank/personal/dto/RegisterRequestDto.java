@@ -42,4 +42,7 @@ public class RegisterRequestDto {
 
     // ===== 약관 동의 =====
     private boolean privacyAgreed; // 개인정보 수집·이용 동의(필수)
+
+    // ===== 신분증 OCR 인증 =====
+    private String ocrToken;        // OCR 성공 시 발급된 1회용 인증 토큰(서버에서 Redis 검증). 없으면 가입 불가
 }

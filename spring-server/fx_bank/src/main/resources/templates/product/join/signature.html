@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>전자서명 | 상품 가입 | BNK 부산은행</title>
+    <link rel="stylesheet" th:href="@{/css/fx-home.css}">
+    <link rel="stylesheet" th:href="@{/css/fx-guide.css}">
+    <style>
+        .summary { margin-top: 4px; }
+        .summary-row { display: flex; justify-content: space-between; gap: 20px; padding: 13px 4px; border-bottom: 1px solid var(--border); }
+        .summary-row:last-child { border-bottom: 0; }
+        .summary-row span { color: var(--text-sub); font-size: 14px; }
+        .summary-row strong { color: var(--text); font-weight: 700; }
+        /* 캔버스 크기는 signature.html JS(resizeCanvas)가 getBoundingClientRect 로 읽음 → 기능, 토큰으로 재스타일 */
+        canvas#signatureCanvas { width: 100%; height: 190px; display: block; background: #fff; border: 1px solid var(--border); border-radius: var(--radius-sm); touch-action: none; }
+        .check { display: flex; align-items: center; gap: 8px; margin-top: 16px; color: var(--text-body); font-size: 14px; }
+        .check input { width: 18px; height: 18px; accent-color: var(--violet); }
+        .error { margin-top: 14px; color: var(--up); font-size: 13.5px; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{header :: header}"></div>
+
+<section class="guide-hero">
+    <div class="guide-hero-inner">
+        <span class="guide-hero-badge">전자서명</span>
+        <h1 class="guide-hero-title">입력 내용 확인</h1>
+        <p class="guide-hero-desc"><strong th:text="${product.productName}">상품명</strong> 가입 내용을 확인한 후 전자서명해주세요.</p>
+    </div>
+</section>
+
+<main class="guide-wrap">
+    <div class="guide-section">
+        <h2 class="guide-section-title">가입 내용</h2>
+        <section class="summary" id="summary">
+            <div class="summary-row"><span>통화</span><strong id="currency">-</strong></div>
+            <div class="summary-row"><span>가입 금액</span><strong id="amount">-</strong></div>
+            <div class="summary-row"><span>가입 기간</span><strong id="period">-</strong></div>
+            <div class="summary-row"><span>적용 금리</span><strong id="rate">-</strong></div>
+        </section>
+    </div>
+
+    <div class="guide-section">
+        <h2 class="guide-section-title">전자서명</h2>
+        <p class="guide-note">아래 서명란에 직접 서명해주세요.</p>
+        <canvas id="signatureCanvas" aria-label="전자서명 입력란"></canvas>
+        <div class="guide-actions"><button class="btn btn-light" id="clearButton" type="button">서명 지우기</button></div>
+        <label class="check"><input id="agreement" type="checkbox"> 입력한 상품 가입 내용과 약관을 확인했으며 전자서명에 동의합니다.</label>
+
+        <div class="guide-actions">
+            <a class="btn btn-light" th:href="@{/product/join/{productNo}/form(productNo=${product.productNo})}">입력 수정</a>
+            <button id="completeButton" type="button" class="btn btn-primary" disabled>전자서명 완료 및 가입하기</button>
+        </div>
+        <div id="error" class="error"></div>
+    </div>
+</main>
+
+<div th:replace="~{footer :: footer}"></div>
+
+<script th:inline="javascript">
+const productNo = /*[[${product.productNo}]]*/ 0;
+const savedForm = sessionStorage.getItem(`product-join-form:${productNo}`);
+if (!savedForm) location.href = `/product/join/${productNo}/form`;
+
+const form = savedForm ? JSON.parse(savedForm) : null;
+if (form) {
+    document.getElementById('currency').textContent = form.currencyCode;
+    document.getElementById('amount').textContent = Number(form.amount).toLocaleString('ko-KR');
+    document.getElementById('period').textContent = `${form.periodMonth}개월`;
+    document.getElementById('rate').textContent = `${Number(form.appliedRate).toFixed(2)}%`;
+}
+
+const canvas = document.getElementById('signatureCanvas');
+const context = canvas.getContext('2d');
+let drawing = false;
+let signed = false;
+
+function resizeCanvas() {
+    const ratio = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * ratio;
+    canvas.height = rect.height * ratio;
+    context.scale(ratio, ratio);
+    context.lineWidth = 2;
+    context.lineCap = 'round';
+    context.strokeStyle = '#202124';
+}
+
+function point(event) {
+    const rect = canvas.getBoundingClientRect();
+    return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+}
+
+function updateButton() {
+    document.getElementById('completeButton').disabled = !(signed && document.getElementById('agreement').checked);
+}
+
+canvas.addEventListener('pointerdown', event => {
+    drawing = true; signed = true; canvas.setPointerCapture(event.pointerId);
+    const p = point(event); context.beginPath(); context.moveTo(p.x, p.y); updateButton();
+});
+canvas.addEventListener('pointermove', event => {
+    if (!drawing) return;
+    const p = point(event); context.lineTo(p.x, p.y); context.stroke();
+});
+canvas.addEventListener('pointerup', () => { drawing = false; });
+canvas.addEventListener('pointercancel', () => { drawing = false; });
+document.getElementById('agreement').addEventListener('change', updateButton);
+document.getElementById('clearButton').addEventListener('click', () => {
+    context.clearRect(0, 0, canvas.width, canvas.height); signed = false; updateButton();
+});
+
+async function ensureAccessToken() {
+    if (window.accessToken) return window.accessToken;
+    const response = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'same-origin' });
+    const body = await response.json();
+    if (!body.success || !body.data?.accessToken) { location.href = '/login'; return null; }
+    window.accessToken = body.data.accessToken;
+    return window.accessToken;
+}
+
+document.getElementById('completeButton').addEventListener('click', async () => {
+    const token = await ensureAccessToken();
+    if (!token) return;
+    const response = await fetch('/api/product/join/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        credentials: 'same-origin',
+        body: JSON.stringify({ productNo, signatureImageData: canvas.toDataURL('image/png') })
+    });
+    const body = await response.json();
+    if (!body.success) { document.getElementById('error').textContent = body.message; return; }
+    sessionStorage.removeItem(`product-join-form:${productNo}`);
+    location.href = `/product/join/${productNo}/complete?subscriptionNo=${body.data}`;
+});
+
+resizeCanvas();
+</script>
+</body>
+</html>

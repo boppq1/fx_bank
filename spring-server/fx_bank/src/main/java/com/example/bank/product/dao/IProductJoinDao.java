@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import com.example.bank.product.dto.ElectronicSignatureDto;
+import com.example.bank.product.dto.CouponDto;
 import com.example.bank.product.dto.ForeignAccountBalanceInsertDto;
 import com.example.bank.product.dto.ForeignAccountInsertDto;
 import com.example.bank.product.dto.IdVerificationDto;
@@ -137,6 +138,19 @@ public interface IProductJoinDao {
     // =====================================================
 
     int insertElectronicSignature(ElectronicSignatureDto dto); // 전자서명 저장
+
+    List<CouponDto> selectAvailableCoupons(
+            @Param("userNo") Long userNo,
+            @Param("productNo") Long productNo
+    );
+
+    CouponDto selectAvailableCouponByNo(
+            @Param("couponNo") Long couponNo,
+            @Param("userNo") Long userNo,
+            @Param("productNo") Long productNo
+    );
+
+    int markCouponUsed(@Param("couponNo") Long couponNo, @Param("userNo") Long userNo);
 
 
     // =====================================================
