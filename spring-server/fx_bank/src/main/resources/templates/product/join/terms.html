@@ -84,6 +84,8 @@ document.querySelectorAll('input[name="termsCode"]').forEach(checkbox => {
     const code = checkbox.dataset.termsCode;
     if (sessionStorage.getItem(readKey(code)) === 'Y') {
         checkbox.disabled = false;
+        // 약관 열람 화면에서 '확인했습니다'를 누른 것은 해당 약관 동의 의사로 본다.
+        checkbox.checked = true;
         checkbox.closest('.term-row').querySelector('.read-state').textContent = '읽기 완료';
     }
 });
