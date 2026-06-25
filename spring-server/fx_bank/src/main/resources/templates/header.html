@@ -108,6 +108,8 @@
   </div>
 
   <!-- 로그인 상태에 따라 헤더 표시 토글 + 사용자 이름 인사 -->
+  <!-- auth-refresh.js 를 먼저 로드해 공용 single-flight 토큰 재발급 함수를 전 페이지에 제공 -->
+  <script th:src="@{/js/auth-refresh.js}"></script>
   <script th:src="@{/js/header-auth.js}"></script>
 
   <!-- 다국어(구글 번역) -->
@@ -164,6 +166,18 @@
           });
           document.addEventListener('click', function () { menu.classList.remove('open'); });
         }
+        // 모바일: 하위메뉴 있는 상위 항목은 탭하면 아코디언으로 펼침/접힘 (데스크톱은 기존 hover/이동 유지)
+        var gnbMq = window.matchMedia('(max-width: 680px)');
+        document.querySelectorAll('.site-header .gnb-item').forEach(function (item) {
+          var link = item.querySelector('.gnb-link');
+          if (item.querySelector('.gnb-dropdown')) item.classList.add('has-sub');
+          if (!link || !item.classList.contains('has-sub')) return;   // 하위 없는 '이벤트'는 그냥 이동
+          link.addEventListener('click', function (e) {
+            if (!gnbMq.matches) return;        // 데스크톱: 기존 동작 유지
+            e.preventDefault();                // 모바일: 이동 대신 펼침/접힘
+            item.classList.toggle('is-open');
+          });
+        });
       });
     })();
   </script>

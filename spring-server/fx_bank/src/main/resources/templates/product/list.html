@@ -121,12 +121,8 @@
 
 <script>
 async function getAccessToken() {
-    if (window.accessToken) return window.accessToken;
-    const response = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'same-origin' });
-    const body = await response.json();
-    if (!body.success || !body.data?.accessToken) return null; // 비회원: 리다이렉트는 호출부에서 returnUrl 과 함께 처리
-    window.accessToken = body.data.accessToken;
-    return window.accessToken;
+    // 공용 single-flight (refresh 중복/회전충돌 방지). 비회원이면 null → 호출부에서 returnUrl 처리
+    return await window.acquireAccessToken();
 }
 
 document.querySelectorAll('.join-button').forEach(button => {
