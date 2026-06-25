@@ -54,10 +54,9 @@
 <script th:inline="javascript">
     const productNo = /*[[${product.productNo}]]*/ 0;
     async function getAccessToken() {
-        const response = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'same-origin' });
-        const body = await response.json();
-        if (!body.success || !body.data?.accessToken) { location.href = '/login'; return null; }
-        return body.data.accessToken;
+        const token = await window.acquireAccessToken();   // 공용 single-flight (refresh 중복/회전충돌 방지)
+        if (!token) { location.href = '/login'; return null; }
+        return token;
     }
     document.getElementById('reviewForm').addEventListener('submit', async event => {
         event.preventDefault();

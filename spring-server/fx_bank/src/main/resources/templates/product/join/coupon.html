@@ -53,12 +53,9 @@ const couponList = document.getElementById('couponList');
 const message = document.getElementById('message');
 
 async function ensureAccessToken() {
-    if (window.accessToken) return window.accessToken;
-    const response = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'same-origin' });
-    const body = await response.json();
-    if (!body.success || !body.data?.accessToken) { location.href = '/login'; return null; }
-    window.accessToken = body.data.accessToken;
-    return window.accessToken;
+    const token = await window.acquireAccessToken();   // 공용 single-flight (refresh 중복/회전충돌 방지)
+    if (!token) { location.href = '/login'; return null; }
+    return token;
 }
 
 function formatRate(rate) {

@@ -73,9 +73,11 @@
     display: block;
 }
 
-button {
+/* 이벤트 컨테이너 내부 버튼만 스코프 (헤더/푸터 공용 버튼으로 스타일이 새지 않게) */
+.event-container button {
     margin-top: 10px;
-    padding: 8px 16px;
+    padding: 10px 18px;
+    min-height: 44px;          /* 모바일 터치 타겟 */
     background: var(--grad-cta);
     color: #fff;
     border: none;
@@ -85,7 +87,7 @@ button {
     transition: transform var(--t) var(--ease), box-shadow var(--t) var(--ease);
 }
 
-button:hover {
+.event-container button:hover {
     transform: translateY(-1px);
 }
 
@@ -102,4 +104,19 @@ button:hover {
 .app-only-msg {
     margin-top: 20px;
     color: var(--text-sub);
+}
+
+/* ===== 이벤트 페이지 반응형 (event.css 전용 — 공용 fx-home/fx-guide 미수정) =====
+   헤더/푸터의 모바일 동작은 fx-home.css 의 기존 @media 가 처리하므로 건드리지 않음 */
+@media (max-width: 680px) {
+    .event-container { margin: 24px auto; padding: 16px; }
+    .event-steps { gap: 16px; flex-wrap: wrap; }
+    .step-letter { font-size: 40px; }
+}
+
+/* ===== 이벤트 현황(event-status) 반응형 — status 클래스만 (event.html @media 규칙 미수정) ===== */
+@media (max-width: 680px) {
+    .status-grid { flex-wrap: wrap; gap: 14px; }
+    .status-item { width: 100%; max-width: 260px; box-sizing: border-box; }
+    .success-msg { padding: 16px; }
 }
