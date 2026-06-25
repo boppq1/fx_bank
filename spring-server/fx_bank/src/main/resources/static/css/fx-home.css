@@ -377,8 +377,29 @@ button.gnb-login{border:0;cursor:pointer;font-family:inherit;}
   .footer-brand{grid-column:1 / -1;}
 }
 @media (max-width:680px){
-  .gnb-inner{gap:16px;}
-  .gnb,.gnb-search{display:none;}
+  /* === 모바일 헤더: 상위 메뉴를 브랜드 아래 줄로 항상 표시 + 탭하면 하위 아코디언 펼침 === */
+  .gnb-inner{gap:8px;flex-wrap:wrap;}
+  .gnb-search{display:none;}
+  .gnb-tools{display:none;}              /* 검색/벨/로그인은 상단 util-bar 로 접근 */
+  .util-bar ul{gap:12px;}
+  /* 상위 메뉴: 항상 표시(숨김 없음), 전체폭 세로 리스트 */
+  .gnb{flex:0 0 100%;width:100%;order:5;margin-top:4px;}
+  .gnb-menu{flex-direction:column;gap:0;}
+  .gnb-item{position:static;border-top:1px solid var(--border);}
+  .gnb-link{display:flex;align-items:center;justify-content:space-between;
+            padding:13px 4px;font-size:16px;min-height:44px;line-height:1.4;}
+  .gnb-link::after{display:none;}        /* 데스크톱 밑줄효과 제거 */
+  .gnb-item.has-sub > .gnb-link::after{  /* 하위 있는 항목에 펼침(▾) 표시 */
+    content:'▾';display:inline-block;font-size:12px;color:var(--text-sub);transition:transform var(--t) var(--ease);
+  }
+  .gnb-item.is-open > .gnb-link::after{transform:rotate(180deg);}   /* 열리면 ▴ */
+  /* 하위메뉴: 기본 숨김 → 해당 항목이 열렸(.is-open)을 때만 표시 */
+  .gnb-dropdown{
+    position:static;opacity:1;visibility:visible;transform:none;display:none;
+    box-shadow:none;border:0;background:transparent;min-width:0;padding:2px 0 8px 14px;
+  }
+  .gnb-item.is-open .gnb-dropdown{display:block;}
+  .gnb-dropdown a{padding:11px 6px;min-height:44px;}
   .util-inner,.gnb-inner,.section-inner,.hero-inner,.footer-inner{padding-left:20px;padding-right:20px;}
   .hero-title{font-size:34px;}
   .product-grid{grid-template-columns:1fr;}

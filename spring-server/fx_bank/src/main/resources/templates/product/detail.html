@@ -193,12 +193,11 @@
     const productNo = /*[[${product.productNo}]]*/ 0;
 
     async function showReviewWriteLink() {
-        const refreshResponse = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'same-origin' });
-        const refreshBody = await refreshResponse.json();
-        if (!refreshBody.success || !refreshBody.data || !refreshBody.data.accessToken) return;
+        const token = await window.acquireAccessToken();   // 공용 single-flight
+        if (!token) return;
 
         const response = await fetch(`/api/products/${productNo}/review-eligibility`, {
-            headers: { 'Authorization': 'Bearer ' + refreshBody.data.accessToken },
+            headers: { 'Authorization': 'Bearer ' + token },
             credentials: 'same-origin'
         });
         const body = await response.json();
@@ -209,12 +208,7 @@
 
     // 가입하기: 비회원이면 로그인 후 이 상품 가입 화면으로 복귀(returnUrl)
     async function getAccessToken() {
-        if (window.accessToken) return window.accessToken;
-        const r = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'same-origin' });
-        const b = await r.json();
-        if (!b.success || !b.data || !b.data.accessToken) return null;
-        window.accessToken = b.data.accessToken;
-        return window.accessToken;
+        return await window.acquireAccessToken();   // 공용 single-flight (refresh 중복/회전충돌 방지)
     }
 
     const joinBtn = document.getElementById('joinBtn');
@@ -243,12 +237,11 @@
     joinButton?.addEventListener('click', async event => {
         event.preventDefault();
 
-        const refreshResponse = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'same-origin' });
-        const refreshBody = await refreshResponse.json();
-        if (!refreshBody.success || !refreshBody.data?.accessToken) { location.href = '/login'; return; }
+        const token = await window.acquireAccessToken();   // 공용 single-flight (refresh 중복/회전충돌 방지)
+        if (!token) { location.href = '/login'; return; }
 
         const response = await fetch(`/api/product/join/${productNo}/join-eligibility`, {
-            headers: { 'Authorization': 'Bearer ' + refreshBody.data.accessToken },
+            headers: { 'Authorization': 'Bearer ' + token },
             credentials: 'same-origin'
         });
         const body = await response.json();
