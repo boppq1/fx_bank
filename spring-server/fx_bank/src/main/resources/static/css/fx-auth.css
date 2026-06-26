@@ -4,20 +4,20 @@
    ============================================================ */
 :root{
   --violet:#6D5BFF; --violet-soft:#8E7CFF; --violet-deep:#5A45E8;
+  --violet-bright:#7C5CFF; --accent:#9C6BFF;
   --purple:#6D5BFF; --purple-soft:#8E7CFF; --purple-lt:#F2F0FB;   /* legacy 별칭 */
-  --navy:#1A1A2E; --navy-dark:#14142B;                            /* 이제 어두운 '텍스트' 색 */
-  --lavender:#F2F0FB; --bg:#F7F6FE; --surface:#FFFFFF; --border:#ECEAF6;
-  --text:#1A1A2E; --text-body:#33333D; --text-sub:#5C5C70;
-  --up:#E5484D; --down:#3E63DD;
-  --grad:linear-gradient(135deg,#6D5BFF 0%,#8E7CFF 100%);
+  --navy:#1A1A2E; --navy-dark:#14142B;
+  --lavender:#F1EEFF; --bg:#F6F4FF; --surface:#FFFFFF; --border:#E9E5FB;
+  --text:#16162B; --text-body:#2B2B38; --text-sub:#56566B;
+  --up:#F23645; --down:#2F6BFF; --info:#2F6BFF;
+  --grad:linear-gradient(135deg,#6D5BFF 0%,#9C6BFF 100%);
   --grad-cta:linear-gradient(135deg,#6D5BFF 0%,#5A45E8 100%);
-  --grad-hero:linear-gradient(135deg,#5B47E6 0%,#7C6BF0 100%);
-  --radius:16px; --radius-sm:12px;
-  --shadow-sm:0 2px 8px rgba(26,26,46,.06);
-  --shadow:0 8px 24px rgba(109,91,255,.10);
-  --shadow-lg:0 16px 40px rgba(109,91,255,.14);
+  --grad-hero:linear-gradient(120deg,#6D5BFF 0%,#7C5CFF 45%,#9C6BFF 100%);
+  --radius:20px; --radius-sm:14px;
+  --shadow-sm:0 4px 14px rgba(26,26,46,.07);
+  --shadow:0 12px 30px rgba(109,91,255,.16);
+  --shadow-lg:0 24px 56px rgba(109,91,255,.22);
   --container:1200px; --t:160ms; --ease:cubic-bezier(.22,.61,.36,1);
-  --info:#3E63DD;
 }
 
 *{box-sizing:border-box;}
