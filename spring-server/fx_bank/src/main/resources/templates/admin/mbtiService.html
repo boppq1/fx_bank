@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FX Bank - 금융 MBTI</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -324,10 +325,10 @@
         <div class="loading-title">분석 중이에요...</div>
         <p style="font-size:13px;color:var(--muted)">잠시만 기다려주세요</p>
         <ul class="steps">
-            <li id="step1"><span class="si">⏳</span> 행동 로그 수집 중</li>
-            <li id="step2"><span class="si">⏳</span> MBTI 성향 분석 중</li>
-            <li id="step3"><span class="si">⏳</span> 맞춤 상품 검색 중</li>
-            <li id="step4"><span class="si">⏳</span> 결과 생성 중</li>
+            <li id="step1"><span class="si"><i class="bi bi-hourglass-split"></i></span> 행동 로그 수집 중</li>
+            <li id="step2"><span class="si"><i class="bi bi-hourglass-split"></i></span> MBTI 성향 분석 중</li>
+            <li id="step3"><span class="si"><i class="bi bi-hourglass-split"></i></span> 맞춤 상품 검색 중</li>
+            <li id="step4"><span class="si"><i class="bi bi-hourglass-split"></i></span> 결과 생성 중</li>
         </ul>
     </div>
 </div>
@@ -345,12 +346,12 @@
 
     <div class="result-body">
         <div class="sec-title">맞춤 상품 추천</div>
-        <div class="tag-main">🎯 딱 맞는 상품</div>
+        <div class="tag-main"><i class="bi bi-bullseye"></i> 딱 맞는 상품</div>
         <div id="r-main"></div>
 
         <div class="divider"></div>
 
-        <div class="tag-sub">💡 함께 보면 좋은 상품</div>
+        <div class="tag-sub"><i class="bi bi-lightbulb"></i> 함께 보면 좋은 상품</div>
         <div id="r-sub-visible"></div>
         <div class="more-wrap" id="r-sub-more"></div>
         <button class="btn-more" id="btn-more" onclick="toggleMore()" style="display:none">
@@ -385,7 +386,7 @@
     function setStep(n, s) {
         const el = document.getElementById('step' + n);
         el.className = s;
-        el.querySelector('.si').textContent = s === 'done' ? '✅' : '⏳';
+        el.querySelector('.si').innerHTML = s === 'done' ? '<i class="bi bi-check-circle-fill"></i>' : '<i class="bi bi-hourglass-split"></i>';
     }
 
     async function startAnalysis() {
@@ -453,11 +454,11 @@
         const bannerEl = document.getElementById('r-banner');
         if (infoStatus.message) {
             const icons = {
-                NO_LOG_AGE_FALLBACK: '📊',
-                NO_LOG_NO_AGE_FALLBACK: '🙌',
-                NO_BIRTH_DATE: '📋'
+                NO_LOG_AGE_FALLBACK: '<i class="bi bi-bar-chart"></i>',
+                NO_LOG_NO_AGE_FALLBACK: '<i class="bi bi-hand-thumbs-up"></i>',
+                NO_BIRTH_DATE: '<i class="bi bi-clipboard"></i>'
             };
-            const icon = icons[infoStatus.code] || 'ℹ️';
+            const icon = icons[infoStatus.code] || '<i class="bi bi-info-circle"></i>';
             bannerEl.innerHTML = `
         <div class="info-banner">
           <span class="info-banner-icon">${icon}</span>

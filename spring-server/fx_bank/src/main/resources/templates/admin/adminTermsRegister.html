@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>약관 등록 - 약관 관리</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
     :root {
       --bg: #f6f7f9;
@@ -183,7 +184,7 @@
 
     <label>약관 PDF 파일</label>
     <div class="file-drop" id="fileDrop">
-      <div class="icon">📄</div>
+      <div class="icon"><i class="bi bi-file-earmark-text"></i></div>
       <div id="fileDropText">클릭해서 PDF 선택 (또는 끌어다 놓기)</div>
       <div class="hint">PDF만 가능 · 최대 20MB</div>
     </div>
@@ -310,7 +311,7 @@
       return;
     }
     selectedFile = file;
-    $('#fileDropText').innerHTML = `<span class="filename">📎 ${escapeHtml(file.name)}</span>`;
+    $('#fileDropText').innerHTML = `<span class="filename"><i class="bi bi-paperclip"></i> ${escapeHtml(file.name)}</span>`;
   }
 
   $('#fileDrop').addEventListener('click', () => $('#pdfFile').click());
@@ -374,7 +375,7 @@
       }
 
       result.className = 'result ok show';
-      result.innerHTML = `✅ ${escapeHtml(body.message || '등록 완료')}<br>약관 슬롯 번호(termsNo): ${escapeHtml(body.termsNo)}<br><br><a href="/admin/pro/detail?productNo=${productNo}">상품 상세로 돌아가기 →</a>`;
+      result.innerHTML = `<i class="bi bi-check-circle-fill"></i> ${escapeHtml(body.message || '등록 완료')}<br>약관 슬롯 번호(termsNo): ${escapeHtml(body.termsNo)}<br><br><a href="/admin/pro/detail?productNo=${productNo}">상품 상세로 돌아가기 →</a>`;
     } catch (err) {
       result.className = 'result err show';
       result.textContent = `오류: ${err.message}`;
