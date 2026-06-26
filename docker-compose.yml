@@ -4,32 +4,35 @@ services:
   spring-boot:
     build: ./spring-server/fx_bank
     ports:
-      - "8080:8080"
+      - "7968:8080"
     volumes:
-      - /home/ubuntu/application.properties:/config/application.properties
-      - /home/ubuntu/Wallet_ATQGGWDFRRT7KEMU:/wallet
+      - /home/kim2sin/application.properties:/config/application.properties
+      - /home/kim2sin/Wallet_ATQGGWDFRRT7KEMU:/wallet
     restart: always
 
   fastapi-agent:
     build: ./fastapi-agent
+    container_name: fastapi-agent
     ports:
-      - "8000:8000"
+      - "7962:8000"
     env_file:
       - ./fastapi-agent/.env
     volumes:
-      - /home/ubuntu/Wallet_ATQGGWDFRRT7KEMU:/wallet
+      - /home/kim2sin/Wallet_ATQGGWDFRRT7KEMU:/wallet
     restart: always
 
   fastapi-bnk:
     build: ./fastapi-bnk
+    container_name: fastapi-bnk
     ports:
-      - "8001:8001"
+      - "7961:8001"
     restart: always
 
   fastapi-ocr:
     build: ./fastapi-ocr
+    container_name: fastapi-ocr
     ports:
-      - "8003:8003"
+      - "7963:8003"
     env_file:
       - ./fastapi-ocr/.env
     restart: always
@@ -37,8 +40,7 @@ services:
   nginx:
     image: nginx:latest
     ports:
-      - "80:80"
-      - "443:443"
+      - "7960:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - /etc/letsencrypt:/etc/letsencrypt
@@ -47,4 +49,11 @@ services:
       - fastapi-agent
       - fastapi-bnk
       - fastapi-ocr
+    restart: always
+
+  redis:
+    image: redis:alpine
+    container_name: fx_bank-redis
+    ports:
+      - "6379:6379"
     restart: always

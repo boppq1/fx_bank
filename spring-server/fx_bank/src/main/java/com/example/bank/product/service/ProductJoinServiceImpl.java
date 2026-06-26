@@ -101,7 +101,7 @@ public class ProductJoinServiceImpl implements ProductJoinService {
         }
 
         // 입출금식 외화예금은 CDD 대상이므로 가입 때마다 강화된 신원확인을 요구한다.
-        if (isDemandDepositProduct(product)) {
+        if (requiresOcrVerification(product)) {
             return new IdentityVerificationRequirementDto(
                     true, "CDD", "입출금이 자유로운 외화예금 상품은 신분증 OCR 본인확인이 필요합니다."
             );
@@ -293,24 +293,8 @@ public class ProductJoinServiceImpl implements ProductJoinService {
             throw new IllegalArgumentException("가입 정보가 없습니다.");
         }
 
-        if (dto.getRateNo() == null) {
-            throw new IllegalArgumentException("금리 정보가 없습니다.");
-        }
-
         if (dto.getCurrencyCode() == null || dto.getCurrencyCode().isBlank()) {
             throw new IllegalArgumentException("통화 정보가 없습니다.");
-        }
-
-        if (dto.getAmount() == null || dto.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("가입 금액을 확인해주세요.");
-        }
-
-        if (dto.getPeriodMonth() == null || dto.getPeriodMonth() <= 0) {
-            throw new IllegalArgumentException("가입 기간을 확인해주세요.");
-        }
-
-        if (dto.getAppliedRate() == null) {
-            throw new IllegalArgumentException("적용 금리가 없습니다.");
         }
 
         Long productNo = dto.getProductNo();
@@ -320,9 +304,29 @@ public class ProductJoinServiceImpl implements ProductJoinService {
             throw new IllegalArgumentException("가입 가능한 상품이 아닙니다.");
         }
 
-        if (!isDemandDepositProduct(product)) {
+        if (isDemandDepositProduct(product)) {
+            // 기간이 없는 예금/통장 개설형 상품은 가입 기간, 출금 계좌, 가입 금액을 받지 않는다.
+            // product_subscriptions.period_month가 NOT NULL이라 DB에는 0개월로 저장한다.
+            dto.setAmount(BigDecimal.ZERO);
+            dto.setWithdrawalAccountNo(null);
+            dto.setRateNo(null);
+            dto.setPeriodMonth(0);
+            dto.setAppliedRate(product.getBaseRate() == null ? BigDecimal.ZERO : product.getBaseRate());
+        } else {
+            if (dto.getRateNo() == null) {
+                throw new IllegalArgumentException("금리 정보를 선택해주세요.");
+            }
+            if (dto.getPeriodMonth() == null || dto.getPeriodMonth() <= 0) {
+                throw new IllegalArgumentException("가입 기간을 확인해주세요.");
+            }
+            if (dto.getAppliedRate() == null) {
+                throw new IllegalArgumentException("적용 금리가 없습니다.");
+            }
+            if (dto.getAmount() == null || dto.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("가입 금액을 확인해주세요.");
+            }
             if (dto.getWithdrawalAccountNo() == null || dto.getWithdrawalAccountNo().isBlank()) {
-                throw new IllegalArgumentException("정기예금·적금 가입에 사용할 출금 계좌를 선택해주세요.");
+                throw new IllegalArgumentException("예금/적금 가입에 사용할 출금 계좌를 선택해주세요.");
             }
             boolean ownsSourceAccount = getWithdrawableForeignAccounts(userNo, dto.getCurrencyCode()).stream()
                     .anyMatch(account -> dto.getWithdrawalAccountNo().equals(account.getAccountNo()));
@@ -336,14 +340,16 @@ public class ProductJoinServiceImpl implements ProductJoinService {
             throw new IllegalArgumentException("해당 상품에서 지원하지 않는 통화입니다.");
         }
 
-        int rateCount = productJoinDao.countProductRate(
-                productNo,
-                dto.getRateNo(),
-                dto.getPeriodMonth()
-        );
+        if (!isDemandDepositProduct(product)) {
+            int rateCount = productJoinDao.countProductRate(
+                    productNo,
+                    dto.getRateNo(),
+                    dto.getPeriodMonth()
+            );
 
-        if (rateCount == 0) {
-            throw new IllegalArgumentException("해당 상품의 금리 정보가 올바르지 않습니다.");
+            if (rateCount == 0) {
+                throw new IllegalArgumentException("해당 상품의 금리 정보가 올바르지 않습니다.");
+            }
         }
 
         if (dto.getAccountPassword() == null || dto.getAccountPassword().isBlank()) {
@@ -352,10 +358,9 @@ public class ProductJoinServiceImpl implements ProductJoinService {
 
         session.setAttribute(SESSION_FORM, dto);
 
-        // 임시저장 체크포인트 (FORM)
+        // 임시저장 체크포인트(FORM)
         saveProgressSnapshot(userNo, productNo, JoinProgressStep.FORM, session);
     }
-
     @Override
     public List<WithdrawableForeignAccountDto> getWithdrawableForeignAccounts(Long userNo, String currencyCode) {
         if (userNo == null || currencyCode == null || currencyCode.isBlank()) {
@@ -449,6 +454,17 @@ public class ProductJoinServiceImpl implements ProductJoinService {
             throw new IllegalArgumentException("가입 가능한 상품이 아닙니다.");
         }
 
+
+        if (isDemandDepositProduct(product)) {
+            formDto.setAmount(BigDecimal.ZERO);
+            formDto.setWithdrawalAccountNo(null);
+            formDto.setRateNo(null);
+            formDto.setPeriodMonth(0);
+            formDto.setAppliedRate(product.getBaseRate() == null ? BigDecimal.ZERO : product.getBaseRate());
+        } else if (formDto.getAmount() == null || formDto.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("가입 금액을 확인해주세요.");
+        }
+
         BigDecimal appliedRate = formDto.getAppliedRate();
         if (selectedCoupon != null) {
             // 화면에서 골랐던 쿠폰도 최종 저장 직전에 다시 확인해 이미 사용된 쿠폰의 중복 적용을 막는다.
@@ -476,6 +492,11 @@ public class ProductJoinServiceImpl implements ProductJoinService {
         ProductJoinEligibilityDto joinEligibility = getJoinEligibility(productNo, userNo);
         if (!joinEligibility.isCanJoin()) {
             throw new IllegalArgumentException(joinEligibility.getReason());
+        }
+
+        int activeRrnSubscriptionCount = productJoinDao.countActiveProductSubscriptionBySameRrn(userNo, productNo);
+        if (activeRrnSubscriptionCount > 0) {
+            throw new IllegalArgumentException("이미 동일한 주민등록번호로 가입된 상품입니다. 내 가입 상품에서 가입 내역을 확인해주세요.");
         }
 
         int activeSubscriptionCount = productJoinDao.countActiveProductSubscription(userNo, productNo);
@@ -555,7 +576,7 @@ public class ProductJoinServiceImpl implements ProductJoinService {
         subscriptionDto.setPeriodMonth(formDto.getPeriodMonth());
         subscriptionDto.setVerificationNo(verificationNo);
         subscriptionDto.setSubscriptionStatus("가입완료");
-        subscriptionDto.setMaturityDt(calculateMaturityDate(formDto.getPeriodMonth()));
+        subscriptionDto.setMaturityDt(isDemandDepositProduct(product) ? null : calculateMaturityDate(formDto.getPeriodMonth()));
         subscriptionDto.setAppliedRate(appliedRate);
         subscriptionDto.setRateChangedDt(new Date());
 
@@ -660,36 +681,75 @@ public class ProductJoinServiceImpl implements ProductJoinService {
     }
 
     private boolean isDemandDepositProduct(ProductDetailDto product) {
-        if (product == null || product.getProductType() == null) {
+        String productText = productKeywordText(product);
+        if (productText.isBlank()) {
             return false;
         }
 
-        String productType = product.getProductType();
-        // "예금"은 정기예금에도 포함되는 단어라 여기 조건에 넣으면 정기예금이 입출금식으로 오분류된다.
-        boolean isTermOrInstallment = productType.contains("정기") || productType.contains("적금");
-        return !isTermOrInstallment
-                && (productType.contains("통장") || productType.contains("입출금") || productType.contains("예금"));
+        // 적금/정기예금은 약정 기간을 가진 상품이므로 통장형 상품에서 제외한다.
+        if (productText.contains("적금") || productText.contains("정기")) {
+            return false;
+        }
+
+        // 정기/적금이 아닌 예금은 입출금식 통장 상품으로 본다.
+        // DB에 기간 값이 잘못 들어와도 통장/입출금/일반 예금은 가입기간과 가입금액을 받지 않는다.
+        return productText.contains("통장")
+                || productText.contains("입출금")
+                || productText.contains("예금")
+                || !hasJoinPeriod(product);
     }
 
-    // 상품명에 의존하지 않고 products.product_type 값으로 가입 유형을 결정한다.
+    private String productKeywordText(ProductDetailDto product) {
+        if (product == null) {
+            return "";
+        }
+
+        String productType = product.getProductType() == null ? "" : product.getProductType();
+        String productName = product.getProductName() == null ? "" : product.getProductName();
+        return productType + " " + productName;
+    }
+
+    private boolean hasJoinPeriod(ProductDetailDto product) {
+        if (product == null) {
+            return false;
+        }
+        return (product.getMinPeriodMonth() != null && product.getMinPeriodMonth() > 0)
+                || (product.getMaxPeriodMonth() != null && product.getMaxPeriodMonth() > 0);
+    }
+
+    private boolean requiresOcrVerification(ProductDetailDto product) {
+        String productText = productKeywordText(product);
+        if (productText.isBlank()) {
+            return false;
+        }
+
+        // 정기예금/적금은 기본적으로 휴대폰 인증, 통장형 입출금 상품은 신분증 OCR 인증 대상이다.
+        if (productText.contains("정기") || productText.contains("적금")) {
+            return false;
+        }
+
+        return productText.contains("예금")
+                || productText.contains("통장")
+                || productText.contains("입출금");
+    }
+
+    // 상품명과 products.product_type을 함께 보고 가입 유형을 결정한다.
     private String resolveSubscriptionType(ProductDetailDto product) {
-        String productType = product == null ? null : product.getProductType();
-        if (productType == null || productType.isBlank()) {
+        String productText = productKeywordText(product);
+        if (productText.isBlank()) {
             throw new IllegalArgumentException("상품 유형이 없어 가입 유형을 결정할 수 없습니다.");
         }
-        if (productType.contains("적금")) {
+        if (productText.contains("적금")) {
             return "FOREIGN_SAVINGS";
-        }
-        if (productType.contains("정기")) {
-            return "FOREIGN_TIME_DEPOSIT";
         }
         if (isDemandDepositProduct(product)) {
             return "FOREIGN_DEMAND_DEPOSIT";
         }
-        throw new IllegalArgumentException("지원하지 않는 외화 상품 유형입니다: " + productType);
-    }
-
-    private String saveSignatureImage(Long subscriptionNo, String signatureImageData) {
+        if (productText.contains("정기") || productText.contains("예금")) {
+            return "FOREIGN_TIME_DEPOSIT";
+        }
+        throw new IllegalArgumentException("지원하지 않는 외화 상품 유형입니다: " + productText);
+    }    private String saveSignatureImage(Long subscriptionNo, String signatureImageData) {
         try {
             String base64Data = signatureImageData;
 
