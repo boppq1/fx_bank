@@ -7,9 +7,45 @@
     <link rel="stylesheet" th:href="@{/css/fx-home.css}">
     <link rel="stylesheet" th:href="@{/css/fx-guide.css}">
     <style>
-        /* 정독 영역: terms-reader.html JS 가 scrollHeight/clientHeight 로 정독 판정 → 높이/스크롤은 기능, 토큰으로 재스타일 */
-        .reader { height: min(62vh, 600px); margin-top: 4px; padding: 22px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); }
-        .content { margin: 0; white-space: pre-wrap; word-break: break-all; font-size: 14px; line-height: 1.85; color: var(--text-body); }
+        .reader {
+            height: min(68vh, 680px);
+            margin-top: 4px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--surface);
+        }
+        .content {
+            margin: 0;
+            padding: 22px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-size: 14px;
+            line-height: 1.85;
+            color: var(--text-body);
+        }
+        .pdf-reader {
+            padding: 0;
+            background: #f6f7f9;
+        }
+        .pdf-frame-wrap {
+            min-height: 980px;
+            padding: 14px;
+        }
+        .pdf-frame {
+            width: 100%;
+            height: 920px;
+            display: block;
+            border: 0;
+            border-radius: var(--radius-sm);
+            background: #fff;
+        }
+        .pdf-bottom {
+            padding: 16px 18px 20px;
+            color: var(--text-sub);
+            font-size: 13.5px;
+            text-align: center;
+        }
         .hint { margin-top: 14px; color: var(--text-sub); font-size: 13.5px; }
     </style>
 </head>
@@ -21,14 +57,30 @@
     <div class="guide-hero-inner">
         <span class="guide-hero-badge">약관 정독</span>
         <h1 class="guide-hero-title" th:text="${term.termsTitle}">약관 제목</h1>
-        <p class="guide-hero-desc">아래 내용을 끝까지 확인한 뒤 동의 여부를 선택할 수 있습니다.</p>
+        <p class="guide-hero-desc">약관 원문을 끝까지 확인하면 동의 체크가 활성화됩니다.</p>
     </div>
 </section>
 
 <main class="guide-wrap">
     <div class="guide-section">
-        <main id="reader" class="reader"><p class="content" th:text="${term.termsText}">약관 내용</p></main>
-        <p id="hint" class="hint">약관을 끝까지 읽어주세요.</p>
+        <div th:if="${term.pdfPath != null and !#strings.isEmpty(term.pdfPath)}"
+             id="reader"
+             class="reader pdf-reader">
+            <div class="pdf-frame-wrap">
+                <iframe class="pdf-frame"
+                        title="약관 PDF 원문"
+                        th:src="@{/api/product/join/{productNo}/terms/{termsCode}/pdf(productNo=${product.productNo}, termsCode=${term.termsCode})}"></iframe>
+            </div>
+            <div class="pdf-bottom">약관 원문 마지막입니다.</div>
+        </div>
+
+        <div th:unless="${term.pdfPath != null and !#strings.isEmpty(term.pdfPath)}"
+             id="reader"
+             class="reader">
+            <p class="content" th:text="${term.termsText}">약관 내용</p>
+        </div>
+
+        <p id="hint" class="hint">약관을 끝까지 확인해 주세요.</p>
         <div class="guide-actions">
             <a class="btn btn-light" th:href="@{/product/join/{productNo}/terms(productNo=${product.productNo})}">이전</a>
             <button id="confirmButton" type="button" class="btn btn-primary" disabled>확인했습니다</button>
@@ -44,8 +96,17 @@
     const reader = document.getElementById('reader');
     const button = document.getElementById('confirmButton');
     const hint = document.getElementById('hint');
-    function canConfirm() { return reader.scrollHeight <= reader.clientHeight || reader.scrollTop + reader.clientHeight >= reader.scrollHeight - 2; }
-    function enableConfirm() { button.disabled = false; hint.textContent = '약관을 모두 읽었습니다.'; }
+
+    function canConfirm() {
+        return reader.scrollHeight <= reader.clientHeight
+            || reader.scrollTop + reader.clientHeight >= reader.scrollHeight - 3;
+    }
+
+    function enableConfirm() {
+        button.disabled = false;
+        hint.textContent = '약관을 모두 확인했습니다.';
+    }
+
     if (canConfirm()) enableConfirm();
     reader.addEventListener('scroll', () => { if (canConfirm()) enableConfirm(); });
     button.addEventListener('click', () => {
