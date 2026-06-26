@@ -183,18 +183,18 @@ button.gnb-login{border:0;cursor:pointer;font-family:inherit;}
   background:var(--grad-cta);
   color:#fff;box-shadow:var(--shadow);
 }
-.btn-primary:hover{transform:translateY(-1px);box-shadow:var(--shadow-lg);}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:var(--elev-hover);}
 .btn-ghost{
   background:transparent;color:#fff;
   border:1px solid rgba(255,255,255,.5);
 }
-.btn-ghost:hover{background:rgba(255,255,255,.12);}
+.btn-ghost:hover{background:rgba(255,255,255,.12);transform:translateY(-2px);}
 .btn-light{
   background:#fff;color:var(--violet);
   border:1px solid var(--border);
   box-shadow:var(--shadow-sm);
 }
-.btn-light:hover{transform:translateY(-1px);box-shadow:var(--shadow);}
+.btn-light:hover{transform:translateY(-2px);box-shadow:var(--elev-hover);}
 .btn-block{width:100%;margin-top:18px;}
 
 /* 환율 패널 - 히어로 위에 뜬 흰 카드 */
@@ -377,8 +377,10 @@ button.gnb-login{border:0;cursor:pointer;font-family:inherit;}
     linear-gradient(135deg,#5B47E6 0%,#4F46E5 100%);
 }
 .hero-blob{position:absolute;border-radius:50%;filter:blur(70px);opacity:.35;pointer-events:none;z-index:0;}
-.hero-blob-1{width:300px;height:300px;background:#8E7CFF;top:-90px;left:-50px;}
-.hero-blob-2{width:260px;height:260px;background:#3B82F6;bottom:-100px;right:8%;}
+.hero-blob-1{width:300px;height:300px;background:#8E7CFF;top:-90px;left:-50px;animation:blob-drift-a 20s var(--ease-out-quart) infinite alternate;}
+.hero-blob-2{width:260px;height:260px;background:#3B82F6;bottom:-100px;right:8%;animation:blob-drift-b 24s var(--ease-out-quart) infinite alternate;}
+@keyframes blob-drift-a{from{transform:translate(0,0) scale(1);}to{transform:translate(42px,30px) scale(1.12);}}
+@keyframes blob-drift-b{from{transform:translate(0,0) scale(1);}to{transform:translate(-36px,-24px) scale(1.1);}}
 .hero-inner{position:relative;z-index:1;}
 
 /* 히어로 featured 환율 카드 (glass) */
@@ -416,9 +418,9 @@ button.gnb-login{border:0;cursor:pointer;font-family:inherit;}
   position:relative;overflow:hidden;background:var(--surface);
   border:1px solid var(--border);border-radius:var(--radius);padding:20px;
   box-shadow:var(--shadow-sm);
-  transition:transform var(--t) var(--ease),box-shadow var(--t) var(--ease);
+  transition:transform var(--dur-base) var(--ease-out-quart),box-shadow var(--dur-base) var(--ease-out-quart),border-color var(--dur-base) var(--ease-out-quart);
 }
-.rate-card:hover{transform:translateY(-2px);box-shadow:var(--shadow);}
+.rate-card:hover{transform:translateY(-6px);box-shadow:var(--elev-hover);border-color:var(--rc,var(--violet-soft));}
 .rate-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--rc,var(--violet));}
 .rc-top{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
 .rc-flag{
