@@ -133,11 +133,6 @@ button.gnb-login{border:0;cursor:pointer;font-family:inherit;}
   font-size:13.5px;color:var(--text);
 }
 .gnb-search input::placeholder{color:var(--text-sub);}
-.gnb-bell{
-  border:0;background:transparent;cursor:pointer;font-size:17px;
-  width:34px;height:34px;border-radius:9px;transition:background var(--t) var(--ease);
-}
-.gnb-bell:hover{background:var(--lavender);}
 .gnb-login{
   background:var(--grad-cta);
   color:#fff;font-size:14px;font-weight:700;
