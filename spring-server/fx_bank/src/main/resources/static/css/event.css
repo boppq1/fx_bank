@@ -1,9 +1,27 @@
 @charset "UTF-8";
+:root{
+  --violet:#6D5BFF; --violet-soft:#8E7CFF; --violet-deep:#5A45E8;
+  --purple:#6D5BFF; --purple-soft:#8E7CFF; --purple-lt:#F2F0FB;   /* legacy 별칭 */
+  --navy:#1A1A2E; --navy-dark:#14142B;                            /* 이제 어두운 '텍스트' 색 */
+  --lavender:#F2F0FB; --bg:#F7F6FE; --surface:#FFFFFF; --border:#ECEAF6;
+  --text:#1A1A2E; --text-body:#33333D; --text-sub:#5C5C70;
+  --up:#E5484D; --down:#3E63DD;
+  --grad:linear-gradient(135deg,#6D5BFF 0%,#8E7CFF 100%);
+  --grad-cta:linear-gradient(135deg,#6D5BFF 0%,#5A45E8 100%);
+  --grad-hero:linear-gradient(135deg,#5B47E6 0%,#7C6BF0 100%);
+  --radius:16px; --radius-sm:12px;
+  --shadow-sm:0 2px 8px rgba(26,26,46,.06);
+  --shadow:0 8px 24px rgba(109,91,255,.10);
+  --shadow-lg:0 16px 40px rgba(109,91,255,.14);
+  --container:1200px; --t:160ms; --ease:cubic-bezier(.22,.61,.36,1);
+}
+
 .event-container {
     max-width: 600px;
     margin: 40px auto;
     padding: 20px;
     text-align: center;
+    color: var(--text-body);
 }
 
 .event-steps {
@@ -22,7 +40,7 @@
 .step-letter {
     font-size: 48px;
     font-weight: bold;
-    color: #0057A8;
+    color: var(--violet);
 }
 
 .status-grid {
@@ -34,41 +52,71 @@
 
 .status-item {
     padding: 20px;
-    border: 2px solid #ddd;
-    border-radius: 10px;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
     width: 150px;
+    color: var(--text);
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow var(--t) var(--ease), transform var(--t) var(--ease);
 }
 
 .status-item.done {
-    border-color: #0057A8;
-    background-color: #f0f7ff;
+    border-color: var(--violet);
+    background-color: var(--lavender);
 }
 
 .letter {
     font-size: 48px;
     font-weight: bold;
-    color: #0057A8;
+    color: var(--violet);
     display: block;
 }
 
-button {
+/* 이벤트 컨테이너 내부 버튼만 스코프 (헤더/푸터 공용 버튼으로 스타일이 새지 않게) */
+.event-container button {
     margin-top: 10px;
-    padding: 8px 16px;
-    background-color: #0057A8;
-    color: white;
+    padding: 10px 18px;
+    min-height: 44px;          /* 모바일 터치 타겟 */
+    background: var(--grad-cta);
+    color: #fff;
     border: none;
-    border-radius: 5px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
+    box-shadow: var(--shadow);
+    transition: transform var(--t) var(--ease), box-shadow var(--t) var(--ease);
+}
+
+.event-container button:hover {
+    transform: translateY(-1px);
 }
 
 .success-msg {
     margin-top: 30px;
     padding: 20px;
-    background-color: #e8f5e9;
-    border-radius: 10px;
+    background-color: var(--lavender);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
 }
 
 .app-only-msg {
     margin-top: 20px;
-    color: #888;
+    color: var(--text-sub);
+}
+
+/* ===== 이벤트 페이지 반응형 (event.css 전용 — 공용 fx-home/fx-guide 미수정) =====
+   헤더/푸터의 모바일 동작은 fx-home.css 의 기존 @media 가 처리하므로 건드리지 않음 */
+@media (max-width: 680px) {
+    .event-container { margin: 24px auto; padding: 16px; }
+    .event-steps { gap: 16px; flex-wrap: wrap; }
+    .step-letter { font-size: 40px; }
+}
+
+/* ===== 이벤트 현황(event-status) 반응형 — status 클래스만 (event.html @media 규칙 미수정) ===== */
+@media (max-width: 680px) {
+    .status-grid { flex-wrap: wrap; gap: 14px; }
+    .status-item { width: 100%; max-width: 260px; box-sizing: border-box; }
+    .success-msg { padding: 16px; }
 }

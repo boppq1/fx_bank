@@ -2,10 +2,14 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>이벤트 현황</title>
+    <link rel="stylesheet" th:href="@{/css/fx-home.css}">
     <link rel="stylesheet" th:href="@{/css/event.css}">
 </head>
 <body>
+
+<div th:replace="~{header :: header}"></div>
 
 <div class="event-container">
     <h2>나의 이벤트 현황</h2>
@@ -28,12 +32,14 @@
         </div>
     </div>
 
-    <!-- 모두 완료 시 -->
-    <div th:if="${event.isApplied == 'Y'}" class="success-msg">
+    <div th:if="${event.applied == 'Y'}" class="success-msg">
         <h3>🎉 축하합니다!</h3>
-        <p>B, N, K 모두 인증 완료! 우대금리가 적용되었습니다.</p>
+        <p>B, N, K 모두 인증 완료! <strong>우대금리 쿠폰이 발급되었습니다.</strong></p>
+        <p class="sub-msg">쿠폰함에서 발급된 쿠폰을 확인하고 적금 가입 시 사용해 보세요!</p>
     </div>
 </div>
+
+<div th:replace="~{footer :: footer}"></div>
 
 <script th:src="@{/js/event.js}"></script>
 </body>

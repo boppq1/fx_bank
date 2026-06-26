@@ -14,17 +14,10 @@ document.addEventListener("DOMContentLoaded", async function () {
 
 /* 메모리 휘발된 accessToken 을 쿠키 기반 refresh 로 복구 */
 async function recoverAccessToken() {
-  try {
-    const res = await fetch("/api/auth/refresh", { method: "POST" });
-    const result = await res.json();
-    if (result.success) {
-      window.accessToken = result.data.accessToken;
-    } else {
-      alert("로그인이 필요합니다. 다시 로그인해 주세요.");
-      location.href = "/login";
-    }
-  } catch (e) {
-    alert("인증 정보를 확인할 수 없습니다. 다시 로그인해 주세요.");
+  // 공용 single-flight 로 토큰 복구 (header-auth.js 와 refresh 호출 공유 → 중복/회전충돌 방지)
+  const token = await window.acquireAccessToken();
+  if (!token) {
+    alert("로그인이 필요합니다. 다시 로그인해 주세요.");
     location.href = "/login";
   }
 }

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>약관 읽기 | 상품 가입 | BNK 부산은행</title>
+    <link rel="stylesheet" th:href="@{/css/fx-home.css}">
+    <link rel="stylesheet" th:href="@{/css/fx-guide.css}">
+    <style>
+        /* 정독 영역: terms-reader.html JS 가 scrollHeight/clientHeight 로 정독 판정 → 높이/스크롤은 기능, 토큰으로 재스타일 */
+        .reader { height: min(62vh, 600px); margin-top: 4px; padding: 22px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); }
+        .content { margin: 0; white-space: pre-wrap; word-break: break-all; font-size: 14px; line-height: 1.85; color: var(--text-body); }
+        .hint { margin-top: 14px; color: var(--text-sub); font-size: 13.5px; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{header :: header}"></div>
+
+<section class="guide-hero">
+    <div class="guide-hero-inner">
+        <span class="guide-hero-badge">약관 정독</span>
+        <h1 class="guide-hero-title" th:text="${term.termsTitle}">약관 제목</h1>
+        <p class="guide-hero-desc">아래 내용을 끝까지 확인한 뒤 동의 여부를 선택할 수 있습니다.</p>
+    </div>
+</section>
+
+<main class="guide-wrap">
+    <div class="guide-section">
+        <main id="reader" class="reader"><p class="content" th:text="${term.termsText}">약관 내용</p></main>
+        <p id="hint" class="hint">약관을 끝까지 읽어주세요.</p>
+        <div class="guide-actions">
+            <a class="btn btn-light" th:href="@{/product/join/{productNo}/terms(productNo=${product.productNo})}">이전</a>
+            <button id="confirmButton" type="button" class="btn btn-primary" disabled>확인했습니다</button>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{footer :: footer}"></div>
+
+<script th:inline="javascript">
+    const productNo = /*[[${product.productNo}]]*/ 0;
+    const termsCode = /*[[${term.termsCode}]]*/ '';
+    const reader = document.getElementById('reader');
+    const button = document.getElementById('confirmButton');
+    const hint = document.getElementById('hint');
+    function canConfirm() { return reader.scrollHeight <= reader.clientHeight || reader.scrollTop + reader.clientHeight >= reader.scrollHeight - 2; }
+    function enableConfirm() { button.disabled = false; hint.textContent = '약관을 모두 읽었습니다.'; }
+    if (canConfirm()) enableConfirm();
+    reader.addEventListener('scroll', () => { if (canConfirm()) enableConfirm(); });
+    button.addEventListener('click', () => {
+        sessionStorage.setItem(`product-terms-read:${productNo}:${termsCode}`, 'Y');
+        location.href = `/product/join/${productNo}/terms`;
+    });
+</script>
+</body>
+</html>

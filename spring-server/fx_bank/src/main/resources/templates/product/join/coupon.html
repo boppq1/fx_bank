@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>우대금리 쿠폰 | 상품 가입 | BNK 부산은행</title>
+    <link rel="stylesheet" th:href="@{/css/fx-home.css}">
+    <link rel="stylesheet" th:href="@{/css/fx-guide.css}">
+    <style>
+        /* 쿠폰 항목 마크업은 coupon.html JS 가 innerHTML 로 생성(.coupon/.rate/.empty/radio name="couponNo") → 클래스명 유지, 토큰으로 재스타일 */
+        .muted { color: var(--text-sub); }
+        .coupon-list { margin-top: 4px; }
+        .coupon { display: flex; align-items: center; gap: 14px; padding: 16px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 10px; cursor: pointer; transition: border-color var(--t) var(--ease), background var(--t) var(--ease); }
+        .coupon:hover { border-color: var(--violet-soft); }
+        .coupon:has(input:checked) { border-color: var(--violet); background: var(--lavender); }
+        .coupon input[type=radio] { width: 18px; height: 18px; accent-color: var(--violet); }
+        .coupon .rate { margin-left: auto; color: var(--violet); font-size: 20px; font-weight: 800; }
+        .empty { padding: 28px 14px; border: 1px dashed var(--border); border-radius: var(--radius-sm); color: var(--text-sub); text-align: center; }
+        .error { margin-top: 14px; color: var(--up); font-size: 13.5px; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{header :: header}"></div>
+
+<section class="guide-hero">
+    <div class="guide-hero-inner">
+        <span class="guide-hero-badge">상품 가입</span>
+        <h1 class="guide-hero-title">우대금리 쿠폰</h1>
+        <p class="guide-hero-desc"><strong th:text="${product.productName}">상품명</strong> · 보유한 쿠폰이 있으면 이번 가입 금리에 적용할 수 있어요.</p>
+    </div>
+</section>
+
+<main class="guide-wrap">
+    <div class="guide-section">
+        <h2 class="guide-section-title">사용 가능한 쿠폰</h2>
+        <input id="productNo" type="hidden" th:value="${product.productNo}">
+        <section id="couponList" class="coupon-list" aria-live="polite"></section>
+        <div class="guide-actions">
+            <a class="btn btn-light" th:href="@{/product/join/{productNo}/terms(productNo=${product.productNo})}">이전</a>
+            <button id="skipButton" type="button" class="btn btn-light">쿠폰 없이 진행</button>
+            <button id="applyButton" type="button" class="btn btn-primary">쿠폰 적용</button>
+        </div>
+        <div id="message" class="error"></div>
+    </div>
+</main>
+
+<div th:replace="~{footer :: footer}"></div>
+
+<script>
+const productNo = Number(document.getElementById('productNo').value);
+const couponList = document.getElementById('couponList');
+const message = document.getElementById('message');
+
+async function ensureAccessToken() {
+    const token = await window.acquireAccessToken();   // 공용 single-flight (refresh 중복/회전충돌 방지)
+    if (!token) { location.href = '/login'; return null; }
+    return token;
+}
+
+function formatRate(rate) {
+    return `+${Number(rate).toFixed(2)}%p`;
+}
+
+async function saveSelection(couponNo) {
+    const token = await ensureAccessToken();
+    if (!token) return;
+    const response = await fetch('/api/product/join/coupon', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        credentials: 'same-origin',
+        body: JSON.stringify({ productNo, couponNo })
+    });
+    const body = await response.json();
+    if (!body.success) { message.textContent = body.message; return; }
+    location.href = `/product/join/${productNo}/form`;
+}
+
+async function loadCoupons() {
+    const token = await ensureAccessToken();
+    if (!token) return;
+    const response = await fetch(`/api/product/join/${productNo}/coupons`, {
+        headers: { 'Authorization': 'Bearer ' + token }, credentials: 'same-origin'
+    });
+    const body = await response.json();
+    if (!body.success) { message.textContent = body.message; return; }
+    if (!body.data.length) {
+        couponList.innerHTML = '<div class="empty">현재 사용할 수 있는 우대금리 쿠폰이 없습니다.</div>';
+        document.getElementById('applyButton').disabled = true;
+        return;
+    }
+    couponList.innerHTML = body.data.map(coupon => `
+        <label class="coupon">
+            <input type="radio" name="couponNo" value="${coupon.couponNo}">
+            <span>우대금리 쿠폰</span>
+            <strong class="rate">${formatRate(coupon.preferentialRate)}</strong>
+        </label>
+    `).join('');
+}
+
+document.getElementById('skipButton').addEventListener('click', () => saveSelection(null));
+document.getElementById('applyButton').addEventListener('click', () => {
+    const selected = document.querySelector('input[name="couponNo"]:checked');
+    if (!selected) { message.textContent = '적용할 쿠폰을 선택해주세요.'; return; }
+    saveSelection(Number(selected.value));
+});
+
+loadCoupons();
+</script>
+</body>
+</html>
