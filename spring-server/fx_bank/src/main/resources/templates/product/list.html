@@ -85,7 +85,7 @@
                     <td th:text="${product.currencyCodes}">USD</td>
                     <td th:text="${product.baseRate} + '%'">3.20%</td>
                     <td th:text="${product.maxRate} + '%'">4.50%</td>
-                    <td><span th:text="${product.minPeriodMonth}">6</span>개월 ~ <span th:text="${product.maxPeriodMonth}">12</span>개월</td>
+                    <td th:text="${product.minPeriodMonth == null or product.minPeriodMonth == 0 or product.maxPeriodMonth == null or product.maxPeriodMonth == 0 ? '기간 없음' : product.minPeriodMonth + '개월 ~ ' + product.maxPeriodMonth + '개월'}">기간 없음</td>
                     <td th:text="${#numbers.formatInteger(product.minAmount, 0, 'COMMA')} + '원'">500,000원</td>
                     <td><span th:text="${product.avgRating}">4.8</span> (<span th:text="${product.reviewCount}">0</span>)</td>
                     <td><a class="guide-link" th:href="@{/product/detail/{productNo}(productNo=${product.productNo})}">상세보기</a></td>

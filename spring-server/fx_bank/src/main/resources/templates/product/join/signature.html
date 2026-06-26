@@ -72,7 +72,7 @@ if (form) {
         ? '가입 금액 없음 (시작 잔액 0)'
         : Number(form.amount).toLocaleString('ko-KR');
     document.getElementById('period').textContent = isDemandDeposit
-        ? '가입기간 없음'
+        ? '기간 없음'
         : `${form.periodMonth}개월`;
     document.getElementById('rate').textContent = Number(form.appliedRate || 0) > 0
         ? `${Number(form.appliedRate).toFixed(2)}%`

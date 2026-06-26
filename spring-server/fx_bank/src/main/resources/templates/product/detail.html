@@ -109,7 +109,7 @@
         <div class="detail-summary">
             <div class="detail-summary-item"><span class="label">상품번호</span><span class="value" th:text="${product.productNo}">900001</span></div>
             <div class="detail-summary-item"><span class="label">상품유형</span><span class="value" th:text="${product.productType}">외화예금</span></div>
-            <div class="detail-summary-item"><span class="label">가입기간</span><span class="value"><span th:text="${product.minPeriodMonth}">6</span>개월 ~ <span th:text="${product.maxPeriodMonth}">12</span>개월</span></div>
+            <div class="detail-summary-item"><span class="label">가입기간</span><span class="value" th:text="${product.minPeriodMonth == null or product.minPeriodMonth == 0 or product.maxPeriodMonth == null or product.maxPeriodMonth == 0 ? '기간 없음' : product.minPeriodMonth + '개월 ~ ' + product.maxPeriodMonth + '개월'}">기간 없음</span></div>
             <div class="detail-summary-item"><span class="label">기본금리</span><span class="value" th:text="${product.baseRate} + '%'">3.20%</span></div>
             <div class="detail-summary-item"><span class="label">최고금리</span><span class="value" th:text="${product.maxRate} + '%'">4.50%</span></div>
             <div class="detail-summary-item"><span class="label">이자지급방식</span><span class="value" th:text="${product.interestPaymentType}">만기일시지급</span></div>
@@ -131,7 +131,7 @@
         <div class="guide-table-wrap">
             <table class="guide-table">
                 <thead><tr><th>가입기간</th><th>금리</th></tr></thead>
-                <tbody><tr th:each="rate : ${rates}"><td th:text="${rate.periodMonth} + '개월'">12개월</td><td th:text="${rate.interestRate} + '%'">4.50%</td></tr></tbody>
+                <tbody><tr th:each="rate : ${rates}"><td th:text="${rate.periodMonth == null or rate.periodMonth == 0 ? '기간 없음' : rate.periodMonth + '개월'}">기간 없음</td><td th:text="${rate.interestRate} + '%'">4.50%</td></tr></tbody>
             </table>
         </div>
     </div>
