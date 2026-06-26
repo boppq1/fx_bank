@@ -336,10 +336,14 @@ button.gnb-login{border:0;cursor:pointer;font-family:inherit;}
   .gnb-link{display:flex;align-items:center;justify-content:space-between;
             padding:13px 4px;font-size:16px;min-height:44px;line-height:1.4;}
   .gnb-link::after{display:none;}        /* 데스크톱 밑줄효과 제거 */
-  .gnb-item.has-sub > .gnb-link::after{  /* 하위 있는 항목에 펼침(▾) 표시 */
-    content:'▾';display:inline-block;font-size:12px;color:var(--text-sub);transition:transform var(--t) var(--ease);
+  /* 펼침 화살표(▾): 데스크톱 밑줄 ::after 속성(absolute·violet·scaleX)을 완전 초기화 → 모바일 탭/호버 시 보라줄 깨짐 방지 */
+  .gnb-item.has-sub > .gnb-link::after{
+    content:'▾';display:inline-block;
+    position:static;inset:auto;width:auto;height:auto;background:none;transform:none;
+    font-size:12px;color:var(--text-sub);transition:transform var(--t) var(--ease);
   }
-  .gnb-item.is-open > .gnb-link::after{transform:rotate(180deg);}   /* 열리면 ▴ */
+  /* 열렸을 때만 회전(이 규칙이 has-sub 의 transform:none, 전역 :hover scaleX 보다 뒤라서 우선 적용됨) */
+  .gnb-item.is-open > .gnb-link::after{transform:rotate(180deg);}
   /* 하위메뉴: 기본 숨김 → 해당 항목이 열렸(.is-open)을 때만 표시 */
   .gnb-dropdown{
     position:static;opacity:1;visibility:visible;transform:none;display:none;
