@@ -39,15 +39,15 @@
 <div th:replace="~{header :: header}"></div>
 
 <section class="guide-hero">
-    <div class="guide-hero-inner">
-        <span class="guide-hero-badge">외환 상품</span>
-        <h1 class="guide-hero-title">외화 상품 목록</h1>
-        <p class="guide-hero-desc">BNK 부산은행이 제공하는 외화 예금·적금 상품을 한눈에 비교하고 가입하세요. 현재 총 <strong th:text="${totalCount}">0</strong>개 상품을 운영 중입니다.</p>
+    <div class="guide-hero-inner" data-stagger="90">
+        <span class="guide-hero-badge" data-reveal>외환 상품</span>
+        <h1 class="guide-hero-title" data-reveal>외화 상품 목록</h1>
+        <p class="guide-hero-desc" data-reveal>BNK 부산은행이 제공하는 외화 예금·적금 상품을 한눈에 비교하고 가입하세요. 현재 총 <strong th:text="${totalCount}">0</strong>개 상품을 운영 중입니다.</p>
     </div>
 </section>
 
 <main class="guide-wrap">
-    <div class="guide-section">
+    <div class="guide-section" data-reveal>
         <div class="guide-rate-head">
             <h2 class="guide-section-title">상품 목록</h2>
             <a class="btn btn-light" href="/product/my-subscriptions">내 가입 상품</a>
@@ -90,7 +90,7 @@
                     <td><span th:text="${product.avgRating}">4.8</span> (<span th:text="${product.reviewCount}">0</span>)</td>
                     <td><a class="guide-link" th:href="@{/product/detail/{productNo}(productNo=${product.productNo})}">상세보기</a></td>
                     <td>
-                        <button type="button" class="join-button"
+                        <button type="button" class="join-button press" data-ripple
                                 th:attr="data-product-no=${product.productNo},data-product-type=${product.productType}">가입하기</button>
                     </td>
                 </tr>

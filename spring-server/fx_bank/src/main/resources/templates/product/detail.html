@@ -95,23 +95,23 @@
 <div th:replace="~{header :: header}"></div>
 
 <section class="guide-hero">
-    <div class="guide-hero-inner">
-        <span class="guide-hero-badge">외화 상품</span>
-        <h1 class="guide-hero-title" th:text="${product.productName}">상품명</h1>
-        <p class="guide-hero-desc" th:text="${product.description}">상품 설명</p>
+    <div class="guide-hero-inner" data-stagger="90">
+        <span class="guide-hero-badge" data-reveal>외화 상품</span>
+        <h1 class="guide-hero-title" data-reveal th:text="${product.productName}">상품명</h1>
+        <p class="guide-hero-desc" data-reveal th:text="${product.description}">상품 설명</p>
     </div>
 </section>
 
 <main class="guide-wrap">
 
-    <div class="guide-section">
+    <div class="guide-section" data-reveal>
         <h2 class="guide-section-title">기본 정보</h2>
         <div class="detail-summary">
             <div class="detail-summary-item"><span class="label">상품번호</span><span class="value" th:text="${product.productNo}">900001</span></div>
             <div class="detail-summary-item"><span class="label">상품유형</span><span class="value" th:text="${product.productType}">외화예금</span></div>
             <div class="detail-summary-item"><span class="label">가입기간</span><span class="value"><span th:text="${product.minPeriodMonth}">6</span>개월 ~ <span th:text="${product.maxPeriodMonth}">12</span>개월</span></div>
-            <div class="detail-summary-item"><span class="label">기본금리</span><span class="value" th:text="${product.baseRate} + '%'">3.20%</span></div>
-            <div class="detail-summary-item"><span class="label">최고금리</span><span class="value" th:text="${product.maxRate} + '%'">4.50%</span></div>
+            <div class="detail-summary-item"><span class="label">기본금리</span><span class="value" data-countup data-countup-suffix="%" th:text="${product.baseRate} + '%'">3.20%</span></div>
+            <div class="detail-summary-item"><span class="label">최고금리</span><span class="value" data-countup data-countup-suffix="%" th:text="${product.maxRate} + '%'">4.50%</span></div>
             <div class="detail-summary-item"><span class="label">이자지급방식</span><span class="value" th:text="${product.interestPaymentType}">만기일시지급</span></div>
             <div class="detail-summary-item"><span class="label">최소금액</span><span class="value" th:text="${#numbers.formatInteger(product.minAmount, 0, 'COMMA')} + '원'">500,000원</span></div>
             <div class="detail-summary-item"><span class="label">최대금액</span><span class="value" th:text="${product.maxAmount == null ? '제한 없음' : #numbers.formatInteger(product.maxAmount, 0, 'COMMA') + '원'}">제한 없음</span></div>
@@ -119,14 +119,14 @@
         </div>
     </div>
 
-    <div class="guide-section">
+    <div class="guide-section" data-reveal>
         <h2 class="guide-section-title">가입 가능 통화</h2>
         <div>
             <span class="guide-cat" th:each="currency : ${currencies}"><span th:text="${currency.currencyCode}">USD</span> · <span th:text="${currency.currencyName}">미국 달러</span></span>
         </div>
     </div>
 
-    <div class="guide-section">
+    <div class="guide-section" data-reveal>
         <h2 class="guide-section-title">기간별 금리</h2>
         <div class="guide-table-wrap">
             <table class="guide-table">
@@ -136,7 +136,7 @@
         </div>
     </div>
 
-    <div class="guide-section">
+    <div class="guide-section" data-reveal>
         <h2 class="guide-section-title">우대금리</h2>
         <div class="guide-table-wrap">
             <table class="guide-table">
@@ -146,7 +146,7 @@
         </div>
     </div>
 
-    <div class="guide-section">
+    <div class="guide-section" data-reveal>
         <h2 class="guide-section-title">약관</h2>
         <div class="terms-list">
             <details class="term" th:each="term : ${terms}">
@@ -165,7 +165,7 @@
         </div>
     </div>
 
-    <div class="guide-section">
+    <div class="guide-section" data-reveal>
         <h2 class="guide-section-title">리뷰</h2>
         <p class="guide-note" th:if="${#lists.isEmpty(reviews)}">아직 리뷰가 없습니다.</p>
         <article class="review" th:each="review : ${reviews}">
@@ -180,8 +180,8 @@
 
     <div class="guide-section">
         <div class="guide-actions">
-            <a class="btn btn-light" th:href="@{/product/list}">상품 목록으로</a>
-            <button type="button" id="joinBtn" class="btn btn-primary">가입하기</button>
+            <a class="btn btn-light press" data-ripple th:href="@{/product/list}">상품 목록으로</a>
+            <button type="button" id="joinBtn" class="btn btn-primary glow press" data-ripple>가입하기</button>
         </div>
     </div>
 
