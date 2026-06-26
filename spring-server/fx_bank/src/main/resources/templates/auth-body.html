@@ -10,7 +10,7 @@
   <div class="auth-wrap">
 
     <!-- 좌측 소개 -->
-    <aside class="auth-intro">
+    <aside class="auth-intro" data-reveal="left">
       <div class="intro-mark">₩</div>
       <span class="intro-logo">BNK 부산은행 외환</span>
       <h1 class="intro-title">외환 거래,<br>더 쉽고 안전하게</h1>
@@ -28,7 +28,7 @@
     </aside>
 
     <!-- 우측 카드 -->
-    <section class="auth-card">
+    <section class="auth-card" data-reveal="scale">
 
       <!-- 탭 -->
       <div class="auth-tabs" data-active="login">
@@ -59,7 +59,7 @@
             </div>
           </div>
 
-          <button type="button" id="loginBtn" class="btn btn-primary btn-block">로그인</button>
+          <button type="button" id="loginBtn" class="btn btn-primary btn-block press" data-ripple>로그인</button>
 
           <p class="switch-line">
             계정이 없으신가요? <button type="button" class="switch-link" data-tab="register">회원가입</button>
@@ -222,7 +222,7 @@
               </label>
             </div>
 
-            <button type="submit" id="registerSubmit" class="btn btn-primary btn-block" disabled>회원가입 완료</button>
+            <button type="submit" id="registerSubmit" class="btn btn-primary btn-block press" data-ripple disabled>회원가입 완료</button>
 
             <p class="switch-line">
               이미 계정이 있으신가요? <button type="button" class="switch-link" data-tab="login">로그인</button>

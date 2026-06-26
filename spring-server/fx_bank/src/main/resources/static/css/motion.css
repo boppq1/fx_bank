@@ -97,6 +97,22 @@ input:focus-visible, select:focus-visible, textarea:focus-visible,
 @keyframes fade-slide-up{from{opacity:0;transform:translateY(var(--reveal-dist));}to{opacity:1;transform:none;}}
 @keyframes fade-in{from{opacity:0;}to{opacity:1;}}
 
+/* ===================== guide-* 페이지 섹션 로드 진입 =====================
+   list/detail 처럼 data-reveal 을 직접 쓰는 페이지는 제외(:not([data-reveal])).
+   가입플로우·fx·리뷰·마이페이지 등 공통 guide-wrap 페이지에 일괄 stagger 진입 부여. */
+@media (prefers-reduced-motion: no-preference){
+  html.motion .guide-wrap > .guide-section:not([data-reveal]){
+    animation:fade-slide-up var(--dur-slow) var(--ease-out-expo) both;
+  }
+  html.motion .guide-wrap > .guide-section:not([data-reveal]):nth-child(2){animation-delay:60ms;}
+  html.motion .guide-wrap > .guide-section:not([data-reveal]):nth-child(3){animation-delay:120ms;}
+  html.motion .guide-wrap > .guide-section:not([data-reveal]):nth-child(4){animation-delay:180ms;}
+  html.motion .guide-wrap > .guide-section:not([data-reveal]):nth-child(5){animation-delay:240ms;}
+  html.motion .guide-wrap > .guide-section:not([data-reveal]):nth-child(n+6){animation-delay:300ms;}
+  /* guide 히어로(데이터-리빌 미사용 페이지)도 부드럽게 진입 */
+  html.motion .guide-hero:not(:has([data-reveal])){animation:fade-slide-up var(--dur-base) var(--ease-out-expo) both;}
+}
+
 /* ============================================================
    reduced-motion: 모든 모션 제거/축소
    ============================================================ */

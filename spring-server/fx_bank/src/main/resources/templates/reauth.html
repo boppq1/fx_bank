@@ -12,7 +12,7 @@
 
   <main class="auth-main">
     <div class="auth-wrap" style="grid-template-columns:1fr;max-width:520px;">
-      <section class="auth-card">
+      <section class="auth-card" data-reveal="scale">
         <h1 class="intro-title" style="font-size:24px;margin-bottom:8px;">신분증 재인증</h1>
         <p class="field-hint" style="margin-bottom:20px;">
           개인정보 보관기한(3일)이 지나 주민등록번호가 자동 파기되었습니다.<br>
@@ -43,7 +43,7 @@
             <input type="hidden" id="rrnMasked">
           </div>
 
-          <button type="submit" class="btn btn-primary btn-block">재인증 완료</button>
+          <button type="submit" class="btn btn-primary btn-block press" data-ripple>재인증 완료</button>
         </form>
       </section>
     </div>
