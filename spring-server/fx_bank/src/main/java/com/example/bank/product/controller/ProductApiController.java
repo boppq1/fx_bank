@@ -20,9 +20,9 @@ public class ProductApiController {
 
     private final IProductTermVersionDao termVersionDao;
 
-    // 사용자용 약관 PDF 다운로드
+    // ?ъ슜?먯슜 ?쎄? PDF ?ㅼ슫濡쒕뱶
     @GetMapping("/terms/{termVersionNo}/pdf")
-    public ResponseEntity<Resource> downloadTermsPdf(@PathVariable long termVersionNo) {
+    public ResponseEntity<Resource> downloadTermsPdf(@PathVariable("termVersionNo") long termVersionNo) {
         ProductTermVersionDto version = termVersionDao.selectVersionByNo(termVersionNo);
         if (version == null || version.getPdfPath() == null) {
             return ResponseEntity.notFound().build();

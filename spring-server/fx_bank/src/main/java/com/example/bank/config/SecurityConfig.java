@@ -23,28 +23,29 @@ public class SecurityConfig {
     
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        System.out.println("SecurityFilter 동작");
-        // 1. 비대면 REST API 서버이므로 불필요한 기본 기능 비활성화
-        http.csrf(csrf -> csrf.disable()); // CSRF 공격 방어 비활성화 (토큰 쓰니까 필요 없음)
-        http.formLogin(form -> form.disable()); // 기본 제공되는 못생긴 로그인 폼 끄기
+        System.out.println("SecurityFilter ?숈옉");
+        // 1. 鍮꾨?硫?REST API ?쒕쾭?대?濡?遺덊븘?뷀븳 湲곕낯 湲곕뒫 鍮꾪솢?깊솕
+        http.csrf(csrf -> csrf.disable()); // CSRF 怨듦꺽 諛⑹뼱 鍮꾪솢?깊솕 (?좏겙 ?곕땲源??꾩슂 ?놁쓬)
+        http.formLogin(form -> form.disable()); // 湲곕낯 ?쒓났?섎뒗 紐살깮湲?濡쒓렇?????꾧린
         http.httpBasic(basic -> basic.disable()); // 기본 인증 방식 끄기
+        http.headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
         
-        // 2. 우리는 세션(메모리)을 쓰지 않고 토큰(JWT)과 레디스를 쓸 것이라고 쾅쾅 선언!
+        // 2. ?곕━???몄뀡(硫붾え由????곗? ?딄퀬 ?좏겙(JWT)怨??덈뵒?ㅻ? ??寃껋씠?쇨퀬 苡낆푷 ?좎뼵!
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-        // 3. 🚨 URL별 접근 권한 설정 (핵심)
+        // 3. ?슚 URL蹂??묎렐 沅뚰븳 ?ㅼ젙 (?듭떖)
         http.authorizeHttpRequests(auth -> auth
-                // 로그인, 재발급, 로그아웃 API와 기본 화면(html, js 등)은 토큰 없이도 무조건 통과 (프리패스)
-        		.requestMatchers("/a","/", "/login","/register","/reauth", "/api/auth/**","/products", "/product/**","/fx/**", "/api/fx/**","/css/**", "/js/**", "/admin/**", "/error", "/event/**", "/event-status", "/chatbot/**", "/mbti", "/api/product/terms/*/pdf").permitAll()
+                // 濡쒓렇?? ?щ컻湲? 濡쒓렇?꾩썐 API? 湲곕낯 ?붾㈃(html, js ??? ?좏겙 ?놁씠??臾댁“嫄??듦낵 (?꾨━?⑥뒪)
+        		.requestMatchers("/a","/", "/login","/register","/reauth", "/api/auth/**","/products", "/product/**","/fx/**", "/api/fx/**","/css/**", "/js/**", "/admin/**", "/error", "/event/**", "/event-status", "/chatbot/**", "/mbti", "/api/product/terms/*/pdf", "/api/product/join/*/terms/*/pdf", "/api/product/join/*/terms/*/pdf/page/*").permitAll()
 
-                // 2) ⭐ 대출 API 권한 명시 (반드시 anyRequest보다 위에 적어야 함!)
-                // .requestMatchers("/api/bank/loan").authenticated() // 또는 권한 적용 시 .hasRole("USER")
+                // 2) 狩??異?API 沅뚰븳 紐낆떆 (諛섎뱶??anyRequest蹂대떎 ?꾩뿉 ?곸뼱????)
+                // .requestMatchers("/api/bank/loan").authenticated() // ?먮뒗 沅뚰븳 ?곸슜 ??.hasRole("USER")
                 
-                // 3) 나머지 모든 요청 차단
+                // 3) ?섎㉧吏 紐⑤뱺 ?붿껌 李⑤떒
                 .anyRequest().authenticated()
         );
 
-        // 4. 우리가 만든 커스텀 경비원(JwtFilter)을, 스프링 기본 경비원보다 먼저 입구에 배치
+        // 4. ?곕━媛 留뚮뱺 而ㅼ뒪? 寃쎈퉬??JwtFilter)?? ?ㅽ봽留?湲곕낯 寃쎈퉬?먮낫??癒쇱? ?낃뎄??諛곗튂
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -56,3 +57,5 @@ public class SecurityConfig {
 
 
 }
+
+
