@@ -8,24 +8,11 @@
   document.addEventListener("DOMContentLoaded", initHeaderAuth);
 
   async function initHeaderAuth() {
-    console.log("[header-auth] 스크립트 실행됨");
-    try {
-      const res = await fetch("/api/auth/refresh", { method: "POST" });
-      const result = await res.json();
-      console.log("[header-auth] refresh 응답:", result);
-
-      if (result.success && result.data && result.data.accessToken) {
-        window.accessToken = result.data.accessToken;
-        const nameKo = getNameFromToken(window.accessToken);
-        console.log("[header-auth] 로그인 상태 인식, 이름:", nameKo);
-        showLoggedIn(nameKo);
-      } else {
-        console.log("[header-auth] 비로그인 상태로 표시 (refresh 실패)");
-        showGuest();
-      }
-    } catch (e) {
-      console.error("[header-auth] refresh 통신 오류:", e);
-      // 통신 실패 시에는 비로그인 상태로 둔다 (로그인 버튼 노출)
+    // 공용 single-flight 로 토큰 복구 (페이지 스크립트와 refresh 호출을 공유 → 중복/회전충돌 방지)
+    const token = await window.acquireAccessToken();
+    if (token) {
+      showLoggedIn(getNameFromToken(token));
+    } else {
       showGuest();
     }
   }

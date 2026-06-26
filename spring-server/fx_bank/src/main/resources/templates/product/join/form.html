@@ -127,15 +127,12 @@ let identityVerificationRequired = true;
 let phoneVerified = false;
 
 async function ensureAccessToken() {
-    if (window.accessToken) return window.accessToken;
-    const res = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'same-origin' });
-    const body = await res.json();
-    if (!body.success || !body.data || !body.data.accessToken) {
+    const token = await window.acquireAccessToken();   // 공용 single-flight (refresh 중복/회전충돌 방지)
+    if (!token) {
         location.href = '/login';
         return null;
     }
-    window.accessToken = body.data.accessToken;
-    return window.accessToken;
+    return token;
 }
 
 async function apiFetch(url, options) {

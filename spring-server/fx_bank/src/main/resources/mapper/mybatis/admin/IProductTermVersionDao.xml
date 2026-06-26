@@ -20,7 +20,6 @@
         <result property="createdBy"     column="created_by"/>
     </resultMap>
 
-    <!-- 목록/조회용: terms_text(CLOB) 제외하여 가볍게 -->
     <resultMap id="VersionListResultMap" type="com.example.bank.admin.dto.ProductTermVersionDto" extends="VersionResultMap">
     </resultMap>
 
@@ -31,7 +30,6 @@
         AND is_current = 'Y'
     </select>
 
-    <!-- 특정 시점(asOfDate, 'YYYY-MM-DD')에 유효했던 버전: 가입 당시 적용 약관 추적용 -->
     <select id="selectVersionAt" resultMap="VersionResultMap">
         SELECT *
         FROM product_term_versions
@@ -46,7 +44,6 @@
         WHERE term_version_no = #{termVersionNo}
     </select>
 
-    <!-- 전체 버전 이력 (최신순). 본문(CLOB)은 제외하고 메타정보만 -->
     <select id="selectVersionHistory" resultMap="VersionListResultMap">
         SELECT
         term_version_no, terms_no, major_version, minor_version,
@@ -57,7 +54,6 @@
         ORDER BY major_version DESC, minor_version DESC
     </select>
 
-    <!-- 새 버전번호 산정을 위해 가장 최근 행(번호 최대) 조회 -->
     <select id="selectLatestVersionRow" resultMap="VersionResultMap">
         SELECT *
         FROM product_term_versions
