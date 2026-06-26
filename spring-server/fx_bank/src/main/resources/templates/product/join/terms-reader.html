@@ -100,9 +100,18 @@
     const button = document.getElementById('confirmButton');
     const hint = document.getElementById('hint');
 
+    const isPdfReader = reader.classList.contains('pdf-reader');
+    let userScrolled = false;
+
+    function isAtBottom() {
+        return reader.scrollTop + reader.clientHeight >= reader.scrollHeight - 5;
+    }
+
     function canConfirm() {
-        return reader.scrollHeight <= reader.clientHeight
-            || reader.scrollTop + reader.clientHeight >= reader.scrollHeight - 3;
+        if (isPdfReader) {
+            return userScrolled && isAtBottom();
+        }
+        return reader.scrollHeight <= reader.clientHeight || isAtBottom();
     }
 
     function enableConfirm() {
@@ -110,8 +119,11 @@
         hint.textContent = '약관을 모두 확인했습니다.';
     }
 
-    if (canConfirm()) enableConfirm();
-    reader.addEventListener('scroll', () => { if (canConfirm()) enableConfirm(); });
+    if (!isPdfReader && canConfirm()) enableConfirm();
+    reader.addEventListener('scroll', () => {
+        userScrolled = true;
+        if (canConfirm()) enableConfirm();
+    });
     button.addEventListener('click', () => {
         sessionStorage.setItem(`product-terms-read:${productNo}:${termsCode}`, 'Y');
         location.href = `/product/join/${productNo}/terms`;
