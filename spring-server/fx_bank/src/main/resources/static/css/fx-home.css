@@ -355,13 +355,6 @@ button.gnb-login{border:0;cursor:pointer;font-family:inherit;}
   padding:20px 32px;
 }
 .copyright{font-size:12.5px;color:var(--text-sub);letter-spacing:.3px;}
-.family-site{
-  background:var(--surface);
-  color:var(--text-sub);border:1px solid var(--border);
-  border-radius:8px;padding:9px 14px;font-size:12.5px;cursor:pointer;
-  outline:none;
-}
-.family-site option{background:var(--surface);color:var(--text);}
 
 /* ====================== 반응형 ====================== */
 @media (max-width:1040px){
@@ -481,37 +474,10 @@ button.gnb-login{border:0;cursor:pointer;font-family:inherit;}
 .rc-spark{margin-top:12px;}
 .rc-spark svg{display:block;width:100%;height:auto;}
 
-/* 빠른 이용 */
-.quick-section{padding:24px 0 64px;}
-.quick-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
-.quick-card{
-  display:flex;align-items:center;gap:16px;background:var(--surface);
-  border:1px solid var(--border);border-radius:var(--radius);padding:22px 24px;
-  box-shadow:var(--shadow-sm);
-  transition:transform var(--t) var(--ease),box-shadow var(--t) var(--ease),border-color var(--t) var(--ease);
-}
-.quick-card:hover{transform:translateY(-2px);box-shadow:var(--shadow);}
-.qc-ico{
-  width:50px;height:50px;border-radius:14px;flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;font-size:24px;
-}
-.qc-violet .qc-ico{background:rgba(109,91,255,.12);}
-.qc-blue .qc-ico{background:rgba(59,130,246,.12);}
-.qc-mint .qc-ico{background:rgba(20,184,166,.12);}
-.qc-violet:hover{border-color:var(--violet-soft);}
-.qc-blue:hover{border-color:#9DC1FB;}
-.qc-mint:hover{border-color:#7FD8CC;}
-.qc-text{flex:1;}
-.qc-text strong{display:block;font-size:16px;font-weight:700;color:var(--text);}
-.qc-text span{font-size:12.5px;color:var(--text-sub);}
-.qc-arrow{color:var(--text-sub);font-size:18px;transition:transform var(--t) var(--ease),color var(--t) var(--ease);}
-.quick-card:hover .qc-arrow{transform:translateX(3px);color:var(--violet);}
-
 /* 대시보드 반응형 */
 @media (max-width:1040px){
   .hero-feature{max-width:440px;}
   .rate-cards{grid-template-columns:repeat(2,1fr);}
-  .quick-grid{grid-template-columns:1fr;}
 }
 @media (max-width:680px){
   .rate-cards{grid-template-columns:1fr 1fr;}

@@ -147,8 +147,6 @@
   width:17px;height:17px;accent-color:var(--violet);cursor:pointer;
 }
 .checkbox span{font-size:13.5px;color:var(--text-sub);}
-.link-find{font-size:13.5px;color:var(--violet);font-weight:600;}
-.link-find:hover{text-decoration:underline;}
 
 /* JWT 안내 박스 */
 .jwt-note{
@@ -174,30 +172,6 @@
 }
 .btn-primary:hover{transform:translateY(-1px);box-shadow:var(--shadow-lg);}
 .btn-block{width:100%;height:54px;}
-
-/* 구분선 */
-.divider{
-  position:relative;text-align:center;margin:24px 0 18px;
-}
-.divider::before{
-  content:"";position:absolute;top:50%;left:0;right:0;height:1px;background:var(--border);
-}
-.divider span{
-  position:relative;background:var(--surface);padding:0 14px;
-  font-size:12.5px;color:var(--text-sub);
-}
-
-/* 간편 로그인 */
-.social-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
-.social{
-  height:50px;border:0;border-radius:var(--radius-sm);cursor:pointer;
-  font-size:14px;font-weight:700;font-family:inherit;
-  transition:transform var(--t) var(--ease),filter var(--t) var(--ease);
-}
-.social:hover{transform:translateY(-1px);filter:brightness(.97);}
-.social-kakao{background:#FEE500;color:#3A2929;}
-.social-naver{background:#03C75A;color:#fff;}
-.social-apple{background:#111;color:#fff;}
 
 /* 전환 링크 */
 .switch-line{
@@ -312,5 +286,4 @@
   .grid-2{grid-template-columns:1fr;}
   .intro-title{font-size:30px;}
   .input-box.sm{width:110px;}
-  .social-row{grid-template-columns:1fr;}
 }
