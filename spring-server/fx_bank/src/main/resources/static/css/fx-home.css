@@ -378,7 +378,8 @@ button.gnb-login{border:0;cursor:pointer;font-family:inherit;}
 }
 @media (max-width:680px){
   /* === 모바일 헤더: 상위 메뉴를 브랜드 아래 줄로 항상 표시 + 탭하면 하위 아코디언 펼침 === */
-  .gnb-inner{gap:8px;flex-wrap:wrap;}
+  /* 데스크톱 고정높이(74px) 해제 → 메뉴가 펼쳐진 만큼 헤더가 늘어나 아래 배너와 안 겹침 */
+  .gnb-inner{gap:8px;flex-wrap:wrap;height:auto;min-height:56px;padding-top:8px;padding-bottom:8px;}
   .gnb-search{display:none;}
   .gnb-tools{display:none;}              /* 검색/벨/로그인은 상단 util-bar 로 접근 */
   .util-bar ul{gap:12px;}
