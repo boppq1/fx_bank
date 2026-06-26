@@ -37,3 +37,5 @@ out/
 .vscode/
 
 **/application-local.properties
+uploads/terms/
+uploads/signatures/
