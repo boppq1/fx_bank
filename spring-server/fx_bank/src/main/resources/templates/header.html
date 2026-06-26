@@ -11,6 +11,10 @@
   <!-- 아이콘 폰트: Bootstrap Icons (link 로드) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
+  <!-- 프리미엄 모션 시스템 (전 페이지 공용: 토큰·유틸 CSS + 엔진 JS). JS는 동기 로드로 html.motion 을 먼저 부여(FOUC 최소화) -->
+  <link rel="stylesheet" th:href="@{/css/motion.css}">
+  <script th:src="@{/js/motion.js}"></script>
+
   <!-- 구글 번역 위젯 (숨김) + 다국어 드롭다운 스타일 -->
   <style>
     #google_translate_element{display:none !important;}
