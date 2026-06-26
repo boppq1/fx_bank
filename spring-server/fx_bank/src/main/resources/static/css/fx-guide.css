@@ -255,9 +255,9 @@
     color: var(--text);
     line-height: 1.6;
 }
-.guide-note::before { content: "ℹ️"; flex: 0 0 auto; }
+.guide-note::before { font-family: "bootstrap-icons"; content: "\f431"; color: var(--violet); flex: 0 0 auto; }
 .guide-note.guide-warn { background: #FFF7E8; border-color: #F3DDB0; }
-.guide-note.guide-warn::before { content: "⚠️"; }
+.guide-note.guide-warn::before { content: "\f33b"; color: #C77700; }
 
 /* ---------- 카드 그리드 (환전가능금액 등) ---------- */
 .guide-cards {

@@ -17,23 +17,23 @@
     <div class="status-grid">
         <div class="status-item" th:classappend="${event.b == 'Y'} ? 'done' : ''">
             <span class="letter">B</span>
-            <span th:text="${event.b == 'Y'} ? '✅ 인증완료' : '❌ 미인증'"></span>
+            <i class="bi" th:classappend="${event.b == 'Y'} ? 'bi-check-circle-fill' : 'bi-x-circle-fill'" aria-hidden="true"></i> <span th:text="${event.b == 'Y'} ? '인증완료' : '미인증'"></span>
             <button th:if="${event.b == 'N'}" onclick="openCamera('B')">인증하기</button>
         </div>
         <div class="status-item" th:classappend="${event.n == 'Y'} ? 'done' : ''">
             <span class="letter">N</span>
-            <span th:text="${event.n == 'Y'} ? '✅ 인증완료' : '❌ 미인증'"></span>
+            <i class="bi" th:classappend="${event.n == 'Y'} ? 'bi-check-circle-fill' : 'bi-x-circle-fill'" aria-hidden="true"></i> <span th:text="${event.n == 'Y'} ? '인증완료' : '미인증'"></span>
             <button th:if="${event.n == 'N'}" onclick="openCamera('N')">인증하기</button>
         </div>
         <div class="status-item" th:classappend="${event.k == 'Y'} ? 'done' : ''">
             <span class="letter">K</span>
-            <span th:text="${event.k == 'Y'} ? '✅ 인증완료' : '❌ 미인증'"></span>
+            <i class="bi" th:classappend="${event.k == 'Y'} ? 'bi-check-circle-fill' : 'bi-x-circle-fill'" aria-hidden="true"></i> <span th:text="${event.k == 'Y'} ? '인증완료' : '미인증'"></span>
             <button th:if="${event.k == 'N'}" onclick="openCamera('K')">인증하기</button>
         </div>
     </div>
 
     <div th:if="${event.applied == 'Y'}" class="success-msg">
-        <h3>🎉 축하합니다!</h3>
+        <h3><i class="bi bi-trophy" aria-hidden="true"></i> 축하합니다!</h3>
         <p>B, N, K 모두 인증 완료! <strong>우대금리 쿠폰이 발급되었습니다.</strong></p>
         <p class="sub-msg">쿠폰함에서 발급된 쿠폰을 확인하고 적금 가입 시 사용해 보세요!</p>
     </div>
