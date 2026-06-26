@@ -28,19 +28,20 @@
             padding: 0;
             background: #f6f7f9;
         }
-        .pdf-frame-wrap {
-            min-height: 980px;
-            padding: 14px;
+                .pdf-pages {
+            display: grid;
+            gap: 18px;
+            padding: 18px;
+            background: #f6f7f9;
         }
-        .pdf-frame {
-            width: 100%;
-            height: 920px;
+        .pdf-page {
+            width: min(100%, 860px);
+            margin: 0 auto;
             display: block;
-            border: 0;
             border-radius: var(--radius-sm);
             background: #fff;
-        }
-        .pdf-bottom {
+            box-shadow: 0 8px 24px rgba(15, 23, 42, .10);
+        }        .pdf-bottom {
             padding: 16px 18px 20px;
             color: var(--text-sub);
             font-size: 13.5px;
@@ -66,10 +67,12 @@
         <div th:if="${term.pdfPath != null and !#strings.isEmpty(term.pdfPath)}"
              id="reader"
              class="reader pdf-reader">
-            <div class="pdf-frame-wrap">
-                <iframe class="pdf-frame"
-                        title="약관 PDF 원문"
-                        th:src="@{/api/product/join/{productNo}/terms/{termsCode}/pdf(productNo=${product.productNo}, termsCode=${term.termsCode})}"></iframe>
+                        <div class="pdf-pages">
+                <img class="pdf-page"
+                     th:each="pageNo : ${pdfPageNumbers}"
+                     th:src="@{/api/product/join/{productNo}/terms/{termsCode}/pdf/page/{pageNo}(productNo=${product.productNo}, termsCode=${term.termsCode}, pageNo=${pageNo})}"
+                     th:alt="|약관 ${pageNo}쪽|"
+                     loading="lazy">
             </div>
             <div class="pdf-bottom">약관 원문 마지막입니다.</div>
         </div>

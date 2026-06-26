@@ -23,6 +23,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.ImageType;
+import org.apache.pdfbox.rendering.PDFRenderer;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -38,11 +41,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
+import javax.imageio.ImageIO;
 
 @RestController
 @RequestMapping("/api/product/join")
@@ -290,6 +296,43 @@ public class ProductJoinController {
                 .body(resource);
     }
 
+    @GetMapping(value = "/{productNo}/terms/{termsCode}/pdf/page/{pageNo}", produces = MediaType.IMAGE_JPEG_VALUE)
+    public ResponseEntity<byte[]> getTermsPdfPageImage(
+            @PathVariable("productNo") Long productNo,
+            @PathVariable("termsCode") String termsCode,
+            @PathVariable("pageNo") int pageNo
+    ) {
+        ProductTermDto term = productJoinService.getJoinTerms(productNo).stream()
+                .filter(item -> termsCode.equals(item.getTermsCode()))
+                .findFirst()
+                .orElse(null);
+        if (term == null || term.getPdfPath() == null || term.getPdfPath().isBlank()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Path pdfPath = Path.of(term.getPdfPath()).normalize();
+        if (!Files.isRegularFile(pdfPath) || pageNo < 1) {
+            return ResponseEntity.notFound().build();
+        }
+
+        try (PDDocument document = PDDocument.load(pdfPath.toFile());
+             ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            if (pageNo > document.getNumberOfPages()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            PDFRenderer renderer = new PDFRenderer(document);
+            BufferedImage image = renderer.renderImageWithDPI(pageNo - 1, 135, ImageType.RGB);
+            ImageIO.write(image, "jpg", output);
+
+            return ResponseEntity.ok()
+                    .cacheControl(org.springframework.http.CacheControl.noCache())
+                    .contentType(MediaType.IMAGE_JPEG)
+                    .body(output.toByteArray());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
     @GetMapping("/my-subscriptions")
     public ApiResponse<List<ProductMySubscriptionDto>> getMySubscriptions(Authentication authentication) {
         try {
