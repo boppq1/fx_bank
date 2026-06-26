@@ -83,6 +83,10 @@ public interface IProductJoinDao {
             @Param("productNo") Long productNo
     );
 
+    int countActiveProductSubscriptionBySameRrn(
+            @Param("userNo") Long userNo,
+            @Param("productNo") Long productNo
+    );
     java.util.Date selectLatestFinancialProductActivity(@Param("userNo") Long userNo);
 
     int countWithdrawableSourceAccounts(@Param("userNo") Long userNo);

@@ -2,7 +2,7 @@
 *.class
 .env
 *.env
-uploads/
+uploads\signatures
 crops/
 
 # Log file

@@ -86,9 +86,9 @@
                 </div>
             </section>
 
-            <div class="guide-field">
+            <div id="rateField" class="guide-field" th:hidden="${demandDepositProduct}">
                 <label class="guide-label" for="rateNo">가입 기간 / 금리</label>
-                <select id="rateNo" class="guide-select" required>
+                <select id="rateNo" class="guide-select" th:required="${!demandDepositProduct}" th:disabled="${demandDepositProduct}">
                     <option value="">선택</option>
                     <option th:each="rate : ${rates}"
                             th:value="${rate.rateNo}"
@@ -97,10 +97,14 @@
                 </select>
             </div>
 
-            <div class="guide-field">
+            <div id="amountField" class="guide-field" th:hidden="${demandDepositProduct}">
                 <label class="guide-label" for="amount">가입 금액</label>
-                <input id="amount" class="guide-input" type="number" min="1" step="1" required placeholder="가입 금액 입력">
+                <input id="amount" class="guide-input" type="number" min="1" step="1" th:required="${!demandDepositProduct}" th:disabled="${demandDepositProduct}" placeholder="가입 금액 입력">
             </div>
+
+            <p id="demandDepositNotice" class="guide-note" th:hidden="${!demandDepositProduct}">
+                입출금식 통장은 가입 시점에 0원으로 개설됩니다. 잔액은 이후 입금/환전 거래로 변동됩니다.
+            </p>
 
             <div class="guide-field">
                 <label class="guide-label" for="accountPassword">계좌 비밀번호</label>
@@ -120,8 +124,24 @@
 <div th:replace="~{footer :: footer}"></div>
 
 <script th:inline="javascript">
-const productType = /*[[${product.productType}]]*/ '';
-const requiresWithdrawalAccount = productType.includes('정기') || productType.includes('적금');
+const productBaseRate = Number(/*[[${product.baseRate}]]*/ 0) || 0;
+const isDemandDepositProduct = /*[[${demandDepositProduct}]]*/ false;
+const requiresWithdrawalAccount = !isDemandDepositProduct;
+const rateField = document.getElementById('rateField');
+const rateSelect = document.getElementById('rateNo');
+const amountField = document.getElementById('amountField');
+const amountInput = document.getElementById('amount');
+const demandDepositNotice = document.getElementById('demandDepositNotice');
+
+if (!requiresWithdrawalAccount) {
+    rateField.hidden = true;
+    rateSelect.required = false;
+    rateSelect.value = '';
+    amountField.hidden = true;
+    amountInput.required = false;
+    amountInput.value = '0';
+    demandDepositNotice.hidden = false;
+}
 let ocrVerified = false;
 let identityVerificationRequired = true;
 let phoneVerified = false;
@@ -268,18 +288,20 @@ document.getElementById('joinForm').addEventListener('submit', async (event) => 
     if (!identityVerificationRequired && !phoneVerified) { setError('가입하기 전에 휴대폰 본인인증을 완료해주세요.'); return; }
 
     const productNo = Number(document.getElementById('productNo').value);
-    const rateOption = document.getElementById('rateNo').selectedOptions[0];
+    const rateOption = rateSelect.selectedOptions[0];
+    if (requiresWithdrawalAccount && (!rateOption || !rateOption.value)) { setError('가입 기간 / 금리를 선택해주세요.'); return; }
     const formPayload = {
         productNo,
-        rateNo: Number(rateOption.value),
+        rateNo: requiresWithdrawalAccount ? Number(rateOption.value) : null,
         currencyCode: document.getElementById('currencyCode').value,
-        amount: Number(document.getElementById('amount').value),
-        periodMonth: Number(rateOption.dataset.period),
-        appliedRate: Number(rateOption.dataset.rate),
+        amount: requiresWithdrawalAccount ? Number(document.getElementById('amount').value) : 0,
+        periodMonth: requiresWithdrawalAccount ? Number(rateOption.dataset.period) : 0,
+        appliedRate: requiresWithdrawalAccount ? Number(rateOption.dataset.rate) : productBaseRate,
         withdrawalAccountNo: requiresWithdrawalAccount ? document.getElementById('withdrawalAccountNo').value : null,
         accountPassword: document.getElementById('accountPassword').value
     };
 
+    if (requiresWithdrawalAccount && (!formPayload.amount || formPayload.amount <= 0)) { setError('가입 금액을 입력해주세요.'); return; }
     if (requiresWithdrawalAccount && !formPayload.withdrawalAccountNo) { setError('출금 계좌를 선택해주세요.'); return; }
 
     let response = await apiFetch('/api/product/join/form', { method: 'POST', body: JSON.stringify(formPayload) });
@@ -307,10 +329,10 @@ document.getElementById('joinForm').addEventListener('submit', async (event) => 
         cur.value = p.currencyCode;
         if (cur.value === p.currencyCode) cur.dispatchEvent(new Event('change')); // 출금계좌 목록 로드 트리거
     }
-    if (p.rateNo != null && p.rateNo !== '') {
+    if (requiresWithdrawalAccount && p.rateNo != null && p.rateNo !== '') {
         document.getElementById('rateNo').value = String(p.rateNo);
     }
-    if (p.amount != null && p.amount !== '') {
+    if (requiresWithdrawalAccount && p.amount != null && p.amount !== '') {
         document.getElementById('amount').value = p.amount;
     }
 
