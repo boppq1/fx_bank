@@ -1,20 +1,6 @@
 @charset "UTF-8";
-:root{
-  --violet:#6D5BFF; --violet-soft:#8E7CFF; --violet-deep:#5A45E8;
-  --purple:#6D5BFF; --purple-soft:#8E7CFF; --purple-lt:#F2F0FB;   /* legacy 별칭 */
-  --navy:#1A1A2E; --navy-dark:#14142B;                            /* 이제 어두운 '텍스트' 색 */
-  --lavender:#F2F0FB; --bg:#F7F6FE; --surface:#FFFFFF; --border:#ECEAF6;
-  --text:#1A1A2E; --text-body:#33333D; --text-sub:#5C5C70;
-  --up:#E5484D; --down:#3E63DD;
-  --grad:linear-gradient(135deg,#6D5BFF 0%,#8E7CFF 100%);
-  --grad-cta:linear-gradient(135deg,#6D5BFF 0%,#5A45E8 100%);
-  --grad-hero:linear-gradient(135deg,#5B47E6 0%,#7C6BF0 100%);
-  --radius:16px; --radius-sm:12px;
-  --shadow-sm:0 2px 8px rgba(26,26,46,.06);
-  --shadow:0 8px 24px rgba(109,91,255,.10);
-  --shadow-lg:0 16px 40px rgba(109,91,255,.14);
-  --container:1200px; --t:160ms; --ease:cubic-bezier(.22,.61,.36,1);
-}
+/* 팔레트/토큰은 공용 fx-home.css + motion.css(:root) 를 상속한다.
+   (중복 :root 제거 → P1 밝은 톤·강화 모션 토큰이 이벤트 페이지에도 일괄 적용) */
 
 .event-container {
     max-width: 600px;
@@ -88,7 +74,8 @@
 }
 
 .event-container button:hover {
-    transform: translateY(-1px);
+    transform: translateY(-3px);
+    box-shadow: var(--elev-hover, 0 22px 50px rgba(109,91,255,.30));
 }
 
 .success-msg {
@@ -120,3 +107,16 @@
     .status-item { width: 100%; max-width: 260px; box-sizing: border-box; }
     .success-msg { padding: 16px; }
 }
+
+/* ===== 진입/축하 모션 (reduced-motion 은 motion.css 전역 가드가 비활성화) ===== */
+@media (prefers-reduced-motion: no-preference){
+  html.motion .event-container > h2,
+  html.motion .event-steps,
+  html.motion .status-grid,
+  html.motion .app-only-msg{ animation: fade-slide-up var(--dur-base) var(--ease-out-expo) both; }
+  html.motion .status-grid .status-item{ animation: fade-slide-up var(--dur-base) var(--ease-out-expo) both; }
+  html.motion .status-grid .status-item:nth-child(2){ animation-delay: 90ms; }
+  html.motion .status-grid .status-item:nth-child(3){ animation-delay: 180ms; }
+  html.motion .success-msg{ animation: pop-in var(--dur-slow) var(--ease-spring) both; }
+}
+@keyframes pop-in{ 0%{opacity:0;transform:scale(.92);} 100%{opacity:1;transform:scale(1);} }
