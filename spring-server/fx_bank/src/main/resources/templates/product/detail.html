@@ -157,8 +157,9 @@
                     <span class="term-type" th:text="${term.termsType}">약관 구분</span>
                 </summary>
                 <p class="term-content" th:text="${term.termsText}">약관 내용</p>
-                <a class="term-link" th:if="${not #strings.isEmpty(term.pdfPath)}"
-                   th:href="@{/api/product/join/{productNo}/terms/{termsCode}/pdf(productNo=${product.productNo}, termsCode=${term.termsCode})}"
+                <a class="term-link"
+                   th:if="${term.pdfPath != null}"
+                   th:href="@{/api/product/terms/{vno}/pdf(vno=${term.termVersionNo})}"
                    target="_blank" rel="noopener">PDF 원문 보기</a>
             </details>
             <p class="guide-note" th:if="${#lists.isEmpty(terms)}">등록된 약관이 없습니다.</p>

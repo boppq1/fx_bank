@@ -11,6 +11,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import java.util.List;
 import java.util.Map;
@@ -76,6 +81,31 @@ public class TermsController {
                 "termsNo", termsNo,
                 "message", "약관 버전이 등록되었습니다."
         ));
+    }
+
+    @GetMapping("/versions/{termVersionNo}/pdf")
+    public ResponseEntity<Resource> downloadPdf(@PathVariable long termVersionNo) {
+        ProductTermVersionDto version = termsServ.getVersionByNo(termVersionNo);
+        if (version == null || version.getPdfPath() == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        try {
+            Path filePath = Paths.get(version.getPdfPath());
+            Resource resource = new UrlResource(filePath.toUri());
+            if (!resource.exists() || !resource.isReadable()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            String fileName = filePath.getFileName().toString();
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "inline; filename=\"" + fileName + "\"")
+                    .body(resource);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     @Getter

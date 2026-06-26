@@ -226,6 +226,7 @@
 
         SELECT
             TO_CHAR(pt.terms_no) AS terms_code,
+            ptv.term_version_no,
             pt.product_no,
             ptv.terms_title,
             tt.type_name AS terms_type,
