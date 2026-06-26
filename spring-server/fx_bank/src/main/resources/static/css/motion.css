@@ -14,22 +14,23 @@
   --ease-out-expo:cubic-bezier(.16,1,.3,1);
   --ease-out-quart:cubic-bezier(.25,1,.5,1);
   --ease-spring:cubic-bezier(.34,1.56,.64,1);
-  /* 듀레이션 */
-  --dur-fast:140ms;
-  --dur-base:320ms;
-  --dur-slow:620ms;
-  /* 엘리베이션 (바이올렛 틴트 그림자 스케일) */
-  --elev-rest:0 2px 8px rgba(26,26,46,.06);
-  --elev-hover:0 14px 34px rgba(109,91,255,.18);
-  --elev-overlay:0 24px 60px rgba(26,16,80,.28);
-  /* 글로우 / 메쉬 그라데이션 (브랜드 바이올렛 기반) */
-  --glow-violet:0 0 0 1px rgba(109,91,255,.18), 0 10px 30px rgba(109,91,255,.30);
+  /* 듀레이션 (또렷하게 상향) */
+  --dur-fast:150ms;
+  --dur-base:380ms;
+  --dur-slow:760ms;
+  /* 엘리베이션 (더 깊고 컬러풀하게) */
+  --elev-rest:0 4px 14px rgba(26,26,46,.07);
+  --elev-hover:0 22px 50px rgba(109,91,255,.30);
+  --elev-overlay:0 30px 70px rgba(26,16,80,.34);
+  /* 글로우 / 메쉬 그라데이션 (더 밝고 선명) */
+  --glow-violet:0 0 0 1px rgba(124,92,255,.35), 0 16px 44px rgba(124,92,255,.46);
   --grad-mesh:
-    radial-gradient(1100px 480px at 12% -12%, rgba(142,124,255,.50), transparent 60%),
-    radial-gradient(820px 420px at 100% -6%, rgba(59,99,221,.34), transparent 55%),
-    linear-gradient(135deg,#5B47E6 0%,#7C6BF0 100%);
-  /* 스크롤 리빌 이동 거리 */
-  --reveal-dist:24px;
+    radial-gradient(1200px 520px at 10% -14%, rgba(167,139,255,.72), transparent 60%),
+    radial-gradient(900px 460px at 100% -8%, rgba(99,102,241,.52), transparent 55%),
+    radial-gradient(700px 520px at 86% 112%, rgba(236,72,153,.30), transparent 55%),
+    linear-gradient(135deg,#6D5BFF 0%,#8B7BFF 100%);
+  /* 스크롤 리빌 이동 거리 (확실히 보이게) */
+  --reveal-dist:44px;
 }
 
 /* ===================== 스크롤 리빌 ===================== */
