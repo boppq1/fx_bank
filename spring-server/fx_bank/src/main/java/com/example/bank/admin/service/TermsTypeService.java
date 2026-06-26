@@ -19,11 +19,10 @@ public class TermsTypeService {
         return termsTypeDao.selectTypeList();
     }
 
-    /** 새 약관 종류 등록. 이미 같은 이름이 있으면 새로 만들지 않고 안내만 함 */
     @Transactional
     public TermsTypeDto registerNewType(String typeName) {
         if (!StringUtils.hasText(typeName)) {
-            throw new IllegalArgumentException("약관 종류명을 입력해주세요.");
+            throw new IllegalArgumentException("약관 종류명을 입력해 주세요.");
         }
         String trimmed = typeName.trim();
 

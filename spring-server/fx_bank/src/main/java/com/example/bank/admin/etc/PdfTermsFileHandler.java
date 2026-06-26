@@ -35,8 +35,6 @@ public class PdfTermsFileHandler {
         return new PdfSaveResult(savedPath.toString(), extractedText);
     }
 
-    // ── 검증 / 저장 (기존 코드 동일) ───────────────────────────────────────
-
     private void validate(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("업로드된 PDF 파일이 없습니다.");
@@ -72,8 +70,6 @@ public class PdfTermsFileHandler {
         }
     }
 
-    // ── 핵심: 페이지별로 텍스트 + 표 통합 추출 ─────────────────────────────
-
     private String extractTextWithTables(Path pdfPath) {
         try (PDDocument document = PDDocument.load(pdfPath.toFile())) {
             if (document.isEncrypted()) {
@@ -89,10 +85,9 @@ public class PdfTermsFileHandler {
             for (int pageNum = 1; pageNum <= totalPages; pageNum++) {
                 Page page = extractor.extract(pageNum);
 
-                // 1) 해당 페이지에서 표 감지
-                List<Table> tables = sea.extract(page); // 격자형 표 (선이 있는 표)
+                List<Table> tables = sea.extract(page);
                 if (tables.isEmpty()) {
-                    tables = bea.extract(page);         // 선 없는 표 (공백 기반)
+                    tables = bea.extract(page);
                 }
 
                 if (!tables.isEmpty()) {
@@ -121,7 +116,6 @@ public class PdfTermsFileHandler {
         }
     }
 
-    /** 특정 페이지 텍스트만 추출 */
     private String extractPageText(PDDocument document, int pageNum) throws IOException {
         PDFTextStripper stripper = new PDFTextStripper();
         stripper.setSortByPosition(true);
@@ -134,7 +128,6 @@ public class PdfTermsFileHandler {
         return stripper.getText(document);
     }
 
-    /** Tabula Table → 텍스트 변환 (컬럼을 | 로 구분) */
     private String tablesToText(List<Table> tables) {
         StringBuilder sb = new StringBuilder();
 
@@ -146,7 +139,6 @@ public class PdfTermsFileHandler {
                     String cellText = cell.getText().trim().replaceAll("\\s+", " ");
                     rowSb.append(cellText).append(" | ");
                 }
-                // 마지막 " | " 제거
                 if (rowSb.length() > 3) {
                     rowSb.setLength(rowSb.length() - 3);
                 }
@@ -158,7 +150,6 @@ public class PdfTermsFileHandler {
         return sb.toString();
     }
 
-    /** 약관 텍스트 후처리 */
     private String postProcess(String raw) {
         return raw
                 .replace("\t", " ")
