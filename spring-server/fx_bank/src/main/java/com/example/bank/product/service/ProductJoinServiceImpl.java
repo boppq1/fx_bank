@@ -103,7 +103,7 @@ public class ProductJoinServiceImpl implements ProductJoinService {
         // 입출금식 외화예금은 CDD 대상이므로 가입 때마다 강화된 신원확인을 요구한다.
         if (requiresOcrVerification(product)) {
             return new IdentityVerificationRequirementDto(
-                    true, "CDD", "입출금이 자유로운 외화예금 상품은 신분증 OCR 본인확인이 필요합니다."
+                    true, "CDD", "입출금이 자유로운 외화예금 상품은 신분증 본인확인이 필요합니다."
             );
         }
 
@@ -246,10 +246,10 @@ public class ProductJoinServiceImpl implements ProductJoinService {
             HttpSession session
     ) {
         if (productNo == null || userNo == null) {
-            throw new IllegalArgumentException("OCR 인증에 필요한 사용자 또는 상품 정보가 없습니다.");
+            throw new IllegalArgumentException("신분증 인증에 필요한 사용자 또는 상품 정보가 없습니다.");
         }
         if (!ocrSuccess) {
-            throw new IllegalArgumentException("신분증 OCR 인식에 실패했습니다. 이미지가 선명한지 확인해주세요.");
+            throw new IllegalArgumentException("신분증 인식에 실패했습니다. 이미지가 선명한지 확인해 주세요.");
         }
         if (!nameMatched || !birthMatched) {
             throw new IllegalArgumentException("신분증 정보가 로그인 회원 정보와 일치하지 않습니다.");
@@ -440,7 +440,7 @@ public class ProductJoinServiceImpl implements ProductJoinService {
         }
 
         if (verificationNo == null && getIdentityVerificationRequirement(dto.getProductNo(), userNo).isRequired()) {
-            throw new IllegalArgumentException("OCR 인증 정보가 없습니다.");
+            throw new IllegalArgumentException("신분증 인증 정보가 없습니다.");
         }
 
         Long productNo = dto.getProductNo();
@@ -514,7 +514,7 @@ public class ProductJoinServiceImpl implements ProductJoinService {
             );
 
             if (validVerificationCount == 0) {
-                throw new IllegalArgumentException("유효한 OCR 인증 정보가 없습니다.");
+                throw new IllegalArgumentException("유효한 신분증 인증 정보가 없습니다.");
             }
         } else if (!productNo.equals(session.getAttribute(SESSION_PHONE_VERIFIED_PRODUCT_NO))) {
             throw new IllegalArgumentException("가입하기 전에 휴대폰 본인인증을 완료해주세요.");

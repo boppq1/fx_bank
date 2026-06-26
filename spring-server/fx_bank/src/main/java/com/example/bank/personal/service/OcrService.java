@@ -68,7 +68,7 @@ public class OcrService {
         } catch (IOException e) {
             throw new RuntimeException("신분증 이미지 처리 중 오류가 발생했습니다.", e);
         } catch (Exception e) {
-            throw new RuntimeException("OCR 서버 통신에 실패했습니다. 잠시 후 다시 시도해 주세요.", e);
+            throw new RuntimeException("신분증 인증 서비스 연결에 실패했습니다. 잠시 후 다시 시도해 주세요.", e);
         }
     }
 }
