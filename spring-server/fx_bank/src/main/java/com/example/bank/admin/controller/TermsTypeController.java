@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-/** 약관 종류(terms_types) 마스터 관리 */
 @RestController
 @RequestMapping("/admin/terms-type")
 @RequiredArgsConstructor
@@ -22,7 +21,6 @@ public class TermsTypeController {
         return ResponseEntity.ok(typeServ.getTypeList());
     }
 
-    /** body 예: {"typeName": "신탁약관"} */
     @PostMapping
     public ResponseEntity<Map<String, Object>> registerType(@RequestBody Map<String, String> body) {
         TermsTypeDto saved = typeServ.registerNewType(body.get("typeName"));
