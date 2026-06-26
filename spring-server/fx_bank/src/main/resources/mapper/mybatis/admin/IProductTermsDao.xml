@@ -25,10 +25,6 @@
         </association>
     </resultMap>
 
-    <!--
-        상품의 약관 슬롯 목록 + 각 슬롯의 "현재 버전" 정보를 함께 조회.
-        terms_text(CLOB)는 목록 화면에서 불필요하게 무거우므로 제외 (상세 조회 시에만 별도 조회)
-    -->
     <select id="selectTermsListByProduct" resultMap="ProductTermsResultMap">
         SELECT
         pt.terms_no,

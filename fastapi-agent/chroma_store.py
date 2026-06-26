@@ -40,3 +40,4 @@ def search_similar(query_text, n_results=5, filter_product_no=None):
         where=where
     )
     return results
+
