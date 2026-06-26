@@ -9,20 +9,20 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
-            --bg: #0a0e1a;
-            --card: #111827;
-            --card2: #1a2235;
-            --accent: #3b82f6;
-            --accent2: #60a5fa;
-            --gold: #f59e0b;
-            --text: #f1f5f9;
-            --muted: #94a3b8;
-            --border: #1e2d45;
-            --success: #10b981;
-            --danger: #ef4444;
-            --warn-bg: rgba(245, 158, 11, 0.12);
-            --warn-border: rgba(245, 158, 11, 0.35);
-            --warn-text: #fbbf24;
+            --bg: #F6F4FF;
+            --card: #FFFFFF;
+            --card2: #F1EEFF;
+            --accent: #6D5BFF;
+            --accent2: #7C5CFF;
+            --gold: #C77700;
+            --text: #16162B;
+            --muted: #56566B;
+            --border: #E9E5FB;
+            --success: #16A34A;
+            --danger: #F23645;
+            --warn-bg: rgba(245, 158, 11, 0.14);
+            --warn-border: rgba(245, 158, 11, 0.4);
+            --warn-text: #B45309;
         }
 
         body {
@@ -40,7 +40,7 @@
             align-items: center;
             justify-content: center;
             padding: 40px 20px;
-            background: radial-gradient(ellipse at 50% 0%, #1e3a5f 0%, var(--bg) 60%);
+            background: radial-gradient(ellipse at 50% 0%, #E7E0FF 0%, var(--bg) 60%);
         }
 
         .main-inner { max-width: 480px; width: 100%; text-align: center; }
@@ -147,8 +147,8 @@
         #s-result { background: var(--bg); }
 
         .hero {
-            background: linear-gradient(135deg, #1e3a5f 0%, #0f2040 100%);
-            padding: 44px 20px 36px;
+            background: linear-gradient(135deg, #6D5BFF 0%, #7C5CFF 50%, #9C6BFF 100%);
+            padding: 48px 20px 40px;
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -158,24 +158,24 @@
             position: absolute;
             top: -50%; left: -50%;
             width: 200%; height: 200%;
-            background: radial-gradient(circle at center, rgba(59,130,246,.1) 0%, transparent 60%);
+            background: radial-gradient(circle at center, rgba(255,255,255,.16) 0%, transparent 60%);
             pointer-events: none;
         }
 
-        .hero-logo { font-size: 11px; letter-spacing: 4px; color: var(--accent2); text-transform: uppercase; margin-bottom: 28px; }
+        .hero-logo { font-size: 11px; letter-spacing: 4px; color: rgba(255,255,255,.82); text-transform: uppercase; margin-bottom: 28px; }
 
         .mbti-badge { display: inline-flex; gap: 6px; margin-bottom: 16px; }
         .mbti-letter {
             width: 58px; height: 66px;
-            background: rgba(59,130,246,.15);
-            border: 1px solid rgba(59,130,246,.4);
+            background: rgba(255,255,255,.18);
+            border: 1px solid rgba(255,255,255,.42);
             border-radius: 13px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 26px; font-weight: 900; color: var(--accent2);
+            font-size: 26px; font-weight: 900; color: #fff;
         }
 
-        .mbti-type { font-size: 12px; color: var(--accent2); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
-        .mbti-desc { font-size: 15px; color: var(--text); line-height: 1.7; max-width: 340px; margin: 0 auto 20px; }
+        .mbti-type { font-size: 12px; color: rgba(255,255,255,.9); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+        .mbti-desc { font-size: 15px; color: #fff; line-height: 1.7; max-width: 340px; margin: 0 auto 20px; }
 
         /* 정보 부족 배너 */
         .info-banner {
@@ -230,8 +230,9 @@
         }
         .product-card:hover { border-color: var(--accent); }
         .product-card.main-card {
-            border-color: rgba(245,158,11,.3);
-            background: linear-gradient(135deg, #1a2235 0%, #1a1a2e 100%);
+            border-color: rgba(245,158,11,.45);
+            background: linear-gradient(150deg, #FFFBF2 0%, #FFFFFF 100%);
+            box-shadow: var(--shadow-sm, 0 4px 14px rgba(26,26,46,.07));
         }
 
         .product-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
