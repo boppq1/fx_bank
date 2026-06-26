@@ -10,7 +10,7 @@ window.accessToken = null;
 /* 회원가입 상태 */
 let isIdChecked = false;
 let checkedUserId = "";
-let isOcrVerified = false;   // 신분증 OCR 인증 완료 여부 (필수)
+/*let isOcrVerified = false;*/   // 신분증 OCR 인증 완료 여부 (필수)
 let ocrToken = "";           // OCR 성공 시 서버가 발급한 1회용 인증 토큰
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -155,10 +155,10 @@ function handleRegister(e) {
   e.preventDefault();
 
   // 0) 신분증 OCR 인증(필수) — 가장 먼저 막는다
-  if (!isOcrVerified || !ocrToken) {
+/*  if (!isOcrVerified || !ocrToken) {
     alert("신분증 OCR 인증을 먼저 완료해 주세요.");
     return;
-  }
+  }*/
 
   const currentUserId = document.getElementById("userId").value.trim();
   if (!isIdChecked || checkedUserId !== currentUserId) {
@@ -272,7 +272,7 @@ async function uploadIdCard(file) {
 
     if (!result.success) {
       // 인증 실패 → 인증 상태 해제
-      isOcrVerified = false;
+      /*isOcrVerified = false;*/
       ocrToken = "";
       updateRegisterSubmitState();
       setOcrStatus("❌ 인식 실패: " + result.message, "error");
@@ -289,7 +289,7 @@ async function uploadIdCard(file) {
     }
 
     // ★ OCR 인증 완료 처리 (토큰 보관 + 가입 버튼 활성 조건 갱신)
-    isOcrVerified = true;
+    /*isOcrVerified = true;*/
     ocrToken = data.ocrToken || "";
     updateRegisterSubmitState();
 
@@ -297,7 +297,7 @@ async function uploadIdCard(file) {
     setOcrStatus("✅ 신분증 인증 완료! 주민번호 가려진 뒷자리(뒤 6자리)를 입력해 주세요.", "ok");
   } catch (err) {
     console.error("OCR 요청 실패:", err);
-    isOcrVerified = false;
+    /*isOcrVerified = false;*/
     ocrToken = "";
     updateRegisterSubmitState();
     setOcrStatus("❌ OCR 서버 통신 오류가 발생했습니다.", "error");
@@ -325,5 +325,5 @@ function updateRegisterSubmitState() {
   const checkbox = document.getElementById("privacyAgreed");
   const submitBtn = document.getElementById("registerSubmit");
   if (!checkbox || !submitBtn) return;
-  submitBtn.disabled = !(checkbox.checked && isOcrVerified);
+  submitBtn.disabled = !(checkbox.checked);
 }

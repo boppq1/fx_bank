@@ -1,2 +1,3 @@
-2026/06/22-17:30:06.877 f14 Creating DB D:\fx_bank\.metadata\.plugins\org.eclipse.swt\EBWebView\Default\Sync Data\LevelDB since it was missing.
-2026/06/22-17:30:06.891 f14 Reusing MANIFEST D:\fx_bank\.metadata\.plugins\org.eclipse.swt\EBWebView\Default\Sync Data\LevelDB/MANIFEST-000001
+2026/06/24-10:31:23.708 81c Reusing MANIFEST D:\fx_bank\.metadata\.plugins\org.eclipse.swt\EBWebView\Default\Sync Data\LevelDB/MANIFEST-000001
+2026/06/24-10:31:23.716 81c Recovering log #3
+2026/06/24-10:31:23.716 81c Reusing old log D:\fx_bank\.metadata\.plugins\org.eclipse.swt\EBWebView\Default\Sync Data\LevelDB/000003.log 
