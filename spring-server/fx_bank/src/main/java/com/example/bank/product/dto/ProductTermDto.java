@@ -14,4 +14,5 @@ public class ProductTermDto {
     private String pdfPath; // pdf 경로
     private String termsText; // 약관 텍스트
     private String useYn; // 사용 여부
+    private Long termVersionNo; // 추가
 }
