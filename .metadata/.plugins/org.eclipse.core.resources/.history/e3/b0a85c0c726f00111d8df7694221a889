@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>FX Home</title>
+<link rel="stylesheet" th:href="@{/css/fx-home.css}">
+</head>
+<body>
+	<div th:replace="~{header :: header}"></div>
+	<div th:replace="~{body :: body}"></div>
+	<div th:replace="~{footer :: footer}"></div>
+</body>
+</html>
