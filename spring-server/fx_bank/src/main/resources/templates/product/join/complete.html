@@ -62,11 +62,11 @@
                     </tr>
                     <tr>
                         <th>가입 금액</th>
-                        <td th:text="${#numbers.formatDecimal(complete.amount, 0, 'COMMA', 2, 'POINT')}">0</td>
+                        <td th:text="${complete.periodMonth == 0 ? '가입 금액 없음 (시작 잔액 0)' : #numbers.formatDecimal(complete.amount, 0, 'COMMA', 2, 'POINT')}">0</td>
                     </tr>
                     <tr>
                         <th>가입 기간</th>
-                        <td th:text="${complete.periodMonth + '개월'}">12개월</td>
+                        <td th:text="${complete.periodMonth == 0 ? '기간 없음' : complete.periodMonth + '개월'}">기간 없음</td>
                     </tr>
                     <tr>
                         <th>적용 금리</th>
@@ -82,7 +82,7 @@
                     </tr>
                     <tr>
                         <th>만기일</th>
-                        <td th:text="${#dates.format(complete.maturityDt, 'yyyy-MM-dd')}">2027-06-19</td>
+                        <td th:text="${complete.maturityDt == null ? '해당 없음' : #dates.format(complete.maturityDt, 'yyyy-MM-dd')}">해당 없음</td>
                     </tr>
                     </tbody>
                 </table>

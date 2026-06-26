@@ -251,6 +251,18 @@
           AND subscription_status NOT IN ('해지', '만기', '취소')
     </select>
 
+    <!-- Same resident registration number cannot subscribe to the same active product again. -->
+    <select id="countActiveProductSubscriptionBySameRrn" resultType="int">
+        SELECT COUNT(*)
+        FROM product_subscriptions ps
+        JOIN user_sensitive_infos target_usi
+          ON target_usi.user_no = #{userNo}
+        JOIN user_sensitive_infos joined_usi
+          ON joined_usi.user_no = ps.user_no
+         AND joined_usi.rrn_masked = target_usi.rrn_masked
+        WHERE ps.product_no = #{productNo}
+          AND ps.subscription_status NOT IN ('해지', '만기', '취소')
+    </select>
     <!-- 현재 DDL에서 확인 가능한 금융상품 활동 기준: 상품 가입일의 가장 최근 값 -->
     <select id="selectLatestFinancialProductActivity" resultType="java.util.Date">
         SELECT MAX(subscribed_dt)

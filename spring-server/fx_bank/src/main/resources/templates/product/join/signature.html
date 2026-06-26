@@ -66,10 +66,17 @@ if (!savedForm) location.href = `/product/join/${productNo}/form`;
 
 const form = savedForm ? JSON.parse(savedForm) : null;
 if (form) {
+    const isDemandDeposit = Number(form.periodMonth || 0) === 0 && Number(form.amount || 0) === 0;
     document.getElementById('currency').textContent = form.currencyCode;
-    document.getElementById('amount').textContent = Number(form.amount).toLocaleString('ko-KR');
-    document.getElementById('period').textContent = `${form.periodMonth}개월`;
-    document.getElementById('rate').textContent = `${Number(form.appliedRate).toFixed(2)}%`;
+    document.getElementById('amount').textContent = isDemandDeposit
+        ? '가입 금액 없음 (시작 잔액 0)'
+        : Number(form.amount).toLocaleString('ko-KR');
+    document.getElementById('period').textContent = isDemandDeposit
+        ? '기간 없음'
+        : `${form.periodMonth}개월`;
+    document.getElementById('rate').textContent = Number(form.appliedRate || 0) > 0
+        ? `${Number(form.appliedRate).toFixed(2)}%`
+        : '해당 없음';
 }
 
 const canvas = document.getElementById('signatureCanvas');

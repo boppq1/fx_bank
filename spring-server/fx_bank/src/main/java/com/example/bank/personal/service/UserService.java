@@ -69,11 +69,11 @@ public class UserService {
             throw new IllegalArgumentException("개인정보 수집 및 이용 동의가 필요합니다.");
         }
         // ①-OCR 신분증 OCR 인증 필수: OCR 성공 시 발급된 1회용 토큰이 Redis 에 살아있어야 가입 가능
-        String ocrToken = registerRequest.getOcrToken();
-        if (ocrToken == null || ocrToken.trim().isEmpty()
-                || redisUtil.getData("OCR_VERIFIED:" + ocrToken.trim()) == null) {
-            throw new IllegalArgumentException("신분증 OCR 인증을 먼저 완료해 주세요.");
-        }
+//        String ocrToken = registerRequest.getOcrToken();
+//        if (ocrToken == null || ocrToken.trim().isEmpty()
+//                || redisUtil.getData("OCR_VERIFIED:" + ocrToken.trim()) == null) {
+//            throw new IllegalArgumentException("신분증 OCR 인증을 먼저 완료해 주세요.");
+//        }
         // ①-0 DB NOT NULL 필수값 검증 (비어 있으면 NPE/제약위반 대신 명확한 메시지)
         requireText(registerRequest.getUserId(), "아이디");
         requireText(registerRequest.getSecuPw(), "비밀번호");
@@ -116,8 +116,8 @@ public class UserService {
                 registerRequest.getRrn().trim(),
                 registerRequest.getRrnMasked());
 
-        // ⑥ 사용한 OCR 인증 토큰 소비(1회용) — 재사용 방지
-        redisUtil.deleteData("OCR_VERIFIED:" + ocrToken.trim());
+//        // ⑥ 사용한 OCR 인증 토큰 소비(1회용) — 재사용 방지
+//        redisUtil.deleteData("OCR_VERIFIED:" + ocrToken.trim());
     }
 
     /**

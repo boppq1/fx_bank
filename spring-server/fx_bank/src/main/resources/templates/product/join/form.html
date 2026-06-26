@@ -13,7 +13,20 @@
         .status.error { color: var(--up); }
         .hint { margin: 0 0 10px; font-size: 13.5px; color: var(--text-sub); line-height: 1.6; }
         .identity-notice { margin: 10px 0 0; font-size: 13.5px; color: var(--text-sub); }
-        .id-file { width: 100%; padding: 10px; border: 1px dashed var(--border); border-radius: var(--radius-sm); background: var(--surface); font-size: 14px; }
+        .id-file { display: none; }
+        .id-capture-box { border: 1px dashed var(--border); border-radius: var(--radius-sm); background: var(--surface); padding: 14px; }
+        .id-capture-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .id-file-name { margin-top: 10px; font-size: 13px; color: var(--text-sub); }
+        .camera-modal { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 18px; background: rgba(0, 0, 0, .78); }
+        .camera-modal[hidden] { display: none; }
+        .camera-panel { width: min(520px, 100%); color: #fff; }
+        .camera-stage { position: relative; overflow: hidden; border-radius: 12px; background: #111; aspect-ratio: 3 / 4; }
+        .camera-video { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .id-guide-frame { position: absolute; left: 8%; right: 8%; top: 50%; aspect-ratio: 1.586 / 1; transform: translateY(-50%); border: 3px solid #fff; border-radius: 14px; box-shadow: 0 0 0 999px rgba(0, 0, 0, .38); }
+        .id-guide-frame::before { content: ''; position: absolute; inset: -9px; border: 1px solid rgba(255,255,255,.65); border-radius: 18px; }
+        .camera-help { margin: 12px 0 0; font-size: 14px; line-height: 1.5; color: rgba(255,255,255,.88); text-align: center; }
+        .camera-actions { display: flex; gap: 8px; margin-top: 14px; }
+        .camera-actions .btn { flex: 1; }
         /* 가입 정보 패널의 필드 간격 */
         .join-section .guide-field { margin-top: 18px; }
         .join-card { margin-top: 18px; }
@@ -43,15 +56,37 @@
             <input type="hidden" id="productNo" th:value="${product.productNo}">
 
             <section id="ocrSection" class="guide-card join-card">
-                <h3 class="guide-sub-title">신분증 OCR 인증</h3>
-                <p class="hint">신분증 이미지를 선택하면 FastAPI OCR 서버에서 인식한 뒤 로그인 회원 정보와 대조합니다.</p>
+                <h3 class="guide-sub-title">신분증 본인확인</h3>
+                <p class="hint">신분증 앞면이 사각형 안에 들어오도록 촬영하거나 이미지를 선택해 주세요.</p>
                 <div class="guide-field">
                     <label class="guide-label" for="idCardFile">신분증 이미지</label>
-                    <input id="idCardFile" class="id-file" type="file" accept="image/jpeg,image/png,image/webp">
+                    <div class="id-capture-box">
+                        <input id="idCardFile" class="id-file" type="file" accept="image/*" capture="environment">
+                        <div class="id-capture-actions">
+                            <button type="button" id="openCameraButton" class="btn btn-light">신분증 촬영</button>
+                            <button type="button" id="chooseImageButton" class="btn btn-light">이미지 선택</button>
+                        </div>
+                        <p id="idFileName" class="id-file-name">선택된 이미지가 없습니다.</p>
+                    </div>
                 </div>
-                <div class="guide-actions"><button type="button" id="ocrButton" class="btn btn-light">신분증 인증하기</button></div>
+                <div class="guide-actions"><button type="button" id="ocrButton" class="btn btn-primary">인증하기</button></div>
                 <p id="ocrStatus" class="status">아직 인증되지 않았습니다.</p>
             </section>
+
+            <div id="cameraModal" class="camera-modal" hidden>
+                <div class="camera-panel">
+                    <div class="camera-stage">
+                        <video id="cameraVideo" class="camera-video" autoplay playsinline muted></video>
+                        <div class="id-guide-frame" aria-hidden="true"></div>
+                    </div>
+                    <p class="camera-help">신분증을 사각형 안에 맞추고 빛 반사가 없도록 촬영해 주세요.</p>
+                    <div class="camera-actions">
+                        <button type="button" id="captureIdButton" class="btn btn-primary">촬영</button>
+                        <button type="button" id="closeCameraButton" class="btn btn-light">닫기</button>
+                    </div>
+                </div>
+            </div>
+            <canvas id="captureCanvas" hidden></canvas>
 
             <section id="phoneSection" class="guide-card join-card" hidden>
                 <h3 class="guide-sub-title">휴대폰 본인인증</h3>
@@ -86,9 +121,9 @@
                 </div>
             </section>
 
-            <div class="guide-field">
+            <div id="rateField" class="guide-field" th:hidden="${demandDepositProduct}">
                 <label class="guide-label" for="rateNo">가입 기간 / 금리</label>
-                <select id="rateNo" class="guide-select" required>
+                <select id="rateNo" class="guide-select" th:required="${!demandDepositProduct}" th:disabled="${demandDepositProduct}">
                     <option value="">선택</option>
                     <option th:each="rate : ${rates}"
                             th:value="${rate.rateNo}"
@@ -97,10 +132,14 @@
                 </select>
             </div>
 
-            <div class="guide-field">
+            <div id="amountField" class="guide-field" th:hidden="${demandDepositProduct}">
                 <label class="guide-label" for="amount">가입 금액</label>
-                <input id="amount" class="guide-input" type="number" min="1" step="1" required placeholder="가입 금액 입력">
+                <input id="amount" class="guide-input" type="number" min="1" step="1" th:required="${!demandDepositProduct}" th:disabled="${demandDepositProduct}" placeholder="가입 금액 입력">
             </div>
+
+            <p id="demandDepositNotice" class="guide-note" th:hidden="${!demandDepositProduct}">
+                입출금식 통장은 가입 시점에 0원으로 개설됩니다. 잔액은 이후 입금/환전 거래로 변동됩니다.
+            </p>
 
             <div class="guide-field">
                 <label class="guide-label" for="accountPassword">계좌 비밀번호</label>
@@ -120,8 +159,24 @@
 <div th:replace="~{footer :: footer}"></div>
 
 <script th:inline="javascript">
-const productType = /*[[${product.productType}]]*/ '';
-const requiresWithdrawalAccount = productType.includes('정기') || productType.includes('적금');
+const productBaseRate = Number(/*[[${product.baseRate}]]*/ 0) || 0;
+const isDemandDepositProduct = /*[[${demandDepositProduct}]]*/ false;
+const requiresWithdrawalAccount = !isDemandDepositProduct;
+const rateField = document.getElementById('rateField');
+const rateSelect = document.getElementById('rateNo');
+const amountField = document.getElementById('amountField');
+const amountInput = document.getElementById('amount');
+const demandDepositNotice = document.getElementById('demandDepositNotice');
+
+if (!requiresWithdrawalAccount) {
+    rateField.hidden = true;
+    rateSelect.required = false;
+    rateSelect.value = '';
+    amountField.hidden = true;
+    amountInput.required = false;
+    amountInput.value = '0';
+    demandDepositNotice.hidden = false;
+}
 let ocrVerified = false;
 let identityVerificationRequired = true;
 let phoneVerified = false;
@@ -173,15 +228,86 @@ async function loadIdentityVerificationRequirement() {
     }
 }
 
+const idCardFileInput = document.getElementById('idCardFile');
+const idFileName = document.getElementById('idFileName');
+const cameraModal = document.getElementById('cameraModal');
+const cameraVideo = document.getElementById('cameraVideo');
+const captureCanvas = document.getElementById('captureCanvas');
+let cameraStream = null;
+
+function setSelectedIdFile(file) {
+    if (!file) return;
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    idCardFileInput.files = dataTransfer.files;
+    idFileName.textContent = file.name;
+    ocrVerified = false;
+    setOcrStatus('신분증 이미지가 준비되었습니다. 인증하기를 눌러 주세요.', '');
+}
+
+async function stopCamera() {
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+    }
+    cameraVideo.srcObject = null;
+    cameraModal.hidden = true;
+}
+
+async function openCameraGuide() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        idCardFileInput.click();
+        return;
+    }
+
+    try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: 'environment' } },
+            audio: false
+        });
+        cameraVideo.srcObject = cameraStream;
+        cameraModal.hidden = false;
+        await cameraVideo.play();
+    } catch (error) {
+        idCardFileInput.click();
+    }
+}
+
+function captureIdCardImage() {
+    if (!cameraVideo.videoWidth || !cameraVideo.videoHeight) return;
+    captureCanvas.width = cameraVideo.videoWidth;
+    captureCanvas.height = cameraVideo.videoHeight;
+    const context = captureCanvas.getContext('2d');
+    context.drawImage(cameraVideo, 0, 0, captureCanvas.width, captureCanvas.height);
+    captureCanvas.toBlob(blob => {
+        if (!blob) return;
+        const file = new File([blob], `id-card-${Date.now()}.jpg`, { type: 'image/jpeg' });
+        setSelectedIdFile(file);
+        stopCamera();
+    }, 'image/jpeg', 0.92);
+}
+
+idCardFileInput.addEventListener('change', event => {
+    const file = event.target.files && event.target.files[0];
+    if (file) {
+        idFileName.textContent = file.name;
+        ocrVerified = false;
+        setOcrStatus('신분증 이미지가 준비되었습니다. 인증하기를 눌러 주세요.', '');
+    }
+});
+document.getElementById('openCameraButton').addEventListener('click', openCameraGuide);
+document.getElementById('chooseImageButton').addEventListener('click', () => idCardFileInput.click());
+document.getElementById('captureIdButton').addEventListener('click', captureIdCardImage);
+document.getElementById('closeCameraButton').addEventListener('click', stopCamera);
 document.getElementById('ocrButton').addEventListener('click', async () => {
     const file = document.getElementById('idCardFile').files[0];
-    if (!file) { setOcrStatus('신분증 이미지를 선택해주세요.', 'error'); return; }
+    if (!file) { setOcrStatus('신분증을 촬영하거나 이미지를 선택해 주세요.', 'error'); return; }
 
     const token = await ensureAccessToken();
     if (!token) return;
     const button = document.getElementById('ocrButton');
     button.disabled = true;
-    setOcrStatus('신분증을 인식하고 회원 정보와 대조하고 있습니다.', '');
+    setOcrStatus('신분증 정보를 확인하고 있습니다.', '');
 
     try {
         const formData = new FormData();
@@ -194,11 +320,11 @@ document.getElementById('ocrButton').addEventListener('click', async () => {
             credentials: 'same-origin'
         });
         const body = await response.json();
-        if (!body.success) { setOcrStatus(body.message || 'OCR 인증에 실패했습니다.', 'error'); return; }
+        if (!body.success) { setOcrStatus(body.message || '신분증 인증에 실패했습니다.', 'error'); return; }
         ocrVerified = true;
-        setOcrStatus('OCR 인증이 완료되었습니다.', 'ok');
+        setOcrStatus('신분증 인증이 완료되었습니다.', 'ok');
     } catch (error) {
-        setOcrStatus('OCR 서버 통신 중 오류가 발생했습니다.', 'error');
+        setOcrStatus('신분증 인증 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.', 'error');
     } finally {
         button.disabled = false;
     }
@@ -264,22 +390,24 @@ document.getElementById('confirmPhoneCodeButton').addEventListener('click', asyn
 
 document.getElementById('joinForm').addEventListener('submit', async (event) => {
     event.preventDefault();
-    if (identityVerificationRequired && !ocrVerified) { setError('가입하기 전에 신분증 OCR 인증을 완료해주세요.'); return; }
+    if (identityVerificationRequired && !ocrVerified) { setError('가입하기 전에 신분증 본인확인을 완료해주세요.'); return; }
     if (!identityVerificationRequired && !phoneVerified) { setError('가입하기 전에 휴대폰 본인인증을 완료해주세요.'); return; }
 
     const productNo = Number(document.getElementById('productNo').value);
-    const rateOption = document.getElementById('rateNo').selectedOptions[0];
+    const rateOption = rateSelect.selectedOptions[0];
+    if (requiresWithdrawalAccount && (!rateOption || !rateOption.value)) { setError('가입 기간 / 금리를 선택해주세요.'); return; }
     const formPayload = {
         productNo,
-        rateNo: Number(rateOption.value),
+        rateNo: requiresWithdrawalAccount ? Number(rateOption.value) : null,
         currencyCode: document.getElementById('currencyCode').value,
-        amount: Number(document.getElementById('amount').value),
-        periodMonth: Number(rateOption.dataset.period),
-        appliedRate: Number(rateOption.dataset.rate),
+        amount: requiresWithdrawalAccount ? Number(document.getElementById('amount').value) : 0,
+        periodMonth: requiresWithdrawalAccount ? Number(rateOption.dataset.period) : 0,
+        appliedRate: requiresWithdrawalAccount ? Number(rateOption.dataset.rate) : productBaseRate,
         withdrawalAccountNo: requiresWithdrawalAccount ? document.getElementById('withdrawalAccountNo').value : null,
         accountPassword: document.getElementById('accountPassword').value
     };
 
+    if (requiresWithdrawalAccount && (!formPayload.amount || formPayload.amount <= 0)) { setError('가입 금액을 입력해주세요.'); return; }
     if (requiresWithdrawalAccount && !formPayload.withdrawalAccountNo) { setError('출금 계좌를 선택해주세요.'); return; }
 
     let response = await apiFetch('/api/product/join/form', { method: 'POST', body: JSON.stringify(formPayload) });
@@ -307,10 +435,10 @@ document.getElementById('joinForm').addEventListener('submit', async (event) => 
         cur.value = p.currencyCode;
         if (cur.value === p.currencyCode) cur.dispatchEvent(new Event('change')); // 출금계좌 목록 로드 트리거
     }
-    if (p.rateNo != null && p.rateNo !== '') {
+    if (requiresWithdrawalAccount && p.rateNo != null && p.rateNo !== '') {
         document.getElementById('rateNo').value = String(p.rateNo);
     }
-    if (p.amount != null && p.amount !== '') {
+    if (requiresWithdrawalAccount && p.amount != null && p.amount !== '') {
         document.getElementById('amount').value = p.amount;
     }
 

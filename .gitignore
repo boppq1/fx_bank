@@ -2,7 +2,7 @@
 *.class
 .env
 *.env
-uploads/
+uploads/signatures
 crops/
 
 # Log file
@@ -29,9 +29,8 @@ replay_pid*
 spring-server/.metadata/
 spring-server/fx_bank/.metadata/
 **/application-local.properties
-<<<<<<< HEAD
+
 /.metadata/
-=======
 
 # Python virtual environment
 venv/
@@ -43,4 +42,4 @@ fastapi-agent/.venv/
 __pycache__/
 *.pyc
 *.pyo
->>>>>>> d42e94a66e32125d34299064774d935b6b400142
+

@@ -3,6 +3,7 @@ package com.example.bank.admin.etc;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,7 +26,9 @@ import java.util.UUID;
 @Component
 public class PdfTermsFileHandler {
 
-    private static final String BASE_DIR = System.getProperty("user.home") + "/terms-pdf";
+    @Value("${app.file.terms-dir:uploads/terms}")
+    private String termsDir;
+
     private static final long MAX_FILE_SIZE = 20L * 1024 * 1024;
 
     public PdfSaveResult saveAndExtract(String termsCode, MultipartFile file) {
@@ -54,15 +57,18 @@ public class PdfTermsFileHandler {
 
     private Path saveFile(String termsCode, MultipartFile file) {
         try {
-            Path dirPath = Paths.get(BASE_DIR, termsCode);
+            Path dirPath = Paths.get(termsDir, termsCode);
             Files.createDirectories(dirPath);
+
             String datePart = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
             String randomPart = UUID.randomUUID().toString().substring(0, 8);
             String fileName = termsCode + "_" + datePart + "_" + randomPart + ".pdf";
             Path targetPath = dirPath.resolve(fileName);
+
             try (InputStream is = file.getInputStream()) {
                 Files.copy(is, targetPath, StandardCopyOption.REPLACE_EXISTING);
             }
+
             log.info("[약관 PDF 저장] termsCode={}, path={}", termsCode, targetPath);
             return targetPath;
         } catch (IOException e) {
@@ -91,14 +97,11 @@ public class PdfTermsFileHandler {
                 }
 
                 if (!tables.isEmpty()) {
-                    // 2) 표가 있는 페이지 → 텍스트 + 표 병합
                     String pageText = extractPageText(document, pageNum);
                     String tableText = tablesToText(tables);
-
                     result.append(postProcess(pageText));
                     result.append("\n\n[표]\n").append(tableText).append("\n");
                 } else {
-                    // 3) 표 없는 페이지 → 일반 텍스트 추출
                     String pageText = extractPageText(document, pageNum);
                     result.append(postProcess(pageText));
                 }
@@ -130,7 +133,6 @@ public class PdfTermsFileHandler {
 
     private String tablesToText(List<Table> tables) {
         StringBuilder sb = new StringBuilder();
-
         for (Table table : tables) {
             List<List<RectangularTextContainer>> rows = table.getRows();
             for (List<RectangularTextContainer> row : rows) {
@@ -144,9 +146,8 @@ public class PdfTermsFileHandler {
                 }
                 sb.append(rowSb).append("\n");
             }
-            sb.append("\n"); // 표 사이 구분
+            sb.append("\n");
         }
-
         return sb.toString();
     }
 
