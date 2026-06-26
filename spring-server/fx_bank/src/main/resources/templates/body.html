@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>body</title>
 <link rel="stylesheet" th:href="@{/css/fx-home.css}">
+
 </head>
 <body>
 <main th:fragment="body" class="fx-main">
@@ -172,12 +173,94 @@
             <p class="ai-sub">한국어 · English · 日本語 · 中文 등 다국어 지원 · RAG 기반 정확한 답변</p>
           </div>
         </div>
-        <a href="#" class="btn btn-light">챗봇 상담 시작</a>
+        <a href="#" id="chatbot-open" class="btn btn-light">챗봇 상담 시작</a>
       </div>
     </div>
   </section>
+<!-- ===================== AI 챗봇 위젯 ===================== -->
+<div id="chatbot-widget" class="chatbot-widget" style="display:none;">
+  <div class="chatbot-header">
+    <div class="chatbot-title">
+      <span>💬</span>
+      <span>AI 금융 도우미</span>
+    </div>
+    <button id="chatbot-close" class="chatbot-close" aria-label="닫기">✕</button>
+  </div>
 
+  <div id="chatbot-messages" class="chatbot-messages">
+    <div class="msg msg-bot">안녕하세요! 외환 관련 궁금한 점을 물어보세요.</div>
+  </div>
+
+  <div class="chatbot-input-area">
+    <input type="text" id="chatbot-input" class="chatbot-input" placeholder="메시지를 입력하세요" />
+    <button id="chatbot-send" class="chatbot-send">전송</button>
+  </div>
+</div>
   <script th:src="@{/js/fx-home.js}"></script>
 </main>
+<script>
+(function () {
+  const widget   = document.getElementById('chatbot-widget');
+  const openBtn  = document.getElementById('chatbot-open');   // "챗봇 상담 시작" 버튼
+  const closeBtn = document.getElementById('chatbot-close');
+  const sendBtn  = document.getElementById('chatbot-send');
+  const input    = document.getElementById('chatbot-input');
+  const messages = document.getElementById('chatbot-messages');
+
+  // 위젯 열기 / 닫기
+  if (openBtn) {
+    openBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      widget.style.display = 'flex';
+      input.focus();
+    });
+  }
+  closeBtn.addEventListener('click', function () {
+    widget.style.display = 'none';
+  });
+
+  // 메시지 화면에 추가
+  function addMessage(text, sender) {
+    const div = document.createElement('div');
+    div.className = 'msg ' + (sender === 'user' ? 'msg-user' : 'msg-bot');
+    div.textContent = text;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+    return div;
+  }
+
+  // 질문 전송
+  async function sendQuestion() {
+    const question = input.value.trim();
+    if (!question) return;
+
+    addMessage(question, 'user');
+    input.value = '';
+    sendBtn.disabled = true;
+
+    const loading = addMessage('답변 생성 중...', 'bot');
+
+    try {
+      const res = await fetch('/chatbot/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: question })
+      });
+      const data = await res.json();
+      loading.textContent = data.answer || '답변을 가져오지 못했습니다.';
+    } catch (err) {
+      loading.textContent = '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+    } finally {
+      sendBtn.disabled = false;
+      messages.scrollTop = messages.scrollHeight;
+    }
+  }
+
+  sendBtn.addEventListener('click', sendQuestion);
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') sendQuestion();
+  });
+})();
+</script>
 </body>
 </html>
