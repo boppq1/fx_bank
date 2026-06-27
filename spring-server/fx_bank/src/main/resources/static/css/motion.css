@@ -1,0 +1,131 @@
+@charset "UTF-8";
+/* ============================================================
+   motion.css · BNK 외환 프리미엄 모션 시스템 (전 페이지 공용)
+   - 토스/레볼루트 톤. 살아있되 신뢰감 있는 모션.
+   - 선언적 사용: data-reveal / [data-stagger] / .lift / .press / .glow ...
+   - 기존 fx-home.css 의 :root(--violet, --t, --ease ...) 와 '병합'되어 동작
+     (여기서는 모션 전용 토큰만 추가, 기존 토큰은 건드리지 않음)
+   - 모든 모션은 prefers-reduced-motion 가드 포함
+   - 초기 숨김은 html.motion 일 때만 적용 → JS 미동작 시 콘텐츠는 그대로 노출(폴백)
+   ============================================================ */
+
+:root{
+  /* 시그니처 이징 */
+  --ease-out-expo:cubic-bezier(.16,1,.3,1);
+  --ease-out-quart:cubic-bezier(.25,1,.5,1);
+  --ease-spring:cubic-bezier(.34,1.56,.64,1);
+  /* 듀레이션 (또렷하게 상향) */
+  --dur-fast:150ms;
+  --dur-base:380ms;
+  --dur-slow:760ms;
+  /* 엘리베이션 (더 깊고 컬러풀하게) */
+  --elev-rest:0 4px 14px rgba(26,26,46,.07);
+  --elev-hover:0 22px 50px rgba(109,91,255,.30);
+  --elev-overlay:0 30px 70px rgba(26,16,80,.34);
+  /* 글로우 / 메쉬 그라데이션 (더 밝고 선명) */
+  --glow-violet:0 0 0 1px rgba(124,92,255,.35), 0 16px 44px rgba(124,92,255,.46);
+  --grad-mesh:
+    radial-gradient(1200px 520px at 10% -14%, rgba(167,139,255,.72), transparent 60%),
+    radial-gradient(900px 460px at 100% -8%, rgba(99,102,241,.52), transparent 55%),
+    radial-gradient(700px 520px at 86% 112%, rgba(236,72,153,.30), transparent 55%),
+    linear-gradient(135deg,#6D5BFF 0%,#8B7BFF 100%);
+  /* 스크롤 리빌 이동 거리 (확실히 보이게) */
+  --reveal-dist:44px;
+}
+
+/* ===================== 스크롤 리빌 ===================== */
+html.motion [data-reveal]{
+  opacity:0;
+  transform:translateY(var(--reveal-dist));
+  transition:opacity var(--dur-slow) var(--ease-out-expo),
+             transform var(--dur-slow) var(--ease-out-expo);
+  will-change:opacity, transform;
+}
+html.motion [data-reveal="fade"]{transform:none;}
+html.motion [data-reveal="scale"]{transform:scale(.96);}
+html.motion [data-reveal="left"]{transform:translateX(calc(var(--reveal-dist) * -1));}
+html.motion [data-reveal="right"]{transform:translateX(var(--reveal-dist));}
+html.motion [data-reveal].is-in{opacity:1;transform:none;}
+
+/* ===================== 호버 마이크로 인터랙션 ===================== */
+.lift{transition:transform var(--dur-base) var(--ease-out-quart),
+                 box-shadow var(--dur-base) var(--ease-out-quart);}
+.lift:hover{transform:translateY(-4px);box-shadow:var(--elev-hover);}
+
+.press{transition:transform var(--dur-fast) var(--ease-out-quart);}
+.press:active{transform:scale(.97);}
+
+.glow{transition:box-shadow var(--dur-base) var(--ease-out-quart),
+                 transform var(--dur-base) var(--ease-out-quart);}
+.glow:hover{box-shadow:var(--glow-violet);}
+
+/* ===================== 포커스 가시성 (접근성) ===================== */
+a:focus-visible, button:focus-visible,
+input:focus-visible, select:focus-visible, textarea:focus-visible,
+.focus-ring:focus-visible{
+  outline:2px solid var(--violet);
+  outline-offset:2px;
+  border-radius:6px;
+}
+
+/* ===================== 라이브 펄스 점 ===================== */
+.live-dot{position:relative;display:inline-block;width:8px;height:8px;border-radius:50%;
+  background:var(--up);vertical-align:middle;}
+.live-dot::after{content:"";position:absolute;inset:0;border-radius:50%;background:inherit;
+  animation:live-pulse 1.8s var(--ease-out-quart) infinite;}
+@keyframes live-pulse{0%{transform:scale(1);opacity:.55;}70%{transform:scale(2.6);opacity:0;}100%{opacity:0;}}
+
+/* ===================== 스켈레톤 로더 ===================== */
+.skeleton{position:relative;overflow:hidden;background:var(--lavender);border-radius:8px;}
+.skeleton::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.65),transparent);
+  transform:translateX(-100%);animation:skeleton-sweep 1.4s ease-in-out infinite;}
+@keyframes skeleton-sweep{100%{transform:translateX(100%);}}
+
+/* ===================== SVG 스파크라인 드로우인 ===================== */
+.spark-line{stroke-dasharray:var(--spark-len,1);stroke-dashoffset:var(--spark-len,1);
+  transition:stroke-dashoffset var(--dur-slow) var(--ease-out-quart);}
+.spark-line.is-drawn{stroke-dashoffset:0;}
+
+/* ===================== 리플 ===================== */
+.ripple-host{position:relative;overflow:hidden;}
+.ripple{position:absolute;border-radius:50%;transform:scale(0);pointer-events:none;
+  background:currentColor;opacity:.18;animation:ripple-out var(--dur-slow) var(--ease-out-quart) forwards;}
+@keyframes ripple-out{to{transform:scale(2.4);opacity:0;}}
+
+/* ===================== 공용 진입 키프레임 ===================== */
+@keyframes fade-slide-up{from{opacity:0;transform:translateY(var(--reveal-dist));}to{opacity:1;transform:none;}}
+@keyframes fade-in{from{opacity:0;}to{opacity:1;}}
+
+/* ===================== guide-* 페이지 섹션 로드 진입 =====================
+   list/detail 처럼 data-reveal 을 직접 쓰는 페이지는 제외(:not([data-reveal])).
+   가입플로우·fx·리뷰·마이페이지 등 공통 guide-wrap 페이지에 일괄 stagger 진입 부여. */
+@media (prefers-reduced-motion: no-preference){
+  html.motion .guide-wrap > .guide-section:not([data-reveal]){
+    animation:fade-slide-up var(--dur-slow) var(--ease-out-expo) both;
+  }
+  html.motion .guide-wrap > .guide-section:not([data-reveal]):nth-child(2){animation-delay:60ms;}
+  html.motion .guide-wrap > .guide-section:not([data-reveal]):nth-child(3){animation-delay:120ms;}
+  html.motion .guide-wrap > .guide-section:not([data-reveal]):nth-child(4){animation-delay:180ms;}
+  html.motion .guide-wrap > .guide-section:not([data-reveal]):nth-child(5){animation-delay:240ms;}
+  html.motion .guide-wrap > .guide-section:not([data-reveal]):nth-child(n+6){animation-delay:300ms;}
+  /* guide 히어로(데이터-리빌 미사용 페이지)도 부드럽게 진입 */
+  html.motion .guide-hero:not(:has([data-reveal])){animation:fade-slide-up var(--dur-base) var(--ease-out-expo) both;}
+}
+
+/* ============================================================
+   reduced-motion: 모든 모션 제거/축소
+   ============================================================ */
+@media (prefers-reduced-motion: reduce){
+  html.motion [data-reveal]{opacity:1 !important;transform:none !important;transition:none !important;}
+  .lift,.press,.glow{transition:none !important;}
+  .lift:hover{transform:none !important;}
+  .spark-line{stroke-dashoffset:0 !important;transition:none !important;}
+  .live-dot::after,.skeleton::after,.ripple{animation:none !important;}
+  *,*::before,*::after{
+    animation-duration:.001ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.001ms !important;
+    scroll-behavior:auto !important;
+  }
+}
