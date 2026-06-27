@@ -15,24 +15,24 @@
     <span class="hero-blob hero-blob-2"></span>
     <div class="hero-inner">
 
-      <div class="hero-left">
-        <span class="hero-badge">● 실시간 환율 · AI 외환 도우미</span>
-        <h1 class="hero-title">
+      <div class="hero-left" data-stagger="110">
+        <span class="hero-badge" data-reveal><span class="live-dot" aria-hidden="true"></span> 실시간 환율 · AI 외환 도우미</span>
+        <h1 class="hero-title" data-reveal>
           외환, 더 쉽고<br>
           <span class="hero-accent">똑똑하게</span>
         </h1>
-        <p class="hero-desc">
+        <p class="hero-desc" data-reveal>
           실시간 고시환율 비교부터 환전 계산, 외화예금까지<br>
           BNK 외환을 한 곳에서 빠르게.
         </p>
-        <div class="hero-actions">
-          <a th:href="@{/fx/exchange-calculator}" class="btn btn-light">환전계산기</a>
-          <a th:href="@{/fx/exchange-rate}" class="btn btn-ghost">환율조회</a>
+        <div class="hero-actions" data-reveal>
+          <a th:href="@{/fx/exchange-calculator}" class="btn btn-light press" data-ripple>환전계산기</a>
+          <a th:href="@{/fx/exchange-rate}" class="btn btn-ghost press" data-ripple>환율조회</a>
         </div>
       </div>
 
       <!-- 히어로 featured 환율 카드 (캐러셀, DB 실데이터, JS 렌더) -->
-      <aside class="hero-feature">
+      <aside class="hero-feature" data-reveal="scale">
         <div class="hf-stage" id="heroFeature" aria-live="polite">
           <div class="hf-skeleton">실시간 환율 불러오는 중…</div>
         </div>
@@ -49,114 +49,15 @@
   <!-- ===================== 실시간 환율 ===================== -->
   <section class="section rates-section">
     <div class="section-inner">
-      <div class="section-head">
+      <div class="section-head" data-reveal>
         <div>
-          <span class="eyebrow">LIVE RATES</span>
+          <span class="eyebrow"><span class="live-dot" aria-hidden="true"></span> LIVE RATES</span>
           <h2 class="section-title">실시간 환율</h2>
         </div>
         <a th:href="@{/fx/exchange-rate}" class="section-more">전체 환율 보기 ›</a>
       </div>
-      <div class="rate-cards" id="rateCards">
+      <div class="rate-cards" id="rateCards" data-stagger="70">
         <div class="rate-card-skel">환율 불러오는 중…</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===================== 빠른 이용 ===================== -->
-  <section class="section quick-section">
-    <div class="section-inner">
-      <div class="quick-grid">
-        <a class="quick-card qc-violet" th:href="@{/fx/exchange-calculator}">
-          <span class="qc-ico">🧮</span>
-          <div class="qc-text"><strong>환전계산기</strong><span>우대율 적용 예상 금액</span></div>
-          <span class="qc-arrow">→</span>
-        </a>
-        <a class="quick-card qc-blue" th:href="@{/fx/exchange-rate}">
-          <span class="qc-ico">📈</span>
-          <div class="qc-text"><strong>환율조회</strong><span>통화별 최신 고시환율</span></div>
-          <span class="qc-arrow">→</span>
-        </a>
-        <a class="quick-card qc-mint" th:href="@{/fx/guide}">
-          <span class="qc-ico">📘</span>
-          <div class="qc-text"><strong>외환 상품·서비스 안내</strong><span>환전·환율·외화예금·FAQ</span></div>
-          <span class="qc-arrow">→</span>
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===================== 추천 상품 ===================== -->
-  <section class="section products">
-    <div class="section-inner">
-      <div class="section-head">
-        <div>
-          <span class="eyebrow">추천 상품</span>
-          <h2 class="section-title">나에게 딱 맞는 외화상품</h2>
-        </div>
-        <a th:href="@{/product/list}" class="section-more">전체 상품 보기 ›</a>
-      </div>
-
-      <div class="product-grid">
-
-        <article class="product-card">
-          <div class="product-top">
-            <span class="product-ico">💵</span>
-            <span class="tag tag-purple">인기</span>
-          </div>
-          <span class="product-cat">외화예금</span>
-          <h3 class="product-name">달러 정기예금</h3>
-          <p class="product-rate">3.8%</p>
-          <p class="product-sub">연 금리 · 12개월</p>
-          <div class="product-foot">
-            <span class="product-score">★ 4.8</span>
-            <a th:href="@{/product/list}" class="product-link">가입하기 →</a>
-          </div>
-        </article>
-
-        <article class="product-card">
-          <div class="product-top">
-            <span class="product-ico">🌐</span>
-            <span class="tag tag-green">신규</span>
-          </div>
-          <span class="product-cat">외화적금</span>
-          <h3 class="product-name">멀티 외화적금</h3>
-          <p class="product-rate">4.2%</p>
-          <p class="product-sub">연 금리 · 자유적립</p>
-          <div class="product-foot">
-            <span class="product-score">★ 4.6</span>
-            <a th:href="@{/product/list}" class="product-link">가입하기 →</a>
-          </div>
-        </article>
-
-        <article class="product-card">
-          <div class="product-top">
-            <span class="product-ico">💶</span>
-          </div>
-          <span class="product-cat">외화예금</span>
-          <h3 class="product-name">유로 정기예금</h3>
-          <p class="product-rate">3.1%</p>
-          <p class="product-sub">연 금리 · 6개월</p>
-          <div class="product-foot">
-            <span class="product-score">★ 4.5</span>
-            <a th:href="@{/product/list}" class="product-link">가입하기 →</a>
-          </div>
-        </article>
-
-        <article class="product-card">
-          <div class="product-top">
-            <span class="product-ico">💴</span>
-            <span class="tag tag-red">추천</span>
-          </div>
-          <span class="product-cat">외화예금</span>
-          <h3 class="product-name">엔화 정기예금</h3>
-          <p class="product-rate">2.4%</p>
-          <p class="product-sub">연 금리 · 12개월</p>
-          <div class="product-foot">
-            <span class="product-score">★ 4.7</span>
-            <a th:href="@{/product/list}" class="product-link">가입하기 →</a>
-          </div>
-        </article>
-
       </div>
     </div>
   </section>
@@ -164,16 +65,16 @@
   <!-- ===================== AI 배너 ===================== -->
   <section class="section ai-section">
     <div class="section-inner">
-      <div class="ai-banner">
+      <div class="ai-banner" data-reveal="scale">
         <div class="ai-left">
-          <span class="ai-ico">💬</span>
+          <span class="ai-ico"><i class="bi bi-chat-dots" aria-hidden="true"></i></span>
           <div class="ai-text">
             <span class="ai-eyebrow">AI 금융 도우미</span>
             <h3 class="ai-title">외환 고민, AI에게 바로 물어보세요</h3>
-            <p class="ai-sub">한국어 · English · 日本語 · 中文 등 다국어 지원 · RAG 기반 정확한 답변</p>
+            <p class="ai-sub">RAG 기반 정확한 답변</p>
           </div>
         </div>
-        <a href="#" id="chatbot-open" class="btn btn-light">챗봇 상담 시작</a>
+        <a href="#" id="chatbot-open" class="btn btn-light press" data-ripple>챗봇 상담 시작</a>
       </div>
     </div>
   </section>
@@ -181,10 +82,10 @@
 <div id="chatbot-widget" class="chatbot-widget" style="display:none;">
   <div class="chatbot-header">
     <div class="chatbot-title">
-      <span>💬</span>
+      <span><i class="bi bi-chat-dots" aria-hidden="true"></i></span>
       <span>AI 금융 도우미</span>
     </div>
-    <button id="chatbot-close" class="chatbot-close" aria-label="닫기">✕</button>
+    <button id="chatbot-close" class="chatbot-close" aria-label="닫기"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
   </div>
 
   <div id="chatbot-messages" class="chatbot-messages">

@@ -29,8 +29,8 @@
       return (i === 0 ? 'M' : 'L') + x.toFixed(1) + ' ' + y.toFixed(1);
     }).join(' ');
     var last = vals[n - 1], lx = w - pad, ly = pad + (1 - (last - min) / range) * (h - 2 * pad);
-    return '<svg width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none">'
-      + '<path d="' + d + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
+    return '<svg data-sparkline width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none">'
+      + '<path class="spark-line" d="' + d + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
       + '<circle cx="' + lx.toFixed(1) + '" cy="' + ly.toFixed(1) + '" r="2.6" fill="' + color + '"/></svg>';
   }
 
@@ -76,6 +76,8 @@
     stage.classList.add('hf-anim');
     renderDots();
     highlightCards();
+    // 히어로 스파크라인 드로우인 (통화 전환 시마다 다시 그려짐)
+    if (window.Motion) { var hs = stage.querySelector('[data-sparkline]'); if (hs) window.Motion.drawSpark(hs); }
   }
 
   function go(n) {
@@ -90,14 +92,16 @@
     if (!data.length) { el.innerHTML = '<div class="rate-card-skel">환율 데이터가 없습니다.</div>'; return; }
     el.innerHTML = data.map(function (r, i) {
       var a = accent(r.currencyCode);
-      return '<div class="rate-card' + (i === idx ? ' is-active' : '') + '" data-i="' + i + '" style="--rc:' + a + '" role="button" tabindex="0">'
+      return '<div class="rate-card' + (i === idx ? ' is-active' : '') + '" data-i="' + i + '" data-reveal style="--rc:' + a + '" role="button" tabindex="0">'
         + '<div class="rc-top"><span class="rc-flag" style="background:' + hexRgba(a, 0.12) + ';color:' + a + '">' + initials(r.currencyCode) + '</span>'
         + '<div><div class="rc-code">' + r.currencyCode + '</div><div class="rc-name">' + name(r.currencyCode) + '</div></div></div>'
-        + '<p class="rc-rate">' + fmt(r.baseRate) + '</p>'
+        + '<p class="rc-rate" data-countup>' + fmt(r.baseRate) + '</p>'
         + '<div class="rc-meta"><span class="rc-change ' + dir(r.changePct) + '">' + arrow(r.changePct) + ' ' + pct(r.changePct) + '</span></div>'
         + '<div class="rc-spark">' + sparkSvg(r.spark, a, 200, 40) + '</div>'
         + '</div>';
     }).join('');
+    // 새로 렌더된 카드들을 모션 엔진에 등록(리빌 시 카운트업·스파크라인 트리거)
+    if (window.Motion) window.Motion.scan();
   }
 
   function bind() {
