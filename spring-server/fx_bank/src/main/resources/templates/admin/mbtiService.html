@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -407,7 +407,7 @@
         setStep(2, 'done'); setStep(3, 'active');
 
         try {
-            const res = await fetch('http://localhost:8000/analyze-user', {
+            const res = await fetch('/api/mbti/analyze-user', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
