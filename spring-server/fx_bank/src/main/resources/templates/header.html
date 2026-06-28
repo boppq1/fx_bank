@@ -30,6 +30,39 @@
     .lang-menu button{display:block;width:100%;text-align:left;background:none;border:0;cursor:pointer;
       font:inherit;font-size:13px;color:#1A1A2E;padding:8px 10px;border-radius:7px;}
     .lang-menu button:hover{background:#F2F0FB;color:#6D5BFF;}
+      .mobile-bottom-nav{display:none;}
+    @media (max-width:680px){
+      body{padding-bottom:84px;}
+      .site-header .util-bar,
+      .site-header .gnb,
+      .site-header .gnb-tools{display:none;}
+      .site-header .gnb-bar{
+        display:block;position:sticky;top:0;z-index:460;
+        background:rgba(255,255,255,.94);border-bottom:1px solid rgba(236,234,246,.95);
+        -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+      }
+      .site-header .gnb-inner{
+        height:56px;min-height:56px;padding:0 18px;justify-content:center;
+      }
+      .site-header .brand{display:inline-flex;align-items:center;gap:8px;}
+      .site-header .brand-name{font-size:17px;font-weight:900;color:#4F46E5;}
+      .mobile-bottom-nav{
+        position:fixed;left:12px;right:12px;bottom:10px;z-index:500;
+        display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;
+        padding:8px 8px calc(8px + env(safe-area-inset-bottom));
+        border:1px solid rgba(230,224,255,.95);border-radius:22px;
+        background:rgba(255,255,255,.94);box-shadow:0 16px 42px rgba(26,26,46,.18);
+        -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+      }
+      .mobile-bottom-nav a{
+        display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+        min-width:0;min-height:46px;border-radius:16px;text-decoration:none;
+        color:#6B687C;font-size:11px;font-weight:800;line-height:1;white-space:nowrap;
+      }
+      .mobile-bottom-nav i{font-size:19px;line-height:1;color:inherit;}
+      .mobile-bottom-nav a.is-active{background:#F1EEFF;color:#6D5BFF;}
+      .mobile-bottom-nav a:active{transform:scale(.98);}
+    }
   </style>
 
   <!-- 상단 유틸리티 바 -->
@@ -72,8 +105,8 @@
           <li class="gnb-item">
             <a th:href="@{/product/list}" class="gnb-link">외환상품</a>
             <div class="gnb-dropdown">
-              <a th:href="@{/product/list}">외화예금</a>
-              <a th:href="@{/product/list}">외화적금</a>
+              <a th:href="@{/product/list(type='DEPOSIT')}">외화예금</a>
+              <a th:href="@{/product/list(type='SAVINGS')}">외화적금</a>
               <a th:href="@{/fx/guide}">외환 상품·서비스 안내</a>
             </div>
           </li>
@@ -115,6 +148,29 @@
 
   <!-- 로그인 상태에 따라 헤더 표시 토글 + 사용자 이름 인사 -->
   <!-- auth-refresh.js 를 먼저 로드해 공용 single-flight 토큰 재발급 함수를 전 페이지에 제공 -->
+
+  <nav class="mobile-bottom-nav" aria-label="&#47784;&#48148;&#51068; &#51452;&#50836; &#47700;&#45684;">
+    <a th:href="@{/}" data-nav-match="/">
+      <i class="bi bi-house-door" aria-hidden="true"></i>
+      <span>&#54856;</span>
+    </a>
+    <a th:href="@{/product/list}" data-nav-match="/product">
+      <i class="bi bi-grid" aria-hidden="true"></i>
+      <span>&#49345;&#54408;</span>
+    </a>
+    <a th:href="@{/fx/exchange-rate}" data-nav-match="/fx">
+      <i class="bi bi-currency-exchange" aria-hidden="true"></i>
+      <span>&#54872;&#50984;</span>
+    </a>
+    <a th:href="@{/event}" data-nav-match="/event">
+      <i class="bi bi-gift" aria-hidden="true"></i>
+      <span>&#51060;&#48292;&#53944;</span>
+    </a>
+    <a th:href="@{/product/my-subscriptions}" data-nav-match="/product/my-subscriptions">
+      <i class="bi bi-person-circle" aria-hidden="true"></i>
+      <span>MY</span>
+    </a>
+  </nav>
   <script th:src="@{/js/auth-refresh.js}"></script>
   <script th:src="@{/js/header-auth.js}"></script>
 
@@ -162,6 +218,14 @@
         })();
       }
       document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.mobile-bottom-nav a[data-nav-match]').forEach(function (link) {
+          var match = link.getAttribute('data-nav-match');
+          var path = location.pathname || '/';
+          if ((match === '/' && path === '/') || (match !== '/' && path.indexOf(match) === 0)) {
+            link.classList.add('is-active');
+          }
+        });
+
         applyLabel();
         var btn = document.getElementById('langBtn'), menu = document.getElementById('langMenu');
         if (btn && menu) {
