@@ -7,147 +7,523 @@
     <link rel="stylesheet" th:href="@{/css/fx-home.css}">
     <link rel="stylesheet" th:href="@{/css/fx-guide.css}">
     <style>
-        /* 가입하기 버튼: JS 가 .join-button 셀렉터로 잡고 dataset 을 읽으므로 클래스명 유지 → 토큰으로 재스타일 */
-        .join-button {
-            display: inline-block;
-            padding: 7px 14px;
-            border: 0;
+        .product-list-page {
+            background:
+                linear-gradient(180deg, rgba(246,244,255,.96) 0%, rgba(255,255,255,1) 46%),
+                radial-gradient(circle at 12% 16%, rgba(109,91,255,.14), transparent 32%),
+                radial-gradient(circle at 84% 8%, rgba(156,107,255,.12), transparent 30%);
+            min-height: 100vh;
+        }
+        .product-hero {
+            position: relative;
+            overflow: hidden;
+            padding: 58px 0 42px;
+            background:
+                radial-gradient(62% 92% at 12% 14%, rgba(255,255,255,.28), transparent 58%),
+                linear-gradient(135deg, #5A45E8 0%, #7C5CFF 55%, #9C6BFF 100%);
+            color: #fff;
+        }
+        .product-hero-inner {
+            width: min(1120px, calc(100% - 40px));
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 24px;
+            align-items: end;
+        }
+        .product-hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            width: fit-content;
+            padding: 8px 14px;
+            border: 1px solid rgba(255,255,255,.32);
             border-radius: 999px;
-            background: linear-gradient(135deg, var(--violet), #8B7BFF);
+            background: rgba(255,255,255,.16);
+            font-size: 13px;
+            font-weight: 800;
+        }
+        .product-hero h1 {
+            margin: 18px 0 10px;
+            font-size: clamp(30px, 4vw, 48px);
+            line-height: 1.08;
+            letter-spacing: 0;
+        }
+        .product-hero p {
+            max-width: 720px;
+            margin: 0;
+            color: rgba(255,255,255,.9);
+            font-size: 15.5px;
+            line-height: 1.7;
+        }
+
+        .product-shell {
+            width: min(1120px, calc(100% - 40px));
+            margin: -24px auto 72px;
+            position: relative;
+            z-index: 2;
+        }
+        .product-toolbar {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 14px;
+            align-items: center;
+            padding: 18px;
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            background: rgba(255,255,255,.94);
+            box-shadow: 0 20px 52px rgba(109,91,255,.14);
+        }
+        .product-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .product-tab {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 42px;
+            padding: 0 16px;
+            border: 1px solid #E6E0FF;
+            border-radius: 999px;
+            background: #fff;
+            color: var(--text-sub);
+            font-size: 14px;
+            font-weight: 800;
+            text-decoration: none;
+            transition: transform .16s ease, border-color .16s ease, background .16s ease, color .16s ease;
+        }
+        .product-tab:hover { transform: translateY(-1px); border-color: #CFC5FF; color: var(--violet); }
+        .product-tab.is-active {
+            border-color: transparent;
+            background: linear-gradient(135deg, #6D5BFF 0%, #8B7BFF 100%);
+            color: #fff;
+            box-shadow: 0 10px 22px rgba(109,91,255,.22);
+        }
+        .product-search {
+            display: flex;
+            gap: 8px;
+            width: min(430px, 100%);
+        }
+        .product-search input {
+            min-width: 0;
+            flex: 1;
+            height: 44px;
+            border: 1px solid #E6E0FF;
+            border-radius: 14px;
+            padding: 0 14px;
+            font: inherit;
+            outline: none;
+            color: var(--text);
+            background: #FBFAFF;
+        }
+        .product-search input:focus {
+            border-color: var(--violet);
+            box-shadow: 0 0 0 4px rgba(109,91,255,.12);
+            background: #fff;
+        }
+        .product-search button {
+            height: 44px;
+            padding: 0 17px;
+            border: 0;
+            border-radius: 14px;
+            background: var(--grad-cta);
             color: #fff;
             font: inherit;
-            font-size: 13px;
-            font-weight: 600;
+            font-weight: 800;
             cursor: pointer;
-            transition: filter var(--t, .15s) ease, transform var(--t, .15s) ease;
+            white-space: nowrap;
         }
-        .join-button:hover { filter: brightness(1.05); transform: translateY(-1px); }
+
+        .product-extra-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            margin: 22px 0 16px;
+        }
+        .product-section-title {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+            color: var(--text);
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: 0;
+        }
+        .product-count-pill {
+            display: inline-flex;
+            align-items: center;
+            min-height: 28px;
+            padding: 0 10px;
+            border-radius: 999px;
+            background: #F1EEFF;
+            color: var(--violet-deep);
+            font-size: 12.5px;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+        .my-product-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 42px;
+            padding: 0 15px;
+            border-radius: 999px;
+            border: 1px solid #E6E0FF;
+            background: #fff;
+            color: var(--violet);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 800;
+            box-shadow: var(--shadow-sm);
+            white-space: nowrap;
+        }
+
+        .mbti-banner {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 18px;
+            align-items: center;
+            margin: 0 0 22px;
+            padding: 22px 24px;
+            border-radius: 22px;
+            background:
+                linear-gradient(135deg, rgba(255,255,255,.18), rgba(255,255,255,.08)),
+                linear-gradient(120deg, #6D5BFF 0%, #7C5CFF 48%, #9C6BFF 100%);
+            color: #fff;
+            text-decoration: none;
+            box-shadow: var(--shadow-lg);
+        }
+        .mbti-banner-eyebrow { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 800; opacity: .92; }
+        .mbti-banner-title { display: block; margin: 7px 0 5px; font-size: clamp(18px, 2.5vw, 23px); font-weight: 900; letter-spacing: 0; }
+        .mbti-banner-sub { display: block; font-size: 14px; line-height: 1.55; opacity: .86; }
+        .mbti-banner-cta { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 0 17px; border-radius: 999px; background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.38); font-size: 14px; font-weight: 900; white-space: nowrap; }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+        }
+        .product-card {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            min-height: 360px;
+            border: 1px solid #EAE5FF;
+            border-radius: 22px;
+            background: #fff;
+            box-shadow: 0 12px 30px rgba(109,91,255,.10);
+            overflow: hidden;
+            transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+        }
+        .product-card:hover {
+            transform: translateY(-4px);
+            border-color: #CEC4FF;
+            box-shadow: 0 22px 46px rgba(109,91,255,.18);
+        }
+        .product-card-top {
+            padding: 20px 20px 16px;
+            background:
+                radial-gradient(circle at 88% 8%, rgba(156,107,255,.16), transparent 35%),
+                linear-gradient(180deg, #FBFAFF 0%, #fff 100%);
+            border-bottom: 1px solid #F0ECFF;
+        }
+        .product-meta-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .product-type-badge, .currency-badge {
+            display: inline-flex;
+            align-items: center;
+            max-width: 100%;
+            min-height: 30px;
+            padding: 0 10px;
+            border-radius: 999px;
+            font-size: 12.5px;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+        .product-type-badge { background: #F1EEFF; color: var(--violet-deep); }
+        .currency-badge { background: #EEF4FF; color: #2F6BFF; overflow: hidden; text-overflow: ellipsis; }
+        .product-name {
+            min-height: 58px;
+            margin: 0 0 10px;
+            color: var(--text);
+            font-size: 20px;
+            line-height: 1.35;
+            font-weight: 900;
+            letter-spacing: 0;
+            word-break: keep-all;
+        }
+        .product-desc {
+            display: -webkit-box;
+            min-height: 44px;
+            margin: 0;
+            color: var(--text-sub);
+            font-size: 13.8px;
+            line-height: 1.6;
+            overflow: hidden;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            word-break: keep-all;
+        }
+        .rate-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            padding: 16px 20px 8px;
+        }
+        .rate-box {
+            min-width: 0;
+            padding: 13px 12px;
+            border-radius: 16px;
+            background: #F8F6FF;
+            border: 1px solid #EDE8FF;
+        }
+        .rate-box span { display: block; margin-bottom: 5px; color: var(--text-sub); font-size: 12px; font-weight: 800; }
+        .rate-box strong { display: block; color: var(--violet-deep); font-size: 22px; line-height: 1; font-weight: 900; }
+        .product-facts {
+            display: grid;
+            gap: 9px;
+            padding: 12px 20px 16px;
+        }
+        .product-fact {
+            display: grid;
+            grid-template-columns: 74px minmax(0, 1fr);
+            gap: 10px;
+            align-items: start;
+            color: var(--text-body);
+            font-size: 13.5px;
+            line-height: 1.45;
+        }
+        .product-fact span:first-child { color: var(--text-sub); font-weight: 800; }
+        .product-fact span:last-child { min-width: 0; overflow-wrap: anywhere; }
+        .product-card-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: auto;
+            padding: 16px 20px 20px;
+        }
+        .detail-link, .join-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 0;
+            min-height: 44px;
+            border-radius: 14px;
+            font: inherit;
+            font-size: 14px;
+            font-weight: 900;
+            text-decoration: none;
+            cursor: pointer;
+            transition: transform .16s ease, filter .16s ease, border-color .16s ease;
+        }
+        .detail-link {
+            border: 1px solid #E6E0FF;
+            background: #fff;
+            color: var(--violet);
+        }
+        .join-button {
+            border: 0;
+            background: linear-gradient(135deg, var(--violet), #8B7BFF);
+            color: #fff;
+        }
+        .detail-link:hover, .join-button:hover { transform: translateY(-1px); filter: brightness(1.03); }
         .join-button:disabled { opacity: .55; cursor: default; transform: none; }
 
-        /* 검색 / 카테고리 툴바 */
-        .list-toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin: 4px 0 18px; }
-        .cat-tabs { display: flex; gap: 8px; }
-        .cat-tabs .guide-chip { text-decoration: none; }
-        .search-form { display: flex; gap: 8px; flex: 1 1 320px; max-width: 480px; }
-        .search-form .guide-search-input { flex: 1; }
-        /* 페이저 비활성 링크 */
-        .guide-page.is-disabled { opacity: .4; pointer-events: none; }
-
-        /* 상품 MBTI 배너 */
-        .mbti-banner {
-            display: flex; align-items: center; justify-content: space-between; gap: 20px;
-            margin: 0 0 22px; padding: 22px 28px; border-radius: var(--radius);
-            background: linear-gradient(120deg, #6D5BFF 0%, #7C5CFF 45%, #9C6BFF 100%);
-            color: #fff; text-decoration: none; box-shadow: var(--shadow-lg);
-            position: relative; overflow: hidden;
+        .empty-products {
+            padding: 56px 24px;
+            border: 1px dashed #CFC5FF;
+            border-radius: 22px;
+            background: rgba(255,255,255,.82);
+            text-align: center;
+            color: var(--text-sub);
         }
-        .mbti-banner-eyebrow { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; opacity: .92; }
-        .mbti-banner-title { display: block; font-size: 21px; font-weight: 800; letter-spacing: -.4px; margin: 6px 0 4px; }
-        .mbti-banner-sub { display: block; font-size: 13px; opacity: .86; }
-        .mbti-banner-cta { flex-shrink: 0; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700;
-            background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.42); padding: 11px 18px; border-radius: 999px; }
-        @media (max-width: 680px) { .mbti-banner { flex-direction: column; align-items: flex-start; } }
+        .empty-products strong { display: block; margin-bottom: 8px; color: var(--text); font-size: 20px; }
+        .product-pager {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 26px;
+        }
+        .product-page {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            height: 40px;
+            padding: 0 12px;
+            border-radius: 12px;
+            border: 1px solid #E6E0FF;
+            background: #fff;
+            color: var(--text-sub);
+            font-weight: 900;
+            text-decoration: none;
+        }
+        .product-page.is-active { border-color: transparent; background: var(--violet); color: #fff; }
+        .product-page.is-disabled { opacity: .42; pointer-events: none; }
+        .product-foot-note {
+            margin: 18px 0 0;
+            color: var(--text-sub);
+            font-size: 12.8px;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 980px) {
+            .product-hero-inner, .product-toolbar { grid-template-columns: 1fr; }
+.product-search { width: 100%; }
+            .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 680px) {
+            .product-hero { padding: 42px 0 34px; }
+            .product-hero-inner, .product-shell { width: min(100% - 28px, 1120px); }
+            .product-toolbar { padding: 14px; border-radius: 18px; }
+            .product-tab { flex: 1 1 calc(33.333% - 6px); padding: 0 10px; font-size: 13px; }
+            .product-extra-row, .mbti-banner { grid-template-columns: 1fr; display: grid; align-items: stretch; }
+            .my-product-link, .mbti-banner-cta { width: 100%; }
+            .product-grid { grid-template-columns: 1fr; gap: 14px; }
+            .product-card { min-height: auto; border-radius: 18px; }
+            .product-name { min-height: 0; font-size: 18px; }
+            .rate-box strong { font-size: 20px; }
+            .product-card-actions { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 420px) {
+            .product-search { display: grid; grid-template-columns: 1fr; }
+            .product-search button { width: 100%; }
+            .rate-panel { grid-template-columns: 1fr; }
+            .product-fact { grid-template-columns: 68px minmax(0, 1fr); }
+        }
     </style>
 </head>
-<body>
+<body class="product-list-page">
 
 <div th:replace="~{header :: header}"></div>
 
-<section class="guide-hero">
-    <div class="guide-hero-inner" data-stagger="90">
-        <span class="guide-hero-badge" data-reveal>외환 상품</span>
-        <h1 class="guide-hero-title" data-reveal>외화 상품 목록</h1>
-        <p class="guide-hero-desc" data-reveal>BNK 부산은행이 제공하는 외화 예금·적금 상품을 한눈에 비교하고 가입하세요. 현재 총 <strong th:text="${totalCount}">0</strong>개 상품을 운영 중입니다.</p>
-    </div>
+<section class="product-hero">
+    <div class="product-hero-inner" data-stagger="90">
+        <div>
+            <span class="product-hero-badge" data-reveal>FX PRODUCT</span>
+            <h1 data-reveal th:text="${type == 'SAVINGS' ? '외화적금 상품' : (type == 'DEPOSIT' ? '외화예금 상품' : '외화 상품 목록')}">외화 상품 목록</h1>
+            <p data-reveal>
+                목적에 맞는 외화예금과 외화적금을 비교하고 가입할 수 있습니다.
+                상품 유형, 통화, 금리, 가입 조건을 한 화면에서 확인해보세요.
+            </p>
+        </div>
+</div>
 </section>
 
-<main class="guide-wrap">
+<main class="product-shell">
+    <section class="product-toolbar" aria-label="상품 검색 및 분류" data-reveal>
+        <nav class="product-tabs" aria-label="상품 유형">
+            <a class="product-tab" th:classappend="${type == null or type == ''} ? ' is-active'"
+               th:href="@{/product/list(keyword=${keyword})}">전체</a>
+            <a class="product-tab" th:classappend="${type == 'DEPOSIT'} ? ' is-active'"
+               th:href="@{/product/list(type='DEPOSIT', keyword=${keyword})}">외화예금</a>
+            <a class="product-tab" th:classappend="${type == 'SAVINGS'} ? ' is-active'"
+               th:href="@{/product/list(type='SAVINGS', keyword=${keyword})}">외화적금</a>
+        </nav>
+        <form class="product-search" method="get" action="/product/list">
+            <input type="hidden" name="type" th:value="${type}">
+            <input type="text" name="keyword" th:value="${keyword}" placeholder="상품명, 유형, 통화 검색">
+            <button type="submit">검색</button>
+        </form>
+    </section>
 
-    <!-- 상품 MBTI 배너 (→ /mbti) -->
-    <a class="mbti-banner lift" th:href="@{/mbti}" data-reveal data-ripple>
+    <div class="product-extra-row" data-reveal>
+        <h2 class="product-section-title">추천 외화 상품 <span class="product-count-pill">총 <span th:text="${totalCount}">0</span>개</span></h2>
+        <a class="my-product-link" href="/product/my-subscriptions">내 가입 상품 보기</a>
+    </div>
+
+    <a class="mbti-banner" th:href="@{/mbti}" data-reveal data-ripple>
         <div>
-            <span class="mbti-banner-eyebrow"><i class="bi bi-stars" aria-hidden="true"></i> 상품 MBTI</span>
-            <strong class="mbti-banner-title">나에게 맞는 외화상품, 1분 만에 찾기</strong>
-            <span class="mbti-banner-sub">금융 성향 테스트로 딱 맞는 상품을 추천받아요</span>
+            <span class="mbti-banner-eyebrow">상품 MBTI</span>
+            <strong class="mbti-banner-title">나에게 맞는 외화상품을 빠르게 찾아보세요</strong>
+            <span class="mbti-banner-sub">금융 성향 테스트를 기반으로 더 어울리는 상품을 추천합니다.</span>
         </div>
-        <span class="mbti-banner-cta">테스트 시작 <i class="bi bi-arrow-right" aria-hidden="true"></i></span>
+        <span class="mbti-banner-cta">테스트 시작</span>
     </a>
 
-    <div class="guide-section" data-reveal>
-        <div class="guide-rate-head">
-            <h2 class="guide-section-title">상품 목록</h2>
-            <a class="btn btn-light" href="/product/my-subscriptions">내 가입 상품</a>
-        </div>
-
-        <div class="list-toolbar">
-            <div class="cat-tabs">
-                <a class="guide-chip" th:classappend="${type == null or type == ''} ? ' is-active'"
-                   th:href="@{/product/list(keyword=${keyword})}">전체</a>
-                <a class="guide-chip" th:classappend="${type == 'DEPOSIT'} ? ' is-active'"
-                   th:href="@{/product/list(type='DEPOSIT', keyword=${keyword})}">예금</a>
-                <a class="guide-chip" th:classappend="${type == 'SAVINGS'} ? ' is-active'"
-                   th:href="@{/product/list(type='SAVINGS', keyword=${keyword})}">적금</a>
+    <section class="product-grid" th:if="${not #lists.isEmpty(products)}" data-stagger="70">
+        <article class="product-card" th:each="product : ${products}" data-reveal>
+            <div class="product-card-top">
+                <div class="product-meta-line">
+                    <span class="product-type-badge" th:text="${product.productType}">외화예금</span>
+                    <span class="currency-badge" th:text="${product.currencyCodes == null or product.currencyCodes == '' ? '통화 정보 없음' : product.currencyCodes}">USD</span>
+                </div>
+                <h3 class="product-name" th:text="${product.productName}">상품명</h3>
+                <p class="product-desc" th:text="${product.description == null or product.description == '' ? '상품 상세에서 가입 조건과 우대 혜택을 확인해보세요.' : product.description}">상품 설명</p>
             </div>
-            <form class="search-form" method="get" action="/product/list">
-                <input type="hidden" name="type" th:value="${type}">
-                <input type="text" name="keyword" class="guide-search-input" th:value="${keyword}"
-                       placeholder="상품명·유형·가입대상 검색 (예: 예금, 외국인)">
-                <button type="submit" class="btn btn-primary">검색</button>
-            </form>
-        </div>
 
-        <div class="guide-table-wrap">
-            <table class="guide-table">
-                <thead>
-                <tr>
-                    <th>상품번호</th><th>상품명</th><th>유형</th><th>통화</th><th>기본금리</th><th>최고금리</th><th>가입기간</th><th>최소금액</th><th>평점</th><th>상세</th><th>가입</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="product : ${products}">
-                    <td th:text="${product.productNo}">900001</td>
-                    <td th:text="${product.productName}">프리미엄 달러 외화예금</td>
-                    <td><span class="guide-cat" th:text="${product.productType}">외화예금</span></td>
-                    <td th:text="${product.currencyCodes}">USD</td>
-                    <td th:text="${product.baseRate} + '%'">3.20%</td>
-                    <td th:text="${product.maxRate} + '%'">4.50%</td>
-                    <td th:text="${product.minPeriodMonth == null or product.minPeriodMonth == 0 or product.maxPeriodMonth == null or product.maxPeriodMonth == 0 ? '기간 없음' : product.minPeriodMonth + '개월 ~ ' + product.maxPeriodMonth + '개월'}">기간 없음</td>
-                    <td th:text="${#numbers.formatInteger(product.minAmount, 0, 'COMMA')} + '원'">500,000원</td>
-                    <td><span th:text="${product.avgRating}">4.8</span> (<span th:text="${product.reviewCount}">0</span>)</td>
-                    <td><a class="guide-link" th:href="@{/product/detail/{productNo}(productNo=${product.productNo})}">상세보기</a></td>
-                    <td>
-                        <button type="button" class="join-button press" data-ripple
-                                th:attr="data-product-no=${product.productNo},data-product-type=${product.productType}">가입하기</button>
-                    </td>
-                </tr>
-                <tr th:if="${#lists.isEmpty(products)}">
-                    <td colspan="11" style="text-align:center;color:var(--text-sub);padding:28px">검색 결과가 없습니다.</td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
+            <div class="rate-panel">
+                <div class="rate-box">
+                    <span>기본금리</span>
+                    <strong th:text="${product.baseRate == null ? '-' : product.baseRate + '%'}">3.20%</strong>
+                </div>
+                <div class="rate-box">
+                    <span>최고금리</span>
+                    <strong th:text="${product.maxRate == null ? '-' : product.maxRate + '%'}">4.50%</strong>
+                </div>
+            </div>
 
-        <div class="guide-pager" th:if="${totalPages > 1}">
-            <a class="guide-page" th:classappend="${page &lt;= 1} ? ' is-disabled'"
-               th:href="@{/product/list(type=${type}, keyword=${keyword}, page=${page - 1})}">이전</a>
-            <a class="guide-page" th:each="i : ${#numbers.sequence(1, totalPages)}"
-               th:classappend="${i == page} ? ' is-active'"
-               th:href="@{/product/list(type=${type}, keyword=${keyword}, page=${i})}" th:text="${i}">1</a>
-            <a class="guide-page" th:classappend="${page &gt;= totalPages} ? ' is-disabled'"
-               th:href="@{/product/list(type=${type}, keyword=${keyword}, page=${page + 1})}">다음</a>
-        </div>
+            <div class="product-facts">
+                <div class="product-fact">
+                    <span>가입기간</span>
+                    <span th:text="${product.minPeriodMonth == null or product.minPeriodMonth == 0 or product.maxPeriodMonth == null or product.maxPeriodMonth == 0 ? '기간 없음' : product.minPeriodMonth + '개월 ~ ' + product.maxPeriodMonth + '개월'}">기간 없음</span>
+                </div>
+                <div class="product-fact">
+                    <span>가입금액</span>
+                    <span th:text="${product.minAmount == null or product.minAmount == 0 ? '제한 없음' : #numbers.formatInteger(product.minAmount, 0, 'COMMA') + '원부터'}">500,000원부터</span>
+                </div>
+                <div class="product-fact">
+                    <span>평점</span>
+                    <span><span th:text="${product.avgRating}">4.8</span>점 · 리뷰 <span th:text="${product.reviewCount}">0</span>개</span>
+                </div>
+            </div>
 
-        <p class="guide-foot-note">
-            * 표시된 금리는 가입 기간·통화·시점에 따라 달라질 수 있으며, 실제 적용 금리는 상품 상세 및 가입 화면에서 확인하실 수 있습니다.
-        </p>
-    </div>
+            <div class="product-card-actions">
+                <a class="detail-link" th:href="@{/product/detail/{productNo}(productNo=${product.productNo})}">상세보기</a>
+                <button type="button" class="join-button press" data-ripple
+                        th:attr="data-product-no=${product.productNo},data-product-type=${product.productType}">가입하기</button>
+            </div>
+        </article>
+    </section>
+
+    <section class="empty-products" th:if="${#lists.isEmpty(products)}" data-reveal>
+        <strong>조회된 상품이 없습니다.</strong>
+        <span>검색어를 줄이거나 다른 상품 유형을 선택해보세요.</span>
+    </section>
+
+    <nav class="product-pager" th:if="${totalPages > 1}" aria-label="상품 목록 페이지">
+        <a class="product-page" th:classappend="${page &lt;= 1} ? ' is-disabled'"
+           th:href="@{/product/list(type=${type}, keyword=${keyword}, page=${page - 1})}">이전</a>
+        <a class="product-page" th:each="i : ${#numbers.sequence(1, totalPages)}"
+           th:classappend="${i == page} ? ' is-active'"
+           th:href="@{/product/list(type=${type}, keyword=${keyword}, page=${i})}" th:text="${i}">1</a>
+        <a class="product-page" th:classappend="${page &gt;= totalPages} ? ' is-disabled'"
+           th:href="@{/product/list(type=${type}, keyword=${keyword}, page=${page + 1})}">다음</a>
+    </nav>
+
+    <p class="product-foot-note">
+        * 금리와 가입 조건은 상품, 통화, 가입 시점에 따라 달라질 수 있으며 실제 적용 조건은 상세 화면과 가입 화면에서 확인할 수 있습니다.
+    </p>
 </main>
 
 <div th:replace="~{footer :: footer}"></div>
 
 <script>
 async function getAccessToken() {
-    // 공용 single-flight (refresh 중복/회전충돌 방지). 비회원이면 null → 호출부에서 returnUrl 처리
+    if (!window.acquireAccessToken) {
+        return null;
+    }
     return await window.acquireAccessToken();
 }
 
@@ -161,26 +537,25 @@ document.querySelectorAll('.join-button').forEach(button => {
             location.href = '/login?returnUrl=' + encodeURIComponent(target);
             return;
         }
-        const response = await fetch(`/api/product/join/${productNo}/join-eligibility`, {
-            headers: { 'Authorization': 'Bearer ' + token }, credentials: 'same-origin'
-        });
-        const body = await response.json();
-        if (!body.success) { alert(body.message || '가입 가능 여부를 확인하지 못했습니다.'); return; }
-        if (body.data.canJoin) { location.href = `/product/join/${productNo}/terms`; return; }
 
-        // 이미 상품 목록 화면이므로 특정 입출금 상품 가입 화면으로 강제 이동하지 않는다.
-        alert(body.data.reason + '\n\n상품 목록에서 외화 입출금 예금 상품을 먼저 선택해주세요.');
-        return;
-
-        const demandProduct = Array.from(document.querySelectorAll('.join-button')).find(candidate => {
-            const type = candidate.dataset.productType || '';
-            return type.includes('예금') && !type.includes('정기') && !type.includes('적금');
-        });
-        if (demandProduct && confirm(body.data.reason + '\n\n입출금 외화예금 가입 화면으로 이동할까요?')) {
-            location.href = `/product/join/${demandProduct.dataset.productNo}/terms`;
-            return;
+        try {
+            const response = await fetch(`/api/product/join/${productNo}/join-eligibility`, {
+                headers: { 'Authorization': 'Bearer ' + token },
+                credentials: 'same-origin'
+            });
+            const body = await response.json();
+            if (!body.success) {
+                alert(body.message || '가입 가능 여부를 확인하지 못했습니다.');
+                return;
+            }
+            if (body.data.canJoin) {
+                location.href = `/product/join/${productNo}/terms`;
+                return;
+            }
+            alert((body.data.reason || '가입할 수 없는 상품입니다.') + '\n\n상품 목록에서 조건에 맞는 상품을 다시 선택해주세요.');
+        } catch (error) {
+            alert('가입 가능 여부 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
         }
-        alert(body.data.reason);
     });
 });
 </script>

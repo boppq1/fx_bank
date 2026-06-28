@@ -446,7 +446,9 @@ button.gnb-login{border:0;cursor:pointer;font-family:inherit;}
 
 /* 대시보드 반응형 */
 @media (max-width:1040px){
-  .hero-feature{max-width:440px;}
+  .hero-inner{justify-items:center;}
+  .hero-left{width:100%;max-width:640px;justify-self:center;}
+  .hero-feature{width:100%;max-width:440px;justify-self:center;margin:0 auto;box-sizing:border-box;}
   .rate-cards{grid-template-columns:repeat(2,1fr);}
 }
 @media (max-width:680px){
@@ -481,4 +483,43 @@ button.gnb-login{border:0;cursor:pointer;font-family:inherit;}
 .rate-card.is-active{
   border-color:var(--rc,var(--violet));
   box-shadow:inset 0 0 0 2px var(--rc,var(--violet)),var(--shadow);
+}
+/* Mobile app-like polish */
+@media (max-width:680px){
+  .hero{padding:46px 0 92px;}
+  .hero-inner{
+    width:100%;max-width:100%;box-sizing:border-box;
+    grid-template-columns:minmax(0,1fr);gap:28px;justify-items:center;
+    padding-left:22px;padding-right:22px;
+  }
+  .hero-left{width:100%;max-width:440px;justify-self:center;}
+  .hero-badge{margin-bottom:24px;}
+  .hero-title{font-size:34px;line-height:1.08;letter-spacing:-.8px;margin-bottom:24px;}
+  .hero-desc{font-size:15px;line-height:1.65;margin-bottom:30px;}
+  .hero-actions{gap:12px;}
+  .hero-actions .btn{flex:1;min-width:0;padding:15px 12px;border-radius:14px;}
+  .hero-feature{
+    width:100%;max-width:440px;box-sizing:border-box;justify-self:center;margin:0 auto;
+    padding:26px;border-radius:22px;min-height:0;
+  }
+  .hf-stage{min-height:0;}
+  .hf-spark svg{width:100%;}
+  .hf-sub{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
+  .hf-sub strong{font-size:13.5px;}
+  .rates-section{padding-bottom:28px;}
+  .ai-section{padding-bottom:96px;}
+  .ai-banner{padding:22px;border-radius:22px;}
+  .ai-banner .chatbot-fab{display:flex;}
+}
+
+@media (max-width:390px){
+  .hero-inner{padding-left:18px;padding-right:18px;}
+  .hero-title{font-size:31px;}
+  .hf-rate{font-size:31px;}
+  .hf-sub strong{font-size:12.5px;}
+}
+/* Header/mobile cleanup */
+.gnb-search{display:none;}
+@media (max-width:680px){
+  .site-footer{display:none;}
 }

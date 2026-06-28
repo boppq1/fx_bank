@@ -251,12 +251,63 @@ function executeDaumPostcode() {
 function initIdCardOcr() {
   const drop = document.getElementById("idCardDrop");
   const fileInput = document.getElementById("idCardFile");
+  const modal = document.getElementById("authCameraModal");
+  const video = document.getElementById("authCameraVideo");
+  const canvas = document.getElementById("authCaptureCanvas");
+  const captureBtn = document.getElementById("authCaptureButton");
+  const closeBtn = document.getElementById("authCloseCameraButton");
   if (!drop || !fileInput) return;
 
-  drop.addEventListener("click", () => fileInput.click());
+  let stream = null;
+
+  function stopCamera() {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      stream = null;
+    }
+    if (video) video.srcObject = null;
+    if (modal) modal.hidden = true;
+  }
+
+  async function openCameraGuide() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !modal || !video) {
+      fileInput.click();
+      return;
+    }
+
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" } },
+        audio: false,
+      });
+      video.srcObject = stream;
+      modal.hidden = false;
+      await video.play();
+    } catch (err) {
+      fileInput.click();
+    }
+  }
+
+  function captureIdCard() {
+    if (!video || !canvas || !video.videoWidth || !video.videoHeight) return;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob(blob => {
+      if (!blob) return;
+      const file = new File([blob], "id-card-" + Date.now() + ".jpg", { type: "image/jpeg" });
+      stopCamera();
+      uploadIdCard(file);
+    }, "image/jpeg", 0.92);
+  }
+
+  drop.addEventListener("click", openCameraGuide);
   fileInput.addEventListener("change", () => {
     if (fileInput.files && fileInput.files[0]) uploadIdCard(fileInput.files[0]);
   });
+  if (captureBtn) captureBtn.addEventListener("click", captureIdCard);
+  if (closeBtn) closeBtn.addEventListener("click", stopCamera);
 }
 
 async function uploadIdCard(file) {

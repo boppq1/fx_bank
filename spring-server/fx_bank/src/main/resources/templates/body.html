@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
 <meta charset="UTF-8">
@@ -62,7 +62,8 @@
     </div>
   </section>
 
-  <!-- ===================== AI 배너 ===================== -->
+  <button type="button" id="chatbot-open" class="chatbot-fab press" data-ripple aria-label="AI 챗봇 상담 열기"><i class="bi bi-chat-dots-fill" aria-hidden="true"></i><span>AI</span></button>
+<!-- ===================== AI 배너 ===================== -->
   <section class="section ai-section">
     <div class="section-inner">
       <div class="ai-banner" data-reveal="scale">
@@ -74,7 +75,7 @@
             <p class="ai-sub">RAG 기반 정확한 답변</p>
           </div>
         </div>
-        <a href="#" id="chatbot-open" class="btn btn-light press" data-ripple>챗봇 상담 시작</a>
+        
       </div>
     </div>
   </section>
@@ -113,11 +114,13 @@
     openBtn.addEventListener('click', function (e) {
       e.preventDefault();
       widget.style.display = 'flex';
+      openBtn.hidden = true;
       input.focus();
     });
   }
   closeBtn.addEventListener('click', function () {
     widget.style.display = 'none';
+    if (openBtn) openBtn.hidden = false;
   });
 
   // 메시지 화면에 추가

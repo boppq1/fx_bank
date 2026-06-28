@@ -1,7 +1,8 @@
- import 'dart:convert';
+﻿ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:image_picker/image_picker.dart';
 
 void main() async {
@@ -16,10 +17,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       title: 'BNK Bank Event',
       debugShowCheckedModeBanner: false,
-      home: const WebScreen(),
+      home: WebScreen(),
     );
   }
 }
@@ -61,7 +62,14 @@ class _WebScreenState extends State<WebScreen> {
       )
       // ⚠️ 중요: 현재 구동 중인 본인의 스프링 서버 주소(IP)를 적어주세요.
       // 안드로이드 에뮬레이터에서 내 컴퓨터(localhost)를 가리키는 주소는 10.0.2.2 입니다.
-      ..loadRequest(Uri.parse('http://localhost:8080/')); 
+      ..loadRequest(Uri.parse('https://klsbank.store/')); 
+
+    final platformController = _controller.platform;
+    if (platformController is AndroidWebViewController) {
+      platformController.setOnPlatformPermissionRequest((request) {
+        request.grant();
+      });
+    }
   }
 
   Future<void> _takePictureAndUpload(String letter) async {
