@@ -32,12 +32,16 @@ public class MbtiApiController {
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorization
     ) {
         if (authorization == null || authorization.isBlank()) {
-            return ResponseEntity.status(401)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body("{\"detail\":\"로그인이 필요합니다. 다시 로그인해주세요.\"}");
+            return json(401, "로그인이 필요합니다. 다시 로그인해주세요.");
         }
 
-        return callAnalyzeUser(fastApiUrl, authorization);
+        try {
+            return callAnalyzeUser(fastApiUrl, authorization);
+        } catch (ResourceAccessException e) {
+            return json(503, "금융 MBTI 분석 서버에 연결할 수 없습니다. fastapi-agent 상태를 확인해주세요.");
+        } catch (Exception e) {
+            return json(500, "금융 MBTI 분석 중 서버 오류가 발생했습니다.");
+        }
     }
 
     private ResponseEntity<String> callAnalyzeUser(String baseUrl, String authorization) {
@@ -56,9 +60,29 @@ public class MbtiApiController {
             }
             throw e;
         } catch (HttpStatusCodeException e) {
-            return ResponseEntity.status(e.getStatusCode())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(e.getResponseBodyAsString());
+            String body = e.getResponseBodyAsString();
+            if (body != null && body.trim().startsWith("{")) {
+                return ResponseEntity.status(e.getStatusCode())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(body);
+            }
+            return json(e.getStatusCode().value(), body == null || body.isBlank()
+                    ? "금융 MBTI 분석 서버에서 오류가 발생했습니다."
+                    : body);
         }
+    }
+
+    private static ResponseEntity<String> json(int status, String detail) {
+        return ResponseEntity.status(status)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("{\"detail\":\"" + escapeJson(detail) + "\"}");
+    }
+
+    private static String escapeJson(String value) {
+        return value == null ? "" : value
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\r", " ")
+                .replace("\n", " ");
     }
 }
