@@ -3,25 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>약관 동의 | 상품 가입 | BNK 부산은행</title>
+    <title>약관 동의 | 상품 가입 | KLS은행</title>
     <link rel="stylesheet" th:href="@{/css/fx-home.css}">
     <link rel="stylesheet" th:href="@{/css/fx-guide.css}">
     <style>
         /* 약관 행: terms.html JS 가 .term-row / .read-state 를 직접 참조하므로 클래스명 유지(토큰으로 재스타일) */
-        .terms-list { margin-top: 4px; }
-        .term-row { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 0 4px; border-bottom: 1px solid var(--border); }
-        .term-row:last-child { border-bottom: 0; }
-        .term-row label { flex: 1; font-weight: 700; color: var(--text); font-size: 14.5px; }
-        .term-row input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--violet); }
+        .terms-list {
+            display: grid;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .term-row {
+            display: grid;
+            grid-template-columns: 22px minmax(0, 1fr) auto auto 38px;
+            align-items: center;
+            gap: 10px;
+            min-height: 68px;
+            padding: 14px 14px;
+            border: 1px solid rgba(109, 91, 255, .14);
+            border-radius: 16px;
+            background: #fff;
+            box-shadow: 0 10px 26px rgba(34, 22, 86, .055);
+            transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+        }
+        .term-row:hover {
+            border-color: rgba(109, 91, 255, .32);
+            box-shadow: 0 14px 32px rgba(34, 22, 86, .085);
+        }
+        .term-row:has(input:checked) {
+            border-color: rgba(109, 91, 255, .42);
+            background: linear-gradient(180deg, #fff 0%, #FBFAFF 100%);
+        }
+        .term-row:last-child { border-bottom: 1px solid rgba(109, 91, 255, .14); }
+        .term-row label {
+            min-width: 0;
+            font-weight: 800;
+            color: var(--text);
+            font-size: 14.5px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .term-row input[type=checkbox] {
+            width: 19px;
+            height: 19px;
+            accent-color: var(--violet);
+        }
         .term-row input:disabled { cursor: not-allowed; }
-        .badge { padding: 3px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 700; white-space: nowrap; }
+        .badge {
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 11.5px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
         .badge.required { background: #FFF0E7; color: #A33A00; }
         .badge.optional { background: var(--lavender); color: var(--violet); }
-        .read-state { color: var(--text-sub); font-size: 12.5px; white-space: nowrap; }
-        .arrow { padding: 8px; color: var(--text-sub); text-decoration: none; font-size: 22px; line-height: 1; }
-        .arrow:hover { color: var(--violet); }
+        .read-state {
+            min-width: 58px;
+            color: var(--text-sub);
+            font-size: 12.5px;
+            font-weight: 700;
+            text-align: right;
+            white-space: nowrap;
+        }
+        .term-row:has(input:checked) .read-state { color: var(--violet); }
+        .arrow {
+            width: 38px;
+            height: 38px;
+            display: grid;
+            place-items: center;
+            border-radius: 999px;
+            background: linear-gradient(180deg, #F5F1FF 0%, #EEE8FF 100%);
+            border: 1px solid rgba(109, 91, 255, .16);
+            color: var(--violet);
+            text-decoration: none;
+            font-size: 0;
+            line-height: 1;
+            transition: transform .18s ease, background .18s ease, color .18s ease;
+        }
+        .arrow::before {
+            content: '\203A';
+            font-size: 24px;
+            font-weight: 900;
+            line-height: 1;
+        }
+        .arrow:hover {
+            transform: translateX(2px);
+            background: var(--violet);
+            color: #fff;
+        }
         .muted { color: var(--text-sub); }
         .error { margin-top: 14px; color: var(--up); font-size: 13.5px; font-weight: 600; }
+        @media (max-width: 700px) {
+            .term-row {
+                grid-template-columns: 22px minmax(0, 1fr) 36px;
+                grid-template-areas:
+                    'check title arrow'
+                    'check meta arrow';
+                gap: 5px 10px;
+                padding: 13px 12px;
+            }
+            .term-row input[type=checkbox] { grid-area: check; }
+            .term-row label { grid-area: title; font-size: 14px; }
+            .term-row .badge { grid-area: meta; justify-self: start; }
+            .term-row .read-state { grid-area: meta; justify-self: end; margin-right: 46px; }
+            .term-row .arrow { grid-area: arrow; width: 36px; height: 36px; }
+        }
     </style>
 </head>
 <body>
@@ -158,6 +246,18 @@ const STEP_LABEL = { TERMS: '약관 동의', COUPON: '우대금리 쿠폰', VERI
         overlay.style.display = 'none';
     });
 })();
+</script>
+<script>
+  document.querySelectorAll('.term-row label').forEach((el) => {
+    const key = (el.textContent || '').replace(/\s+/g, '').trim();
+    const labels = {
+      '상품별적용약관동의': '상품별 적용 약관 동의',
+      '상품설명서': '상품 설명서',
+      '예금거래기본약관': '예금거래 기본약관',
+      '외화예금거래기본약관': '외화예금거래 기본약관'
+    };
+    if (labels[key]) el.textContent = labels[key];
+  });
 </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>외화 상품 상세 | BNK 부산은행</title>
+    <title>외화 상품 상세 | KLS은행</title>
     <link rel="stylesheet" th:href="@{/css/fx-home.css}">
     <link rel="stylesheet" th:href="@{/css/fx-guide.css}">
     <style>
@@ -25,56 +25,116 @@
         .detail-summary-item .value { display: block; margin-top: 8px; font-weight: 700; color: var(--text); }
 
         /* 약관 아코디언 (details/summary 구조 전용) */
-        .terms-list { display: grid; gap: 10px; }
+        .terms-list {
+            display: grid;
+            gap: 12px;
+        }
         .term {
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            background: var(--surface);
+            border: 1px solid rgba(109, 91, 255, .16);
+            border-radius: 16px;
+            background: #fff;
             overflow: hidden;
+            box-shadow: 0 10px 28px rgba(34, 22, 86, .06);
+            transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+        }
+        .term:hover {
+            border-color: rgba(109, 91, 255, .34);
+            box-shadow: 0 14px 34px rgba(34, 22, 86, .09);
+        }
+        .term[open] {
+            border-color: rgba(109, 91, 255, .42);
         }
         .term summary {
-            display: flex;
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto 36px;
             align-items: center;
             gap: 10px;
+            min-height: 64px;
             padding: 14px 16px;
             cursor: pointer;
             list-style: none;
         }
         .term summary::-webkit-details-marker { display: none; }
         .term summary::after {
-            content: '⌄';
-            width: 24px;
-            height: 24px;
+            content: '\203A';
+            width: 36px;
+            height: 36px;
             display: grid;
             place-items: center;
-            border-radius: 50%;
-            color: var(--text-sub);
-            background: var(--lavender);
-            font-size: 18px;
-            transition: transform .18s ease;
+            justify-self: end;
+            border-radius: 999px;
+            color: var(--violet);
+            background: linear-gradient(180deg, #F5F1FF 0%, #EEE8FF 100%);
+            border: 1px solid rgba(109, 91, 255, .16);
+            font-size: 23px;
+            font-weight: 800;
+            line-height: 1;
+            transition: transform .2s ease, background .2s ease, color .2s ease;
         }
-        .term[open] summary::after { transform: rotate(180deg); }
-        .term-title { flex: 1; font-weight: 700; color: var(--text); }
-        .term-type { color: var(--text-sub); font-size: 13px; }
-        .badge { padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+        .term[open] summary::after {
+            transform: rotate(90deg);
+            background: var(--violet);
+            color: #fff;
+        }
+        .term-title {
+            min-width: 0;
+            font-weight: 800;
+            color: var(--text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .term-type {
+            color: var(--text-sub);
+            font-size: 13px;
+            white-space: nowrap;
+        }
+        .badge {
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
         .badge.required { color: #a33a00; background: #FFF0E7; }
         .badge.optional { color: var(--text-sub); background: var(--lavender); }
         .term-content {
-            margin: 0;
-            padding: 16px;
-            border-top: 1px solid var(--border);
-            background: #fff;
+            margin: 0 16px 14px;
+            padding: 18px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: linear-gradient(180deg, #fff 0%, #FBFAFF 100%);
             white-space: pre-wrap;
-            word-break: break-all;
+            word-break: keep-all;
+            overflow-wrap: anywhere;
             font-size: 14px;
-            line-height: 1.8;
+            line-height: 1.85;
             color: var(--text-body);
-            max-height: 320px;
+            max-height: 300px;
             overflow-y: auto;
             overscroll-behavior: contain;
         }
-        .term-link { display: inline-block; margin: 0 16px 16px; font-size: 14px; color: var(--violet); font-weight: 600; text-decoration: none; }
+        .term-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin: 0 16px 16px;
+            font-size: 14px;
+            color: var(--violet);
+            font-weight: 800;
+            text-decoration: none;
+        }
         .term-link:hover { text-decoration: underline; }
+        @media (max-width: 700px) {
+            .term summary {
+                grid-template-columns: auto minmax(0, 1fr) 34px;
+                gap: 8px;
+                padding: 13px 14px;
+            }
+            .term-type { display: none; }
+            .term summary::after { width: 34px; height: 34px; }
+            .term-content { margin: 0 12px 12px; padding: 14px; max-height: 260px; }
+        }
 
         /* 리뷰 목록 (반복 article 구조 전용) */
         .review { padding: 16px 0; border-bottom: 1px solid var(--border); }
@@ -252,6 +312,20 @@
         alert(body.data.reason + '\n\n상품 목록에서 외화 입출금 예금 상품을 먼저 선택해주세요.');
         location.href = '/product/list';
     });
+</script>
+
+<script>
+  // DB에 붙어서 저장된 일부 약관명을 화면에서는 은행 약관처럼 읽기 좋게 보정한다.
+  document.querySelectorAll('.term-title').forEach((el) => {
+    const key = (el.textContent || '').replace(/\s+/g, '').trim();
+    const labels = {
+      '상품별적용약관동의': '상품별 적용 약관 동의',
+      '상품설명서': '상품 설명서',
+      '예금거래기본약관': '예금거래 기본약관',
+      '외화예금거래기본약관': '외화예금거래 기본약관'
+    };
+    if (labels[key]) el.textContent = labels[key];
+  });
 </script>
 </body>
 </html>

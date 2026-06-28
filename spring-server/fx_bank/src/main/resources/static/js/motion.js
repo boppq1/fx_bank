@@ -1,5 +1,5 @@
 /* ============================================================
-   motion.js · BNK 외환 프리미엄 모션 엔진 (바닐라, 무의존)
+   motion.js · KLS 외환 프리미엄 모션 엔진 (바닐라, 무의존)
    - data-* 선언으로 자동 초기화
        data-reveal[=up|fade|scale|left|right]  스크롤 등장 (IntersectionObserver)
        [data-stagger="80"]                     자식 [data-reveal] 순차 지연(ms)

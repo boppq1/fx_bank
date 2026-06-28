@@ -8,6 +8,6 @@ public class mbtiController {
 
     @GetMapping("/mbti")
     public String mbti() {
-        return "/admin/mbtiService";
+        return "admin/mbtiService";
     }
 }

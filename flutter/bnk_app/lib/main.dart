@@ -1,4 +1,4 @@
-﻿ import 'dart:convert';
+ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
-      title: 'BNK Bank Event',
+      title: 'KLS Bank',
       debugShowCheckedModeBanner: false,
       home: WebScreen(),
     );
@@ -92,7 +92,7 @@ class _WebScreenState extends State<WebScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('BNK 뱅크 이벤트'),
+        title: const Text('KLS은행'),
         backgroundColor: Colors.blue,
       ),
       body: WebViewWidget(controller: _controller),
