@@ -11,33 +11,59 @@
 
 <div th:replace="~{header :: header}"></div>
 
-<div class="event-container">
-    <h2>나의 이벤트 현황</h2>
+<section class="ev-hero">
+    <span class="ev-blob ev-blob-1" aria-hidden="true"></span>
+    <span class="ev-blob ev-blob-2" aria-hidden="true"></span>
+    <div class="ev-hero-inner">
+        <span class="ev-badge" data-reveal>나의 이벤트</span>
+        <h1 class="ev-title" data-reveal>인증 현황</h1>
+        <p class="ev-desc" data-reveal>B · N · K 를 모두 인증하면 우대금리 쿠폰이 발급돼요.</p>
+    </div>
+</section>
 
-    <div class="status-grid">
-        <div class="status-item" th:classappend="${event.b == 'Y'} ? 'done' : ''">
-            <span class="letter">B</span>
-            <span th:text="${event.b == 'Y'} ? '✅ 인증완료' : '❌ 미인증'"></span>
-            <button th:if="${event.b == 'N'}" onclick="openCamera('B')">인증하기</button>
+<main class="ev-wrap">
+    <div class="ev-progress" data-reveal
+         th:with="done=${(event.b == 'Y' ? 1 : 0) + (event.n == 'Y' ? 1 : 0) + (event.k == 'Y' ? 1 : 0)}">
+        <div class="ev-progress-track">
+            <div class="ev-progress-fill" th:style="|width:${done * 100 / 3}%|"></div>
         </div>
-        <div class="status-item" th:classappend="${event.n == 'Y'} ? 'done' : ''">
-            <span class="letter">N</span>
-            <span th:text="${event.n == 'Y'} ? '✅ 인증완료' : '❌ 미인증'"></span>
-            <button th:if="${event.n == 'N'}" onclick="openCamera('N')">인증하기</button>
-        </div>
-        <div class="status-item" th:classappend="${event.k == 'Y'} ? 'done' : ''">
-            <span class="letter">K</span>
-            <span th:text="${event.k == 'Y'} ? '✅ 인증완료' : '❌ 미인증'"></span>
-            <button th:if="${event.k == 'N'}" onclick="openCamera('K')">인증하기</button>
-        </div>
+        <div class="ev-progress-label"><span th:text="${done}">0</span> / 3 인증 완료</div>
     </div>
 
-    <div th:if="${event.applied == 'Y'}" class="success-msg">
-        <h3>🎉 축하합니다!</h3>
-        <p>B, N, K 모두 인증 완료! <strong>우대금리 쿠폰이 발급되었습니다.</strong></p>
-        <p class="sub-msg">쿠폰함에서 발급된 쿠폰을 확인하고 적금 가입 시 사용해 보세요!</p>
+    <div class="ev-steps" data-stagger="120">
+        <article class="ev-card ev-card-b" th:classappend="${event.b == 'Y'} ? ' is-done'" data-reveal>
+            <span class="ev-letter">B</span>
+            <span class="ev-state">
+                <i class="bi" th:classappend="${event.b == 'Y'} ? 'bi-check-circle-fill' : 'bi-x-circle'" aria-hidden="true"></i>
+                <span th:text="${event.b == 'Y'} ? '인증완료' : '미인증'">미인증</span>
+            </span>
+            <button th:if="${event.b == 'N'}" class="ev-verify press" data-ripple onclick="openCamera('B')">인증하기</button>
+        </article>
+        <article class="ev-card ev-card-n" th:classappend="${event.n == 'Y'} ? ' is-done'" data-reveal>
+            <span class="ev-letter">N</span>
+            <span class="ev-state">
+                <i class="bi" th:classappend="${event.n == 'Y'} ? 'bi-check-circle-fill' : 'bi-x-circle'" aria-hidden="true"></i>
+                <span th:text="${event.n == 'Y'} ? '인증완료' : '미인증'">미인증</span>
+            </span>
+            <button th:if="${event.n == 'N'}" class="ev-verify press" data-ripple onclick="openCamera('N')">인증하기</button>
+        </article>
+        <article class="ev-card ev-card-k" th:classappend="${event.k == 'Y'} ? ' is-done'" data-reveal>
+            <span class="ev-letter">K</span>
+            <span class="ev-state">
+                <i class="bi" th:classappend="${event.k == 'Y'} ? 'bi-check-circle-fill' : 'bi-x-circle'" aria-hidden="true"></i>
+                <span th:text="${event.k == 'Y'} ? '인증완료' : '미인증'">미인증</span>
+            </span>
+            <button th:if="${event.k == 'N'}" class="ev-verify press" data-ripple onclick="openCamera('K')">인증하기</button>
+        </article>
     </div>
-</div>
+
+    <div th:if="${event.applied == 'Y'}" class="ev-success" data-reveal="scale">
+        <i class="bi bi-trophy" aria-hidden="true"></i>
+        <h3>축하합니다!</h3>
+        <p>B · N · K 모두 인증 완료! <strong>우대금리 쿠폰이 발급되었습니다.</strong></p>
+        <p class="sub">쿠폰함에서 발급된 쿠폰을 확인하고 적금 가입 시 사용해 보세요!</p>
+    </div>
+</main>
 
 <div th:replace="~{footer :: footer}"></div>
 
