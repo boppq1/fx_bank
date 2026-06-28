@@ -1,6 +1,6 @@
 @charset "UTF-8";
 /* ============================================================
-   motion.css · BNK 외환 프리미엄 모션 시스템 (전 페이지 공용)
+   motion.css · KLS 외환 프리미엄 모션 시스템 (전 페이지 공용)
    - 토스/레볼루트 톤. 살아있되 신뢰감 있는 모션.
    - 선언적 사용: data-reveal / [data-stagger] / .lift / .press / .glow ...
    - 기존 fx-home.css 의 :root(--violet, --t, --ease ...) 와 '병합'되어 동작
