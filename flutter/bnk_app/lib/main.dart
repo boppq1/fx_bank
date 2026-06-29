@@ -1,14 +1,14 @@
- import 'dart:convert';
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
-import 'package:image_picker/image_picker.dart';
 
 void main() async {
-  // 플러터 엔진과 네이티브 플랫폼 간의 바인딩을 보장하는 필수 코드
-  WidgetsFlutterBinding.ensureInitialized(); 
-  
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 
@@ -36,19 +36,40 @@ class _WebScreenState extends State<WebScreen> {
   late final WebViewController _controller;
   final ImagePicker _picker = ImagePicker();
 
+  bool _showSplash = true;
+  bool _pageLoaded = false;
+  bool _minimumSplashElapsed = false;
+  Timer? _splashTimer;
+  Timer? _splashFallbackTimer;
+
   @override
   void initState() {
     super.initState();
 
+    _splashTimer = Timer(const Duration(milliseconds: 1300), () {
+      _minimumSplashElapsed = true;
+      _hideSplashIfReady();
+    });
+
+    _splashFallbackTimer = Timer(const Duration(milliseconds: 3500), () {
+      if (mounted) {
+        setState(() => _showSplash = false);
+      }
+    });
+
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setUserAgent("Flutter/fx_bank") // 스프링 백엔드가 앱 접속인지 판단하는 기준이 됩니다!
+      ..setUserAgent('Flutter/fx_bank')
       ..setOnConsoleMessage((JavaScriptConsoleMessage message) {
-    debugPrint('WebView 콘솔: ${message.message}');
-  })
+        debugPrint('WebView console: ${message.message}');
+      })
       ..setNavigationDelegate(
         NavigationDelegate(
-          onPageFinished: (String url) => debugPrint('로딩 완료: $url'),
+          onPageFinished: (String url) {
+            debugPrint('Loaded: $url');
+            _pageLoaded = true;
+            _hideSplashIfReady();
+          },
         ),
       )
       ..addJavaScriptChannel(
@@ -56,13 +77,11 @@ class _WebScreenState extends State<WebScreen> {
         onMessageReceived: (JavaScriptMessage message) {
           final Map<String, dynamic> data = jsonDecode(message.message);
           if (data['action'] == 'openCamera') {
-            _takePictureAndUpload(data['letter']);
+            _takePictureAndUpload(data['letter']?.toString() ?? '');
           }
         },
       )
-      // ⚠️ 중요: 현재 구동 중인 본인의 스프링 서버 주소(IP)를 적어주세요.
-      // 안드로이드 에뮬레이터에서 내 컴퓨터(localhost)를 가리키는 주소는 10.0.2.2 입니다.
-      ..loadRequest(Uri.parse('https://klsbank.store/')); 
+      ..loadRequest(Uri.parse('https://klsbank.store/'));
 
     final platformController = _controller.platform;
     if (platformController is AndroidWebViewController) {
@@ -72,30 +91,132 @@ class _WebScreenState extends State<WebScreen> {
     }
   }
 
+  void _hideSplashIfReady() {
+    if (!mounted || !_pageLoaded || !_minimumSplashElapsed || !_showSplash) return;
+    setState(() => _showSplash = false);
+  }
+
   Future<void> _takePictureAndUpload(String letter) async {
     try {
       final XFile? photo = await _picker.pickImage(source: ImageSource.camera);
-      if (photo != null) {
-        File imageFile = File(photo.path);
-        List<int> imageBytes = await imageFile.readAsBytes();
-        String base64Image = base64Encode(imageBytes);
+      if (photo == null) return;
 
-        // 사진 촬영이 끝나면 웹 브라우저의 window.onCameraResult 함수를 강제로 호출하면서 데이터를 넘깁니다.
-        _controller.runJavaScript('window.onCameraResult("$letter", "$base64Image");');
-      }
+      final File imageFile = File(photo.path);
+      final List<int> imageBytes = await imageFile.readAsBytes();
+      final String base64Image = base64Encode(imageBytes);
+      final String encodedLetter = jsonEncode(letter);
+      final String encodedImage = jsonEncode(base64Image);
+
+      await _controller.runJavaScript(
+        'window.onCameraResult($encodedLetter, $encodedImage);',
+      );
     } catch (e) {
-      debugPrint("카메라 에러: $e");
+      debugPrint('Camera error: $e');
     }
+  }
+
+  @override
+  void dispose() {
+    _splashTimer?.cancel();
+    _splashFallbackTimer?.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('KLS은행'),
-        backgroundColor: Colors.blue,
+      backgroundColor: const Color(0xFF6F4CFF),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          SafeArea(
+            child: WebViewWidget(controller: _controller),
+          ),
+          IgnorePointer(
+            ignoring: !_showSplash,
+            child: AnimatedOpacity(
+              opacity: _showSplash ? 1 : 0,
+              duration: const Duration(milliseconds: 360),
+              curve: Curves.easeOut,
+              child: const _SplashView(),
+            ),
+          ),
+        ],
       ),
-      body: WebViewWidget(controller: _controller),
+    );
+  }
+}
+
+class _SplashView extends StatelessWidget {
+  const _SplashView();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF4F46E5),
+            Color(0xFF7C3AED),
+            Color(0xFF8B5CF6),
+          ],
+        ),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 86,
+              height: 86,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.16),
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.34)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 24,
+                    offset: const Offset(0, 14),
+                  ),
+                ],
+              ),
+              alignment: Alignment.center,
+              child: const Text(
+                'K',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 42,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0,
+                ),
+              ),
+            ),
+            const SizedBox(height: 22),
+            const Text(
+              'KLS Bank',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 28,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '?명솚?????쎄퀬 ?묐삊?섍쾶',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.82),
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
