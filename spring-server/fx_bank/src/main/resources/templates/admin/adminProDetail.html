@@ -166,8 +166,14 @@
 <script>
   const $ = (sel) => document.querySelector(sel);
 
+  function normalizeApiBase(value) {
+    const base = String(value || '').trim().replace(/\/$/, '');
+    if (!base || base.includes('localhost') || base.includes('127.0.0.1')) return '';
+    return base;
+  }
+
   function getApiBase() {
-    return (localStorage.getItem('apiBase') || 'http://localhost:8080').replace(/\/$/, '');
+    return normalizeApiBase(localStorage.getItem('apiBase'));
   }
 
   function getProductNo() {

@@ -123,7 +123,7 @@
             <a href="#" class="gnb-link">고객지원</a>
             <div class="gnb-dropdown">
               <a href="/fx/guide#faq">FAQ</a>
-              <a href="#">챗봇 상담</a>
+              <a th:href="@{/#chatbot}">챗봇 상담</a>
             </div>
           </li>
 
@@ -166,7 +166,7 @@
       <i class="bi bi-gift" aria-hidden="true"></i>
       <span>&#51060;&#48292;&#53944;</span>
     </a>
-    <a th:href="@{/product/my-subscriptions}" data-nav-match="/product/my-subscriptions">
+    <a th:href="@{/my}" data-nav-match="/my">
       <i class="bi bi-person-circle" aria-hidden="true"></i>
       <span>MY</span>
     </a>
@@ -218,12 +218,14 @@
         })();
       }
       document.addEventListener('DOMContentLoaded', function () {
+        var path = location.pathname || '/';
         document.querySelectorAll('.mobile-bottom-nav a[data-nav-match]').forEach(function (link) {
           var match = link.getAttribute('data-nav-match');
-          var path = location.pathname || '/';
-          if ((match === '/' && path === '/') || (match !== '/' && path.indexOf(match) === 0)) {
-            link.classList.add('is-active');
-          }
+          var active = false;
+          if (match === '/') active = path === '/';
+          else if (match === '/product') active = path.indexOf('/product') === 0 && path.indexOf('/product/my-subscriptions') !== 0;
+          else active = path.indexOf(match) === 0;
+          if (active) link.classList.add('is-active');
         });
 
         applyLabel();

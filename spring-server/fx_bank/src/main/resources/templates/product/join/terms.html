@@ -69,29 +69,29 @@
         }
         .term-row:has(input:checked) .read-state { color: var(--violet); }
         .arrow {
-            width: 38px;
+            min-width: 74px;
             height: 38px;
-            display: grid;
-            place-items: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
             border-radius: 999px;
-            background: linear-gradient(180deg, #F5F1FF 0%, #EEE8FF 100%);
-            border: 1px solid rgba(109, 91, 255, .16);
+            background: linear-gradient(180deg, #F8F5FF 0%, #EEE8FF 100%);
+            border: 1px solid rgba(109, 91, 255, .18);
             color: var(--violet);
             text-decoration: none;
-            font-size: 0;
+            font-size: 13px;
+            font-weight: 800;
             line-height: 1;
-            transition: transform .18s ease, background .18s ease, color .18s ease;
+            transition: transform .18s ease, background .18s ease, color .18s ease, box-shadow .18s ease;
         }
-        .arrow::before {
-            content: '\203A';
-            font-size: 24px;
-            font-weight: 900;
-            line-height: 1;
-        }
+        .arrow::before { content: '보기'; }
+        .arrow::after { content: '\203A'; font-size: 18px; line-height: 1; }
         .arrow:hover {
             transform: translateX(2px);
             background: var(--violet);
             color: #fff;
+            box-shadow: 0 8px 18px rgba(109, 91, 255, .22);
         }
         .muted { color: var(--text-sub); }
         .error { margin-top: 14px; color: var(--up); font-size: 13.5px; font-weight: 600; }
@@ -108,7 +108,7 @@
             .term-row label { grid-area: title; font-size: 14px; }
             .term-row .badge { grid-area: meta; justify-self: start; }
             .term-row .read-state { grid-area: meta; justify-self: end; margin-right: 46px; }
-            .term-row .arrow { grid-area: arrow; width: 36px; height: 36px; }
+            .term-row .arrow { grid-area: arrow; min-width: 62px; height: 34px; font-size: 12px; }
         }
     </style>
 </head>
@@ -180,7 +180,7 @@ document.querySelectorAll('input[name="termsCode"]').forEach(checkbox => {
 
 async function ensureAccessToken() {
     const token = await window.acquireAccessToken();   // 공용 single-flight (refresh 중복/회전충돌 방지)
-    if (!token) { location.href = '/login'; return null; }
+    if (!token) { window.redirectToLogin(); return null; }
     return token;
 }
 

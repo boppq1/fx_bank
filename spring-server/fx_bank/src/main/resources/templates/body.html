@@ -70,7 +70,7 @@
         <div class="ai-left">
           <span class="ai-ico"><i class="bi bi-chat-dots" aria-hidden="true"></i></span>
           <div class="ai-text">
-            <span class="ai-eyebrow">AI 금융 도우미</span>
+            <span class="ai-eyebrow">챗봇 상담</span>
             <h3 class="ai-title">외환 고민, AI에게 바로 물어보세요</h3>
             <p class="ai-sub">RAG 기반 정확한 답변</p>
           </div>
@@ -84,7 +84,7 @@
   <div class="chatbot-header">
     <div class="chatbot-title">
       <span><i class="bi bi-chat-dots" aria-hidden="true"></i></span>
-      <span>AI 금융 도우미</span>
+      <span>챗봇 상담</span>
     </div>
     <button id="chatbot-close" class="chatbot-close" aria-label="닫기"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
   </div>
@@ -94,8 +94,8 @@
   </div>
 
   <div class="chatbot-input-area">
-    <input type="text" id="chatbot-input" class="chatbot-input" placeholder="메시지를 입력하세요" />
-    <button id="chatbot-send" class="chatbot-send">전송</button>
+    <input type="text" id="chatbot-input" class="chatbot-input" placeholder="궁금한 내용을 입력하세요" />
+    <button id="chatbot-send" class="chatbot-send">보내기</button>
   </div>
 </div>
   <script th:src="@{/js/fx-home.js}"></script>
@@ -110,14 +110,24 @@
   const messages = document.getElementById('chatbot-messages');
 
   // 위젯 열기 / 닫기
+  function openChatbot() {
+    if (!widget || !input) return;
+    widget.style.display = 'flex';
+    if (openBtn) openBtn.hidden = true;
+    input.focus();
+  }
+
   if (openBtn) {
     openBtn.addEventListener('click', function (e) {
       e.preventDefault();
-      widget.style.display = 'flex';
-      openBtn.hidden = true;
-      input.focus();
+      openChatbot();
     });
   }
+
+  if (location.hash === '#chatbot') {
+    setTimeout(openChatbot, 250);
+  }
+
   closeBtn.addEventListener('click', function () {
     widget.style.display = 'none';
     if (openBtn) openBtn.hidden = false;
@@ -142,7 +152,7 @@
     input.value = '';
     sendBtn.disabled = true;
 
-    const loading = addMessage('답변 생성 중...', 'bot');
+    const loading = addMessage('답변을 준비하고 있어요...', 'bot');
 
     try {
       const res = await fetch('/chatbot/ask', {
@@ -151,9 +161,9 @@
         body: JSON.stringify({ question: question })
       });
       const data = await res.json();
-      loading.textContent = data.answer || '답변을 가져오지 못했습니다.';
+      loading.textContent = data.answer || '답변을 가져오지 못했어요.';
     } catch (err) {
-      loading.textContent = '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+      loading.textContent = '일시적으로 상담 연결이 원활하지 않아요. 잠시 후 다시 시도해주세요.';
     } finally {
       sendBtn.disabled = false;
       messages.scrollTop = messages.scrollHeight;

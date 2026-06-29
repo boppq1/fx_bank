@@ -106,6 +106,14 @@
             cursor: pointer; transition: all .2s;
         }
         .btn-main:hover { background: var(--accent2); transform: translateY(-2px); }
+        .btn-secondary {
+            width: 100%; padding: 14px; margin-top: 10px;
+            background: #fff; color: var(--accent2);
+            border: 1px solid var(--border); border-radius: 14px;
+            font-size: 14px; font-weight: 700;
+            cursor: pointer; transition: all .2s;
+        }
+        .btn-secondary:hover { border-color: var(--accent); transform: translateY(-1px); }
 
         .err-box {
             background: rgba(239,68,68,.1);
@@ -229,6 +237,9 @@
             transition: border-color .2s;
         }
         .product-card:hover { border-color: var(--accent); }
+        .product-card[data-product-no] { cursor: pointer; }
+        .product-card[data-product-no]:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(34, 22, 86, .10); }
+        .product-card-action { margin-top: 10px; font-size: 12px; font-weight: 700; color: var(--accent2); }
         .product-card.main-card {
             border-color: rgba(245,158,11,.45);
             background: linear-gradient(150deg, #FFFBF2 0%, #FFFFFF 100%);
@@ -278,6 +289,9 @@
             cursor: pointer; margin-top: 20px; transition: all .2s;
         }
         .btn-retry:hover { border-color: var(--accent); color: var(--accent2); }
+        .result-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .result-actions .btn-retry, .result-actions .btn-secondary { margin-top: 0; }
+        @media (max-width: 520px) { .result-actions { grid-template-columns: 1fr; } }
 
         .empty { color: var(--muted); font-size: 13px; padding: 8px 0; }
     </style>
@@ -315,6 +329,7 @@
             </div>
         </div>
         <button class="btn-main" onclick="startAnalysis()">내 금융 MBTI 분석하기 →</button>
+        <button class="btn-secondary" onclick="location.href='/'">메인화면으로</button>
         <div class="err-box" id="err-msg"></div>
     </div>
 </div>
@@ -360,7 +375,10 @@
             <span id="more-label">다른 상품 더 보기</span>
         </button>
 
-        <button class="btn-retry" onclick="show('s-main')">다시 분석하기</button>
+        <div class="result-actions">
+            <button class="btn-secondary" onclick="location.href='/'">메인화면으로</button>
+            <button class="btn-retry" onclick="show('s-main')">다시 분석하기</button>
+        </div>
     </div>
 </div>
 
@@ -393,9 +411,7 @@
     async function startAnalysis() {
         const token = await restoreToken();
         if (!token) {
-            const err = document.getElementById('err-msg');
-            err.style.display = 'block';
-            err.textContent = '로그인이 필요해요. 다시 로그인해주세요.';
+            location.href = '/login?returnUrl=' + encodeURIComponent('/mbti');
             return;
         }
 
@@ -524,18 +540,52 @@
         document.getElementById('more-label').textContent = isOpen ? '접기' : `다른 상품 더 보기`;
     }
 
+    function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>"']/g, (m) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[m]));
+    }
+
+    function getRecommendedProductNo(p) {
+        return p.product_no ?? p.productNo ?? p.product_id ?? p.productId ?? p.no ?? null;
+    }
+
+    function goProductDetail(productNo) {
+        if (!productNo) return;
+        location.href = `/product/detail/${encodeURIComponent(productNo)}`;
+    }
+
+    document.addEventListener('click', (event) => {
+        const card = event.target.closest('.product-card[data-product-no]');
+        if (!card) return;
+        goProductDetail(card.dataset.productNo);
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        const card = event.target.closest('.product-card[data-product-no]');
+        if (!card) return;
+        event.preventDefault();
+        goProductDetail(card.dataset.productNo);
+    });
+
     function productCard(p, isMain) {
-        const sc = p.sentiment === '긍정' ? 'pos' : p.sentiment === '부정' ? 'neg' : 'neu';
-        const chip = p.sentiment_score >= 0
-            ? `<div class="score-chip">고객 만족도 <span>+${p.sentiment_score}</span></div>` : '';
-        return `<div class="product-card${isMain ? ' main-card' : ''}">
+        const productNo = getRecommendedProductNo(p);
+        const sentiment = p.sentiment || '중립';
+        const score = Number(p.sentiment_score || 0);
+        const sc = score > 0 ? 'pos' : score < 0 ? 'neg' : 'neu';
+        const chip = score >= 0
+            ? `<div class="score-chip">고객 만족도 <span>+${escapeHtml(score)}</span></div>` : '';
+        const attrs = productNo ? ` data-product-no="${escapeHtml(productNo)}" role="link" tabindex="0"` : '';
+        return `<div class="product-card${isMain ? ' main-card' : ''}"${attrs}>
       <div class="product-header">
-        <div class="product-name">${p.product_name}</div>
-        <div class="s-badge ${sc}">${p.sentiment || '중립'}</div>
+        <div class="product-name">${escapeHtml(p.product_name || p.productName || '추천 상품')}</div>
+        <div class="s-badge ${sc}">${escapeHtml(sentiment)}</div>
       </div>
-      <div class="product-tendency">${p.product_tendency || ''}</div>
-      <div class="product-review">"${p.review_text || ''}"</div>
+      <div class="product-tendency">${escapeHtml(p.product_tendency || p.productTendency || '')}</div>
+      <div class="product-review">"${escapeHtml(p.review_text || p.reviewText || '')}"</div>
       ${chip}
+      ${productNo ? '<div class="product-card-action">상품 상세 보기 →</div>' : ''}
     </div>`;
     }
 

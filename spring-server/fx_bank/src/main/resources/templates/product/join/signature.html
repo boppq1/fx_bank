@@ -121,7 +121,7 @@ document.getElementById('clearButton').addEventListener('click', () => {
 
 async function ensureAccessToken() {
     const token = await window.acquireAccessToken();   // 공용 single-flight (refresh 중복/회전충돌 방지)
-    if (!token) { location.href = '/login'; return null; }
+    if (!token) { window.redirectToLogin(); return null; }
     return token;
 }
 
