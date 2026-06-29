@@ -10,6 +10,7 @@
   var elSearch = function () { return document.getElementById('fxRateSearch'); };
   var elSelect = function () { return document.getElementById('fxCurSelect'); };
   var elCount = function () { return document.getElementById('fxCount'); };
+  var elCards = function () { return document.getElementById('fxRateCards'); };
 
   function fmt(n) {
     if (n === null || n === undefined) return '-';
@@ -52,7 +53,31 @@
           + '</tr>';
       }).join('');
     }
+    renderMobileCards(slice);
     renderPager(pages);
+  }
+
+  function renderMobileCards(slice) {
+    var cards = elCards();
+    if (!cards) return;
+    if (!slice.length) {
+      cards.innerHTML = '<div class="fx-rate-empty">조회 결과가 없습니다.</div>';
+      return;
+    }
+    cards.innerHTML = slice.map(function (r) {
+      return '<article class="fx-rate-card">'
+        + '<div class="fx-rate-card-head">'
+        + '<div class="fx-rate-currency"><span class="fx-rate-symbol">' + FXCUR.initials(r.currencyCode) + '</span>'
+        + '<div><span class="fx-rate-name">' + FXCUR.name(r.currencyCode) + '</span><span class="fx-rate-code">' + r.currencyCode + '</span></div></div>'
+        + '<span class="fx-rate-date">' + fmtDate(r.announcedAt) + '</span>'
+        + '</div>'
+        + '<div class="fx-rate-base"><span>매매기준율</span><strong>' + fmt(r.baseRate) + '</strong></div>'
+        + '<div class="fx-rate-grid">'
+        + '<div class="fx-rate-mini"><span>살 때</span><strong>' + fmt(r.sellRate) + '</strong></div>'
+        + '<div class="fx-rate-mini"><span>팔 때</span><strong>' + fmt(r.buyRate) + '</strong></div>'
+        + '</div>'
+        + '</article>';
+    }).join('');
   }
 
   function pageBtn(p, label, opts) {
@@ -70,26 +95,25 @@
     if (pages <= 1) { el.innerHTML = ''; return; }
 
     var html = '';
-    html += pageBtn(page - 1, '‹', { disabled: page === 1 });
+    html += pageBtn(page - 1, '&lsaquo;', { disabled: page === 1 });
 
-    // 윈도우형: 현재 ±2 + 처음/끝 + 말줄임
     var win = 2;
     var startP = Math.max(1, page - win);
     var endP = Math.min(pages, page + win);
 
     if (startP > 1) {
       html += pageBtn(1, '1');
-      if (startP > 2) html += '<span class="guide-page-dots">…</span>';
+      if (startP > 2) html += '<span class="guide-page-dots">...</span>';
     }
     for (var p = startP; p <= endP; p++) {
       html += pageBtn(p, String(p), { active: p === page });
     }
     if (endP < pages) {
-      if (endP < pages - 1) html += '<span class="guide-page-dots">…</span>';
+      if (endP < pages - 1) html += '<span class="guide-page-dots">...</span>';
       html += pageBtn(pages, String(pages));
     }
 
-    html += pageBtn(page + 1, '›', { disabled: page === pages });
+    html += pageBtn(page + 1, '&rsaquo;', { disabled: page === pages });
     el.innerHTML = html;
   }
 

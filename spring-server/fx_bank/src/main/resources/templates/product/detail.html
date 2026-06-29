@@ -71,6 +71,11 @@
             line-height: 1;
             transition: transform .2s ease, background .2s ease, color .2s ease;
         }
+        .term summary:hover::after {
+            background: var(--violet);
+            color: #fff;
+            box-shadow: 0 8px 18px rgba(109, 91, 255, .18);
+        }
         .term[open] summary::after {
             transform: rotate(90deg);
             background: var(--violet);
@@ -299,7 +304,7 @@
         event.preventDefault();
 
         const token = await window.acquireAccessToken();   // 공용 single-flight (refresh 중복/회전충돌 방지)
-        if (!token) { location.href = '/login'; return; }
+        if (!token) { window.redirectToLogin(); return; }
 
         const response = await fetch(`/api/product/join/${productNo}/join-eligibility`, {
             headers: { 'Authorization': 'Bearer ' + token },

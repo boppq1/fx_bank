@@ -299,3 +299,23 @@
 .auth-camera-help{margin:12px 0 0;font-size:14px;line-height:1.5;color:rgba(255,255,255,.88);text-align:center;}
 .auth-camera-actions{display:flex;gap:8px;margin-top:14px;}
 .auth-camera-actions .btn{flex:1;}
+/* auth-overflow-fix: 회원가입/로그인 폼이 모바일에서 카드 밖으로 삐져나오지 않도록 보정 */
+.auth-card,
+.panel,
+.reg-form,
+.field,
+.input-box,
+.addr-row,
+.addr-block { min-width: 0; }
+.auth-card { overflow: hidden; }
+.input-box input,
+.input-box select { min-width: 0; width: 100%; }
+@media (max-width:520px){
+  .auth-main{padding:24px 12px;}
+  .auth-card{padding:22px 16px;border-radius:18px;}
+  .input-box.has-btn{height:auto;min-height:52px;align-items:stretch;flex-wrap:wrap;padding:8px;}
+  .input-box.has-btn input{height:36px;}
+  .input-box.has-btn .inline-btn{width:100%;}
+  .addr-row{flex-direction:column;gap:8px;}
+  .input-box.sm{width:100%;}
+}
