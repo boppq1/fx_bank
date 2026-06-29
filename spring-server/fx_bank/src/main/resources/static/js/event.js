@@ -3,22 +3,26 @@ function joinEvent() {
         method: 'POST'
     })
     .then(res => {
-        if (!res.ok) throw new Error('참여 처리 실패');
+        if (!res.ok) throw new Error('李몄뿬 泥섎━ ?ㅽ뙣');
         return res.text();
     })
     .then(() => {
         window.location.href = '/event/status';
     })
-    .catch(err => alert('오류가 발생했습니다: ' + err.message));
+    .catch(err => alert('?ㅻ쪟媛 諛쒖깮?덉뒿?덈떎: ' + err.message));
 }
 
 function openCamera(letter) {
-    if (window.FlutterEventBridge && typeof window.FlutterEventBridge.postMessage === 'function') {
-        window.FlutterEventBridge.postMessage(JSON.stringify({
-            action: 'openCamera',
-            letter: letter
-        }));
-        return;
+    try {
+        if (window.FlutterEventBridge && typeof window.FlutterEventBridge.postMessage === 'function') {
+            window.FlutterEventBridge.postMessage(JSON.stringify({
+                action: 'openCamera',
+                letter: letter
+            }));
+            return;
+        }
+    } catch (error) {
+        console.warn('Flutter camera bridge failed. Falling back to browser camera.', error);
     }
 
     openBrowserCamera(letter);
@@ -67,26 +71,26 @@ function uploadEventImage(letter, fileOrBlob, fileName) {
         body: formData
     })
     .then(res => {
-        if (!res.ok) throw new Error('인증 처리 실패');
+        if (!res.ok) throw new Error('?몄쬆 泥섎━ ?ㅽ뙣');
         return res.json();
     })
     .then(result => {
         if (result.applied === 'Y') {
-            alert('B, N, K 모두 인증 완료! 우대금리 쿠폰이 발급되었습니다.');
+            alert('B, N, K 紐⑤몢 ?몄쬆 ?꾨즺! ?곕?湲덈━ 荑좏룿??諛쒓툒?섏뿀?듬땲??');
         } else {
-            alert('인증 완료! 계속 진행해 주세요.');
+            alert('?몄쬆 ?꾨즺! 怨꾩냽 吏꾪뻾??二쇱꽭??');
         }
         window.location.reload();
     })
-    .catch(err => alert('오류: ' + err.message));
+    .catch(err => alert('?ㅻ쪟: ' + err.message));
 }
 
 function updateResult(resultJson) {
     const result = JSON.parse(resultJson);
     if (result.isApplied === 'Y') {
-        alert('B, N, K 모두 인증 완료! 우대금리가 적용되었습니다.');
+        alert('B, N, K 紐⑤몢 ?몄쬆 ?꾨즺! ?곕?湲덈━媛 ?곸슜?섏뿀?듬땲??');
     } else {
-        alert('인증 완료! 계속 진행해 주세요.');
+        alert('?몄쬆 ?꾨즺! 怨꾩냽 吏꾪뻾??二쇱꽭??');
     }
     window.location.reload();
 }

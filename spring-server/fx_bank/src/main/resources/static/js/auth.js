@@ -1,17 +1,17 @@
 /* ============================================================
-   auth.js  ·  로그인 / 회원가입
-   - 탭 슬라이드 전환 (알약만 이동, 폼은 즉시 교체)
-   - 로그인: accessToken을 RAM(메모리 변수)에만 보관 (XSS 탈취 차단)
-   - 회원가입: 신분증 OCR 인증(필수) + 중복확인 + 카카오 우편번호 + payload POST
+   auth.js  쨌  濡쒓렇??/ ?뚯썝媛??
+   - ???щ씪?대뱶 ?꾪솚 (?뚯빟留??대룞, ?쇱? 利됱떆 援먯껜)
+   - 濡쒓렇?? accessToken??RAM(硫붾え由?蹂???먮쭔 蹂닿? (XSS ?덉랬 李⑤떒)
+   - ?뚯썝媛?? ?좊텇利?OCR ?몄쬆(?꾩닔) + 以묐났?뺤씤 + 移댁뭅???고렪踰덊샇 + payload POST
    ============================================================ */
 
 window.accessToken = null;
 
-/* 회원가입 상태 */
+/* ?뚯썝媛???곹깭 */
 let isIdChecked = false;
 let checkedUserId = "";
-/*let isOcrVerified = false;*/   // 신분증 OCR 인증 완료 여부 (필수)
-let ocrToken = "";           // OCR 성공 시 서버가 발급한 1회용 인증 토큰
+/*let isOcrVerified = false;*/   // ?좊텇利?OCR ?몄쬆 ?꾨즺 ?щ? (?꾩닔)
+let ocrToken = "";           // OCR ?깃났 ???쒕쾭媛 諛쒓툒??1?뚯슜 ?몄쬆 ?좏겙
 
 document.addEventListener("DOMContentLoaded", function () {
   initTabs();
@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", function () {
   initPhoneHyphen();
 });
 
-/* 휴대폰 번호 자동 하이픈 */
+/* ?대???踰덊샇 ?먮룞 ?섏씠??*/
 function initPhoneHyphen() {
   const phone = document.getElementById("phone");
   if (!phone) return;
@@ -36,7 +36,7 @@ function initPhoneHyphen() {
 }
 
 /* ============================================================
-   1) 탭 전환
+   1) ???꾪솚
    ============================================================ */
 function initTabs() {
   const tabs = document.querySelector(".auth-tabs");
@@ -62,7 +62,7 @@ function initTabs() {
 }
 
 /* ============================================================
-   2) 비밀번호 표시 토글
+   2) 鍮꾨?踰덊샇 ?쒖떆 ?좉?
    ============================================================ */
 function initPasswordToggle() {
   document.querySelectorAll(".pw-toggle").forEach((btn) => {
@@ -77,7 +77,7 @@ function initPasswordToggle() {
 }
 
 /* ============================================================
-   3) 로그인
+   3) 濡쒓렇??
    ============================================================ */
 function initLogin() {
   const btn = document.getElementById("loginBtn");
@@ -91,7 +91,7 @@ function initLogin() {
 async function handleLogin() {
   const userId = document.getElementById("loginId").value.trim();
   const secuPw = document.getElementById("loginPw").value;
-  if (!userId || !secuPw) { alert("아이디와 비밀번호를 입력해 주세요."); return; }
+  if (!userId || !secuPw) { alert("?꾩씠?붿? 鍮꾨?踰덊샇瑜??낅젰??二쇱꽭??"); return; }
 
   try {
     const response = await fetch("/api/auth/login", {
@@ -103,25 +103,25 @@ async function handleLogin() {
     if (result.success) {
       window.accessToken = result.data.accessToken;
       if (result.data.reauthRequired === "true") {
-        alert("개인정보 보관기한(3일)이 지나 신분증 재인증이 필요합니다.");
+        alert("媛쒖씤?뺣낫 蹂닿?湲고븳(3????吏???좊텇利??ъ씤利앹씠 ?꾩슂?⑸땲??");
         location.href = "/reauth";
         return;
       }
-      // returnUrl 이 있고 내부 경로("/"로 시작, "//" 아님)일 때만 그쪽으로 복귀, 없으면 기존처럼 메인.
-      // (JWT 발급/Redis/토큰 보관 등 인증 로직과 무관한 화면 이동만 분기 — 오픈 리다이렉트 방지)
+      // returnUrl ???덇퀬 ?대? 寃쎈줈("/"濡??쒖옉, "//" ?꾨떂)???뚮쭔 洹몄そ?쇰줈 蹂듦?, ?놁쑝硫?湲곗〈泥섎읆 硫붿씤.
+      // (JWT 諛쒓툒/Redis/?좏겙 蹂닿? ???몄쬆 濡쒖쭅怨?臾닿????붾㈃ ?대룞留?遺꾧린 ???ㅽ뵂 由щ떎?대젆??諛⑹?)
       const returnUrl = new URLSearchParams(location.search).get("returnUrl");
       location.href = (returnUrl && returnUrl.startsWith("/") && !returnUrl.startsWith("//")) ? returnUrl : "/";
     } else {
       alert(result.message);
     }
   } catch (error) {
-    console.error("로그인 요청 실패:", error);
-    alert("통신 오류가 발생했습니다.");
+    console.error("濡쒓렇???붿껌 ?ㅽ뙣:", error);
+    alert("?듭떊 ?ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.");
   }
 }
 
 /* ============================================================
-   4) 회원가입
+   4) ?뚯썝媛??
    ============================================================ */
 function initRegister() {
   const form = document.getElementById("registerForm");
@@ -133,10 +133,10 @@ function initRegister() {
   }
 }
 
-/* 아이디 중복 확인 (전역 — onclick 인라인에서 호출) */
+/* ?꾩씠??以묐났 ?뺤씤 (?꾩뿭 ??onclick ?몃씪?몄뿉???몄텧) */
 function checkDuplicateId() {
   const userIdInput = document.getElementById("userId").value.trim();
-  if (!userIdInput) { alert("아이디를 입력해 주세요."); return; }
+  if (!userIdInput) { alert("?꾩씠?붾? ?낅젰??二쇱꽭??"); return; }
 
   fetch(`/api/auth/check-id?userId=${encodeURIComponent(userIdInput)}`)
     .then((response) => response.json())
@@ -145,43 +145,43 @@ function checkDuplicateId() {
         if (res.data === true) { alert(res.message); isIdChecked = false; }
         else { alert(res.message); isIdChecked = true; checkedUserId = userIdInput; }
       } else {
-        alert("검증 실패: " + res.message);
+        alert("寃利??ㅽ뙣: " + res.message);
       }
     })
-    .catch((err) => alert("통신 오류: " + err));
+    .catch((err) => alert("?듭떊 ?ㅻ쪟: " + err));
 }
 
 function handleRegister(e) {
   e.preventDefault();
 
-  // 0) 신분증 OCR 인증(필수) — 가장 먼저 막는다
+  // 0) ?좊텇利?OCR ?몄쬆(?꾩닔) ??媛??癒쇱? 留됰뒗??
 /*  if (!isOcrVerified || !ocrToken) {
-    alert("신분증 OCR 인증을 먼저 완료해 주세요.");
+    alert("?좊텇利?OCR ?몄쬆??癒쇱? ?꾨즺??二쇱꽭??");
     return;
   }*/
 
   const currentUserId = document.getElementById("userId").value.trim();
   if (!isIdChecked || checkedUserId !== currentUserId) {
-    alert("아이디 중복 확인이 필요합니다.");
+    alert("?꾩씠??以묐났 ?뺤씤???꾩슂?⑸땲??");
     return;
   }
 
   const pw = document.getElementById("secuPw").value;
   const pwOk = pw.length >= 8 && /[A-Za-z]/.test(pw) && /[0-9]/.test(pw) && /[^A-Za-z0-9]/.test(pw);
   if (!pwOk) {
-    alert("비밀번호는 영문, 숫자, 특수문자를 모두 포함하여 8자 이상이어야 합니다.");
+    alert("鍮꾨?踰덊샇???곷Ц, ?レ옄, ?뱀닔臾몄옄瑜?紐⑤몢 ?ы븿?섏뿬 8???댁긽?댁뼱???⑸땲??");
     return;
   }
 
   const rrnValue = document.getElementById("rrn").value.trim();
   const rrnDigits = rrnValue.replace(/[^0-9]/g, "");
   if (rrnValue.includes("*") || rrnDigits.length !== 13) {
-    alert("주민등록번호 가려진 뒷자리를 정확히 입력해 주세요. (앞6 + 뒤7)");
+    alert("二쇰??깅줉踰덊샇 媛?ㅼ쭊 ?룹옄由щ? ?뺥솗???낅젰??二쇱꽭?? (?? + ??)");
     return;
   }
 
   if (!document.getElementById("privacyAgreed").checked) {
-    alert("개인정보 수집 및 이용에 동의해 주세요.");
+    alert("媛쒖씤?뺣낫 ?섏쭛 諛??댁슜???숈쓽??二쇱꽭??");
     return;
   }
 
@@ -193,7 +193,7 @@ function handleRegister(e) {
     rrn: document.getElementById("rrn").value,
     rrnMasked: document.getElementById("rrnMasked").value,
     privacyAgreed: document.getElementById("privacyAgreed").checked,
-    ocrToken: ocrToken,               // 서버에서 OCR 인증 검증·소비
+    ocrToken: ocrToken,               // ?쒕쾭?먯꽌 OCR ?몄쬆 寃利씲룹냼鍮?
     phone: document.getElementById("phone").value,
     email: document.getElementById("email").value,
     addrKo: document.getElementById("address").value,
@@ -213,13 +213,13 @@ function handleRegister(e) {
     .then((response) => response.json())
     .then((res) => {
       if (res.success) { alert(res.message); location.href = "/login"; }
-      else { console.log(res.message); alert("가입 실패: " + res.message); }
+      else { console.log(res.message); alert("媛???ㅽ뙣: " + res.message); }
     })
-    .catch((err) => alert("전송 에러: " + err));
+    .catch((err) => alert("?꾩넚 ?먮윭: " + err));
 }
 
 /* ============================================================
-   5) 카카오 우편번호 (한글/영문 동시 매핑)
+   5) 移댁뭅???고렪踰덊샇 (?쒓?/?곷Ц ?숈떆 留ㅽ븨)
    ============================================================ */
 function executeDaumPostcode() {
   new kakao.Postcode({
@@ -230,7 +230,7 @@ function executeDaumPostcode() {
       else addr = data.jibunAddress;
 
       if (data.userSelectedType === "R") {
-        if (data.bname !== "" && /[동로가]$/.test(data.bname)) extraAddr += data.bname;
+        if (data.bname !== "" && /[?숇줈媛]$/.test(data.bname)) extraAddr += data.bname;
         if (data.buildingName !== "" && data.apartment === "Y")
           extraAddr += extraAddr !== "" ? ", " + data.buildingName : data.buildingName;
         if (extraAddr !== "") extraAddr = " (" + extraAddr + ")";
@@ -246,7 +246,7 @@ function executeDaumPostcode() {
 }
 
 /* ============================================================
-   6) 신분증 OCR (FastAPI 중계) — 이름/주소/주민번호 자동 채움 + 인증 토큰 수령
+   6) ?좊텇利?OCR (FastAPI 以묎퀎) ???대쫫/二쇱냼/二쇰?踰덊샇 ?먮룞 梨꾩? + ?몄쬆 ?좏겙 ?섎졊
    ============================================================ */
 function initIdCardOcr() {
   const drop = document.getElementById("idCardDrop");
@@ -270,22 +270,10 @@ function initIdCardOcr() {
   }
 
   async function openCameraGuide() {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !modal || !video) {
-      fileInput.click();
-      return;
-    }
-
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: "environment" } },
-        audio: false,
-      });
-      video.srcObject = stream;
-      modal.hidden = false;
-      await video.play();
-    } catch (err) {
-      fileInput.click();
-    }
+    // 모바일 WebView에서는 getUserMedia 실패 후 fileInput.click()을 호출하면
+    // 사용자 직접 클릭으로 인정되지 않아 카메라가 안 열릴 수 있다.
+    // 회원가입 OCR은 안정성을 우선해서 네이티브 파일/카메라 선택창을 바로 연다.
+    fileInput.click();
   }
 
   function captureIdCard() {
@@ -313,7 +301,7 @@ function initIdCardOcr() {
 async function uploadIdCard(file) {
   const textEl = document.getElementById("idCardText");
 
-  setOcrStatus("⏳ 신분증을 인식하는 중입니다...", "loading");
+  setOcrStatus("???좊텇利앹쓣 ?몄떇?섎뒗 以묒엯?덈떎...", "loading");
   try {
     const formData = new FormData();
     formData.append("file", file);
@@ -322,11 +310,11 @@ async function uploadIdCard(file) {
     const result = await response.json();
 
     if (!result.success) {
-      // 인증 실패 → 인증 상태 해제
+      // ?몄쬆 ?ㅽ뙣 ???몄쬆 ?곹깭 ?댁젣
       /*isOcrVerified = false;*/
       ocrToken = "";
       updateRegisterSubmitState();
-      setOcrStatus("❌ 인식 실패: " + result.message, "error");
+      setOcrStatus("???몄떇 ?ㅽ뙣: " + result.message, "error");
       return;
     }
 
@@ -339,19 +327,19 @@ async function uploadIdCard(file) {
       document.getElementById("rrnMasked").value = data.rrnMasked;
     }
 
-    // ★ OCR 인증 완료 처리 (토큰 보관 + 가입 버튼 활성 조건 갱신)
+    // ??OCR ?몄쬆 ?꾨즺 泥섎━ (?좏겙 蹂닿? + 媛??踰꾪듉 ?쒖꽦 議곌굔 媛깆떊)
     /*isOcrVerified = true;*/
     ocrToken = data.ocrToken || "";
     updateRegisterSubmitState();
 
-    if (textEl) textEl.textContent = "✅ 신분증 인증 완료 (필요 시 직접 수정하세요)";
-    setOcrStatus("✅ 신분증 인증 완료! 주민번호 가려진 뒷자리(뒤 6자리)를 입력해 주세요.", "ok");
+    if (textEl) textEl.textContent = "???좊텇利??몄쬆 ?꾨즺 (?꾩슂 ??吏곸젒 ?섏젙?섏꽭??";
+    setOcrStatus("???좊텇利??몄쬆 ?꾨즺! 二쇰?踰덊샇 媛?ㅼ쭊 ?룹옄由???6?먮━)瑜??낅젰??二쇱꽭??", "ok");
   } catch (err) {
-    console.error("OCR 요청 실패:", err);
+    console.error("OCR ?붿껌 ?ㅽ뙣:", err);
     /*isOcrVerified = false;*/
     ocrToken = "";
     updateRegisterSubmitState();
-    setOcrStatus("❌ OCR 서버 통신 오류가 발생했습니다.", "error");
+    setOcrStatus("??OCR ?쒕쾭 ?듭떊 ?ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.", "error");
   }
 }
 
@@ -364,7 +352,7 @@ function setOcrStatus(msg, type) {
 }
 
 /* ============================================================
-   7) 가입 버튼 활성/비활성 — 개인정보 동의 + 신분증 OCR 인증 둘 다 충족해야 활성
+   7) 媛??踰꾪듉 ?쒖꽦/鍮꾪솢????媛쒖씤?뺣낫 ?숈쓽 + ?좊텇利?OCR ?몄쬆 ????異⑹”?댁빞 ?쒖꽦
    ============================================================ */
 function initTermsAgreement() {
   const checkbox = document.getElementById("privacyAgreed");
