@@ -2,6 +2,7 @@ package com.example.bank.event.service;
 
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -9,29 +10,25 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.bank.event.dao.IEventDao;
 import com.example.bank.event.dto.EventDto;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class EventService {
-    
+
     private final IEventDao dao;
     private final RestTemplate restTemplate;
-   
-    
-    // 사진 업로드 & 글자 인증
-    public EventDto uploadAndDetect(Long userNo, String letter, MultipartFile file) {
 
-        // FastAPI로 이미지 전송
+    @Value("${app.event.fastapi-url:http://fastapi-bnk:8001}")
+    private String eventFastapiUrl;
+
+    public EventDto uploadAndDetect(Long userNo, String letter, MultipartFile file) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
@@ -41,12 +38,15 @@ public class EventService {
         HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
 
         ResponseEntity<Map> response = restTemplate.postForEntity(
-            "http://localhost:8000/detect",
-            request,
-            Map.class
+                eventFastapiUrl + "/detect",
+                request,
+                Map.class
         );
 
         Map result = response.getBody();
+        if (result == null) {
+            throw new RuntimeException("객체탐지 서버 응답이 비어 있습니다.");
+        }
 
         String target = letter.toUpperCase();
         boolean found = Boolean.TRUE.equals(result.get("has_" + target));
@@ -56,8 +56,7 @@ public class EventService {
 
         return updateLetter(userNo, target);
     }
-    
-    // 이벤트 최초 참여 등록
+
     public void joinEvent(Long userNo) {
         EventDto existing = dao.selectEvent(userNo);
         if (existing == null) {
@@ -67,33 +66,37 @@ public class EventService {
             dao.insertEvent(event);
         }
     }
-    
- // 글자 인증 업데이트 및 쿠폰 발급
+
     public EventDto updateLetter(Long userNo, String letter) {
         EventDto event = dao.selectEvent(userNo);
-        if (event == null) throw new RuntimeException("이벤트 참여 이력이 없습니다.");
-        if ("Y".equals(event.getApplied())) {
-            throw new RuntimeException("이미 우대금리 쿠폰이 발급된 계정입니다.");
+        if (event == null) {
+            throw new RuntimeException("이벤트 참여 이력이 없습니다.");
         }
+        if ("Y".equals(event.getApplied())) {
+            throw new RuntimeException("이미 우대금리 쿠폰을 발급한 계정입니다.");
+        }
+
         switch (letter.toUpperCase()) {
             case "B" -> event.setB("Y");
             case "N" -> event.setN("Y");
             case "K" -> event.setK("Y");
+            default -> throw new RuntimeException("지원하지 않는 글자입니다.");
         }
         dao.updateLetter(event);
 
         if ("Y".equals(event.getB()) && "Y".equals(event.getN()) && "Y".equals(event.getK())) {
-            dao.insertCoupon(userNo, event.getEventNo());   // productNo 안 넘김
+            dao.insertCoupon(userNo, event.getEventNo());
             dao.updateIsApplied(userNo);
             event.setApplied("Y");
         }
         return event;
     }
 
-    // 이벤트 현황 조회
     public EventDto getEvent(Long userNo) {
         EventDto event = dao.selectEvent(userNo);
-        if (event == null) throw new RuntimeException("이벤트 참여 이력이 없습니다.");
+        if (event == null) {
+            throw new RuntimeException("이벤트 참여 이력이 없습니다.");
+        }
         return event;
     }
 }
