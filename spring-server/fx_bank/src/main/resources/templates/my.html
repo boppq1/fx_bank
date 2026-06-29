@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
@@ -21,6 +21,9 @@
         .my-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 36px 0 16px; }
         .my-toolbar .guide-section-title { margin: 0; }
         .my-link-button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 38px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--border); background: #fff; color: var(--violet); font-size: 13px; font-weight: 900; text-decoration: none; box-shadow: var(--shadow-sm); }
+        .my-actions { display: flex; justify-content: flex-end; margin: 0 0 18px; }
+        .my-logout-button { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 0 16px; border: 1px solid var(--border); border-radius: 999px; background: #fff; color: var(--text-sub); font-size: 13px; font-weight: 900; cursor: pointer; box-shadow: var(--shadow-sm); }
+        .my-logout-button:hover { color: var(--violet); border-color: rgba(109,91,255,.35); background: #F7F4FF; }
         .account-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
         .account-card, .product-card { border: 1px solid var(--border); border-radius: 20px; background: #fff; box-shadow: var(--shadow-sm); padding: 18px; min-width: 0; }
         .account-head, .product-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
@@ -51,6 +54,8 @@
             .guide-hero-title { font-size: 30px; }
             .guide-wrap { padding-left: 18px; padding-right: 18px; }
             .my-toolbar { align-items: flex-start; flex-direction: column; }
+            .my-actions { justify-content: stretch; margin-top: 2px; margin-bottom: 20px; }
+            .my-logout-button { width: 100%; min-height: 48px; }
             .product-meta { grid-template-columns: 1fr; }
             .my-summary-card, .account-card, .product-card { border-radius: 18px; }
             .my-summary-card { min-height: 126px; padding: 22px 20px; }
@@ -71,6 +76,9 @@
 
 <main class="guide-wrap my-page">
     <div id="message" class="message">마이페이지 정보를 조회하고 있습니다.</div>
+    <div class="my-actions">
+        <button type="button" id="myLogoutButton" class="my-logout-button">&#47196;&#44536;&#50500;&#50883;</button>
+    </div>
 
     <section class="my-summary-grid" aria-label="마이페이지 요약">
         <article class="my-summary-card primary">
@@ -235,7 +243,23 @@ async function loadMyPage() {
     }
 }
 
+const myLogoutButton = document.getElementById('myLogoutButton');
+if (myLogoutButton) {
+    myLogoutButton.addEventListener('click', async () => {
+        try {
+            const headers = { 'Content-Type': 'application/json' };
+            if (window.accessToken) headers.Authorization = 'Bearer ' + window.accessToken;
+            await fetch('/api/auth/logout', { method: 'POST', headers, credentials: 'same-origin' });
+        } catch (e) {
+            // 로그아웃 요청이 실패해도 모바일에서는 남은 토큰을 지우고 홈으로 보낸다.
+        }
+        window.accessToken = null;
+        location.href = '/';
+    });
+}
+
 loadMyPage();
 </script>
 </body>
 </html>
+
