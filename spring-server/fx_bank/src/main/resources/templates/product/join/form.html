@@ -32,13 +32,24 @@
         .join-card { margin-top: 18px; }
         .join-card .guide-sub-title { margin-top: 0; }
         #prefillNotice {
+            display: grid;
+            grid-template-columns: 18px minmax(0, 1fr);
+            align-items: start;
+            gap: 10px;
             word-break: keep-all;
-            overflow-wrap: anywhere;
-            line-height: 1.75;
+            overflow-wrap: normal;
+            line-height: 1.65;
         }
-        #prefillNotice b {
-            display: inline;
-            margin: 0 2px;
+        #prefillNotice::before {
+            margin-top: 2px;
+        }
+        #prefillNotice .notice-copy {
+            min-width: 0;
+            display: block;
+        }
+        #prefillNotice .notice-key {
+            color: var(--text);
+            font-weight: 800;
             white-space: nowrap;
         }
         .message { margin-top: 14px; color: #176B3A; font-size: 13.5px; font-weight: 600; }
@@ -54,8 +65,8 @@
                 line-height: 1.25;
             }
             #prefillNotice {
-                padding: 18px 16px;
-                font-size: 14px;
+                padding: 16px 15px;
+                font-size: 13.5px;
                 text-align: left;
             }
             .join-card {
@@ -91,7 +102,13 @@
 <main class="guide-wrap">
     <div class="guide-section join-section">
         <h2 class="guide-section-title">가입 정보 입력</h2>
-        <p id="prefillNotice" class="guide-note" hidden>이전에 진행하던 정보를 불러왔습니다. 보안을 위해 <b>계좌 비밀번호</b>와 <b>본인인증</b>은 다시 진행해주세요.</p>
+        <p id="prefillNotice" class="guide-note" hidden>
+            <span class="notice-copy">
+                이전에 입력한 정보를 불러왔습니다. 보안을 위해
+                <span class="notice-key">계좌 비밀번호</span>와
+                <span class="notice-key">본인인증</span>은 다시 확인해 주세요.
+            </span>
+        </p>
 
         <form id="joinForm">
             <input type="hidden" id="productNo" th:value="${product.productNo}">
