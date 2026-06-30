@@ -10,7 +10,7 @@ import com.example.bank.chatbot.dto.ChatResponse;
 public class ChatbotService {
 
     private final RestTemplate restTemplate = new RestTemplate();
-    private static final String FASTAPI_URL = "http://localhost:8002/api/chat";
+    private static final String FASTAPI_URL = "http://fastapi-chat:8002/api/chat";
 
     public String ask(String question) {
         ChatRequest request = new ChatRequest();

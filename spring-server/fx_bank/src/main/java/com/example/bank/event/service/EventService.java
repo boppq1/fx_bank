@@ -73,7 +73,7 @@ public class EventService {
             throw new RuntimeException("이벤트 참여 이력이 없습니다.");
         }
         if ("Y".equals(event.getApplied())) {
-            throw new RuntimeException("이미 우대금리 쿠폰을 발급한 계정입니다.");
+            throw new RuntimeException("이미 우대금리 쿠폰이 발급된 계정입니다.");
         }
 
         switch (letter.toUpperCase()) {
