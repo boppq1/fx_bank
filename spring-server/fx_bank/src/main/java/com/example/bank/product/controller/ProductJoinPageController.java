@@ -1,5 +1,7 @@
 package com.example.bank.product.controller;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import com.example.bank.product.dto.ProductDetailDto;
 import com.example.bank.product.dto.ProductTermDto;
 import com.example.bank.product.service.ProductJoinService;
@@ -98,7 +100,10 @@ public class ProductJoinPageController {
     }
 
     @GetMapping("/my")
-    public String myPage() {
+    public String myPage(HttpServletRequest request) {
+        if (!hasCookie(request, "refreshToken")) {
+            return "redirect:/login?returnUrl=/my";
+        }
         return "my";
     }
 
@@ -117,6 +122,19 @@ public class ProductJoinPageController {
         model.addAttribute("complete", productJoinService.getJoinComplete(subscriptionNo));
         return "product/join/complete";
     }
+
+    private boolean hasCookie(HttpServletRequest request, String cookieName) {
+        if (request == null || request.getCookies() == null) {
+            return false;
+        }
+        for (Cookie cookie : request.getCookies()) {
+            if (cookieName.equals(cookie.getName()) && cookie.getValue() != null && !cookie.getValue().isBlank()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private List<Integer> getPdfPageNumbers(ProductTermDto term) {
         List<Integer> pageNumbers = new ArrayList<>();
         if (term == null || term.getPdfPath() == null || term.getPdfPath().isBlank()) {

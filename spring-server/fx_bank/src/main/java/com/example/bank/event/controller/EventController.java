@@ -1,5 +1,6 @@
 package com.example.bank.event.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,7 +14,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.bank.event.dto.EventDto;
 import com.example.bank.event.service.EventService;
 import com.example.bank.personal.dao.IUser;
-import com.example.bank.personal.service.UserService;
 import com.example.bank.util.JwtUtil;
 
 import jakarta.servlet.http.Cookie;
@@ -27,66 +27,101 @@ public class EventController {
 
     private final EventService eventService;
     private final JwtUtil jwtUtil;
-    private final UserService us;
     private final IUser iUser;
 
-    // 이벤트 설명 페이지
     @GetMapping
     public String eventPage(HttpServletRequest request, Model model) {
+        if (!hasRefreshToken(request)) {
+            return "redirect:/login?returnUrl=/event";
+        }
+
         String userAgent = request.getHeader("User-Agent");
         boolean isApp = userAgent != null && userAgent.contains("Flutter/fx_bank");
         model.addAttribute("isApp", isApp);
         return "event/event";
     }
 
-    // 이벤트 현황 페이지
     @GetMapping("/status")
     public String eventStatus(HttpServletRequest request, Model model) {
-        Long userNo = extractUserNo(request);
+        Long userNo = extractUserNoOrNull(request);
+        if (userNo == null) {
+            return "redirect:/login?returnUrl=/event/status";
+        }
 
-        EventDto event = eventService.getEvent(userNo);
-        model.addAttribute("event", event);
-        return "event/event-status";
+        try {
+            EventDto event = eventService.getEvent(userNo);
+            model.addAttribute("event", event);
+            return "event/event-status";
+        } catch (RuntimeException e) {
+            return "redirect:/event";
+        }
     }
 
-    // 이미지 업로드 & 추론 API (productNo -> couponNo 변경)
     @PostMapping("/detect")
     @ResponseBody
     public ResponseEntity<?> detect(
             HttpServletRequest request,
             @RequestParam String letter,
             @RequestParam MultipartFile file) {
-        Long userNo = extractUserNo(request);
-        EventDto result = eventService.uploadAndDetect(userNo, letter, file);
-        return ResponseEntity.ok(result);
+        Long userNo = extractUserNoOrNull(request);
+        if (userNo == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+        }
+
+        try {
+            EventDto result = eventService.uploadAndDetect(userNo, letter, file);
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
-    // 이벤트 참여 신청 API (productNo -> couponNo 변경)
     @PostMapping("/join")
     @ResponseBody
     public ResponseEntity<?> joinEvent(HttpServletRequest request) {
-        Long userNo = extractUserNo(request);
+        Long userNo = extractUserNoOrNull(request);
+        if (userNo == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+        }
+
         eventService.joinEvent(userNo);
         return ResponseEntity.ok("이벤트 참여 완료");
     }
 
-    // 쿠키에서 토큰 추출
+    private boolean hasRefreshToken(HttpServletRequest request) {
+        return extractToken(request) != null;
+    }
+
     private String extractToken(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("refreshToken".equals(cookie.getName())) {  // accessToken → refreshToken
-                    return cookie.getValue();
-                }
+        if (cookies == null) {
+            return null;
+        }
+
+        for (Cookie cookie : cookies) {
+            if ("refreshToken".equals(cookie.getName())
+                    && cookie.getValue() != null
+                    && !cookie.getValue().isBlank()) {
+                return cookie.getValue();
             }
         }
-        throw new RuntimeException("토큰이 없습니다.");
+        return null;
     }
-    
- // 토큰의 userId(아이디)로 실제 userNo(숫자 PK)를 조회
-    private Long extractUserNo(HttpServletRequest request) {
-        String token = extractToken(request);
-        String userId = jwtUtil.getUserId(token);   // "majunbae"
-        return iUser.findByUserId(userId.trim()).getUserNo();
+
+    private Long extractUserNoOrNull(HttpServletRequest request) {
+        try {
+            String token = extractToken(request);
+            if (token == null) {
+                return null;
+            }
+            String userId = jwtUtil.getUserId(token);
+            if (userId == null || userId.isBlank()) {
+                return null;
+            }
+            var user = iUser.findByUserId(userId.trim());
+            return user == null ? null : user.getUserNo();
+        } catch (RuntimeException e) {
+            return null;
+        }
     }
 }
