@@ -1,5 +1,4 @@
 INDEX VERSION 1.134+D:\fx_bank\.metadata\.plugins\org.eclipse.jdt.core
-735836143.index
 3297867184.index
 4278391950.index
 1975736140.index

@@ -22,7 +22,7 @@ PROMPT = ChatPromptTemplate.from_template(
 
 def answer_question(question: str) -> str:
     vectorstore = get_vectorstore()
-    retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
+    retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
 
     # 관련 문서 검색
     docs = retriever.invoke(question)
