@@ -148,6 +148,20 @@
   background:linear-gradient(135deg,#FF5F7E,#EC4899);
   box-shadow:0 14px 32px rgba(236,72,153,.26);
 }
+.event-dialog.is-loading .event-dialog-icon{
+  background:var(--grad-cta);
+}
+.event-dialog-spinner{
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  border:3px solid rgba(255,255,255,.38);
+  border-top-color:#fff;
+  animation:event-spin .8s linear infinite;
+}
+@keyframes event-spin{
+  to{transform:rotate(360deg);}
+}
 .event-dialog h3{
   margin:0;
   color:var(--text);

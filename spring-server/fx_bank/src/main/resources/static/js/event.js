@@ -101,6 +101,13 @@ function uploadEventImage(letter, fileOrBlob, fileName) {
     formData.append('file', fileOrBlob, fileName || 'capture.jpg');
     formData.append('letter', letter);
 
+    showEventDialog({
+        title: '인증 중입니다',
+        message: '사진을 분석하고 있어요. 조금만 기다려 주세요.',
+        type: 'loading',
+        closable: false
+    });
+
     fetch('/event/detect', {
         method: 'POST',
         body: formData,
@@ -162,7 +169,7 @@ function showEventResult(result) {
     }
 }
 
-function showEventDialog({ title, message, type = 'success', onClose }) {
+function showEventDialog({ title, message, type = 'success', onClose, closable = true }) {
     let overlay = document.querySelector('.event-dialog-overlay');
     if (!overlay) {
         overlay = document.createElement('div');
@@ -185,9 +192,14 @@ function showEventDialog({ title, message, type = 'success', onClose }) {
     const button = overlay.querySelector('.event-dialog-button');
 
     dialog.classList.toggle('is-error', type === 'error');
-    icon.textContent = type === 'error' ? '!' : '✓';
+    dialog.classList.toggle('is-loading', type === 'loading');
+    icon.innerHTML = type === 'loading' ? '<span class="event-dialog-spinner"></span>' : '';
+    if (type !== 'loading') {
+        icon.textContent = type === 'error' ? '!' : '✓';
+    }
     titleEl.textContent = title || '알림';
     messageEl.textContent = message || '';
+    button.hidden = !closable;
 
     const close = () => {
         overlay.classList.remove('is-open');
@@ -196,10 +208,15 @@ function showEventDialog({ title, message, type = 'success', onClose }) {
         if (typeof onClose === 'function') onClose();
     };
 
-    button.addEventListener('click', close);
+    button.removeEventListener('click', close);
+    if (closable) {
+        button.addEventListener('click', close);
+    }
     document.body.classList.add('event-dialog-lock');
     overlay.classList.add('is-open');
-    setTimeout(() => button.focus(), 30);
+    if (closable) {
+        setTimeout(() => button.focus(), 30);
+    }
 }
 
 async function readErrorMessage(res) {
