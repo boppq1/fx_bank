@@ -1,0 +1,265 @@
+﻿<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마이페이지 | KLS은행</title>
+    <link rel="stylesheet" th:href="@{/css/fx-home.css}">
+    <link rel="stylesheet" th:href="@{/css/fx-guide.css}">
+    <style>
+        .my-page { padding-bottom: 96px; }
+        .my-summary-grid { display: grid; grid-template-columns: 1.2fr .8fr .8fr; gap: 18px; margin: 28px 0 32px; }
+        .my-summary-card { position: relative; overflow: hidden; min-height: 120px; padding: 20px; border-radius: 22px; background: #fff; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+        .my-summary-card.primary { background: var(--grad-cta); color: #fff; border: 0; box-shadow: var(--shadow); }
+        .my-summary-card.primary::after { content: ""; position: absolute; right: -44px; bottom: -54px; width: 150px; height: 150px; border-radius: 50%; background: rgba(255,255,255,.18); }
+        .my-label { display: block; margin-bottom: 8px; font-size: 12px; font-weight: 800; color: var(--text-sub); }
+        .primary .my-label { color: rgba(255,255,255,.82); }
+        .my-value { display: block; font-size: 28px; font-weight: 900; letter-spacing: 0; color: var(--text); }
+        .primary .my-value { color: #fff; }
+        .my-sub { margin: 8px 0 0; color: var(--text-sub); font-size: 13px; line-height: 1.6; }
+        .primary .my-sub { color: rgba(255,255,255,.86); }
+        .my-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 36px 0 16px; }
+        .my-toolbar .guide-section-title { margin: 0; }
+        .my-link-button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 38px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--border); background: #fff; color: var(--violet); font-size: 13px; font-weight: 900; text-decoration: none; box-shadow: var(--shadow-sm); }
+        .my-actions { display: flex; justify-content: flex-end; margin: 0 0 18px; }
+        .my-logout-button { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 0 16px; border: 1px solid var(--border); border-radius: 999px; background: #fff; color: var(--text-sub); font-size: 13px; font-weight: 900; cursor: pointer; box-shadow: var(--shadow-sm); }
+        .my-logout-button:hover { color: var(--violet); border-color: rgba(109,91,255,.35); background: #F7F4FF; }
+        .account-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+        .account-card, .product-card { border: 1px solid var(--border); border-radius: 20px; background: #fff; box-shadow: var(--shadow-sm); padding: 18px; min-width: 0; }
+        .account-head, .product-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+        .account-title, .product-title { margin: 0; color: var(--text); font-size: 16px; font-weight: 900; line-height: 1.35; word-break: keep-all; }
+        .account-badge, .product-badge { flex: 0 0 auto; display: inline-flex; align-items: center; min-height: 26px; padding: 0 10px; border-radius: 999px; background: #F1EEFF; color: var(--violet); font-size: 12px; font-weight: 900; }
+        .account-no { margin: 0 0 12px; color: var(--text-sub); font-size: 13px; font-weight: 800; word-break: break-all; }
+        .balance-line { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+        .balance-label { color: var(--text-sub); font-size: 12px; font-weight: 800; }
+        .balance-value { color: var(--text); font-size: 18px; font-weight: 900; text-align: right; }
+        .product-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+        .product-meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+        .meta-item { min-width: 0; }
+        .meta-label { display: block; margin-bottom: 4px; color: var(--text-sub); font-size: 11.5px; font-weight: 800; }
+        .meta-value { display: block; color: var(--text); font-size: 13.5px; font-weight: 800; word-break: break-all; }
+        .product-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+        .review-link { color: var(--violet); font-weight: 900; text-decoration: none; font-size: 13px; }
+        .review-link:hover { text-decoration: underline; }
+        #message.message { margin: 14px 0; color: var(--text-sub); font-size: 13.5px; font-weight: 700; }
+        #message.message.error { color: var(--up); }
+        .empty-card { border: 1px dashed var(--border); border-radius: 20px; background: #fff; padding: 28px; text-align: center; color: var(--text-sub); font-weight: 800; }
+        @media (max-width: 820px) {
+            .my-summary-grid { grid-template-columns: 1fr; }
+            .account-grid, .product-list { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 680px) {
+            .guide-hero { padding: 38px 0 44px; }
+            .my-summary-grid { gap: 16px; margin-top: 22px; margin-bottom: 34px; }
+            .guide-hero-title { font-size: 30px; }
+            .guide-wrap { padding-left: 18px; padding-right: 18px; }
+            .my-toolbar { align-items: flex-start; flex-direction: column; }
+            .my-actions { justify-content: stretch; margin-top: 2px; margin-bottom: 20px; }
+            .my-logout-button { width: 100%; min-height: 48px; }
+            .product-meta { grid-template-columns: 1fr; }
+            .my-summary-card, .account-card, .product-card { border-radius: 18px; }
+            .my-summary-card { min-height: 126px; padding: 22px 20px; }
+            .my-toolbar { margin-top: 38px; margin-bottom: 18px; }
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{header :: header}"></div>
+
+<section class="guide-hero">
+    <div class="guide-hero-inner">
+        <span class="guide-hero-badge">MY</span>
+        <h1 class="guide-hero-title">마이페이지</h1>
+        <p class="guide-hero-desc">보유 외화 계좌와 가입한 외화 상품을 한 곳에서 확인하세요.</p>
+    </div>
+</section>
+
+<main class="guide-wrap my-page">
+    <div id="message" class="message">마이페이지 정보를 조회하고 있습니다.</div>
+    <div class="my-actions">
+        <button type="button" id="myLogoutButton" class="my-logout-button">&#47196;&#44536;&#50500;&#50883;</button>
+    </div>
+
+    <section class="my-summary-grid" aria-label="마이페이지 요약">
+        <article class="my-summary-card primary">
+            <span class="my-label">대표 외화 잔액</span>
+            <span id="mainBalance" class="my-value">-</span>
+            <p class="my-sub">가입 상품과 연결된 외화 계좌 기준입니다.</p>
+        </article>
+        <article class="my-summary-card">
+            <span class="my-label">보유 계좌</span>
+            <span id="accountCount" class="my-value">0개</span>
+            <p class="my-sub">외화 통장/예금 계좌</p>
+        </article>
+        <article class="my-summary-card">
+            <span class="my-label">가입 상품</span>
+            <span id="productCount" class="my-value">0개</span>
+            <p class="my-sub">현재 조회 가능한 가입 내역</p>
+        </article>
+    </section>
+
+    <div class="my-toolbar">
+        <h2 class="guide-section-title">내 외화 계좌</h2>
+        <a class="my-link-button" href="/product/list">상품 더보기</a>
+    </div>
+    <section id="accountList" class="account-grid"></section>
+
+    <div class="my-toolbar">
+        <h2 class="guide-section-title">가입 상품</h2>
+        <a class="my-link-button" href="/product/list">외화 상품 목록</a>
+    </div>
+    <section id="productList" class="product-list"></section>
+</main>
+
+<div th:replace="~{footer :: footer}"></div>
+
+<script>
+async function ensureAccessToken() {
+    const token = await window.acquireAccessToken();
+    if (!token) {
+        window.redirectToLogin('/my');
+        return null;
+    }
+    return token;
+}
+
+function escapeHtml(value) {
+    return String(value ?? '-').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
+}
+
+function numberValue(value) {
+    if (value === null || value === undefined || value === '') return 0;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function formatAmount(value, currencyCode) {
+    if (value === null || value === undefined) return '-';
+    return new Intl.NumberFormat('ko-KR', { maximumFractionDigits: 2 }).format(numberValue(value)) + ' ' + (currencyCode || '');
+}
+
+function formatDate(value) {
+    if (!value) return '-';
+    return String(value).slice(0, 10).replaceAll('-', '.');
+}
+
+function renderAccounts(items) {
+    const accountMap = new Map();
+    items.forEach(item => {
+        const key = `${item.accountNo || '-'}:${item.currencyCode || ''}`;
+        if (!accountMap.has(key)) accountMap.set(key, item);
+    });
+    const accounts = Array.from(accountMap.values());
+    document.getElementById('accountCount').textContent = `${accounts.length}개`;
+
+    if (accounts.length === 0) {
+        document.getElementById('accountList').innerHTML = '<div class="empty-card">아직 조회 가능한 외화 계좌가 없습니다.</div>';
+        document.getElementById('mainBalance').textContent = '-';
+        return;
+    }
+
+    const representative = accounts[0];
+    document.getElementById('mainBalance').textContent = formatAmount(representative.accountBalance, representative.currencyCode);
+    document.getElementById('accountList').innerHTML = accounts.map(item => `
+        <article class="account-card">
+            <div class="account-head">
+                <h3 class="account-title">${escapeHtml(item.productName)}</h3>
+                <span class="account-badge">${escapeHtml(item.currencyCode)}</span>
+            </div>
+            <p class="account-no">${escapeHtml(item.accountNo)}</p>
+            <div class="balance-line">
+                <span class="balance-label">계좌 잔액</span>
+                <strong class="balance-value">${formatAmount(item.accountBalance, item.currencyCode)}</strong>
+            </div>
+        </article>`).join('');
+}
+
+function renderProducts(items) {
+    document.getElementById('productCount').textContent = `${items.length}개`;
+    if (items.length === 0) {
+        document.getElementById('productList').innerHTML = '<div class="empty-card">가입한 상품이 없습니다. 상품 목록에서 가입을 진행해보세요.</div>';
+        return;
+    }
+    document.getElementById('productList').innerHTML = items.map(item => `
+        <article class="product-card">
+            <div class="product-head">
+                <h3 class="product-title">${escapeHtml(item.productName)}</h3>
+                <span class="product-badge">${escapeHtml(item.productType)}</span>
+            </div>
+            <div class="product-meta">
+                <div class="meta-item"><span class="meta-label">계좌번호</span><span class="meta-value">${escapeHtml(item.accountNo)}</span></div>
+                <div class="meta-item"><span class="meta-label">통화</span><span class="meta-value">${escapeHtml(item.currencyCode)}</span></div>
+                <div class="meta-item"><span class="meta-label">가입 금액</span><span class="meta-value">${formatAmount(item.subscriptionAmount, item.currencyCode)}</span></div>
+                <div class="meta-item"><span class="meta-label">계좌 잔액</span><span class="meta-value">${formatAmount(item.accountBalance, item.currencyCode)}</span></div>
+                <div class="meta-item"><span class="meta-label">가입일</span><span class="meta-value">${formatDate(item.subscribedDt)}</span></div>
+                <div class="meta-item"><span class="meta-label">상태</span><span class="meta-value">${escapeHtml(item.subscriptionStatus)}</span></div>
+            </div>
+            <div class="product-actions">
+                <a class="review-link" data-product-no="${item.productNo}" href="/product/${item.productNo}/reviews/new" hidden>리뷰 쓰기</a>
+                <a class="review-link" href="/product/detail/${item.productNo}">상품 보기</a>
+            </div>
+        </article>`).join('');
+}
+
+async function showReviewLinks(token) {
+    const links = Array.from(document.querySelectorAll('.review-link[data-product-no]'));
+    await Promise.all(links.map(async link => {
+        try {
+            const productNo = link.dataset.productNo;
+            const response = await fetch(`/api/products/${productNo}/review-eligibility`, {
+                headers: { 'Authorization': 'Bearer ' + token }, credentials: 'same-origin'
+            });
+            const body = await response.json();
+            if (body.success && body.data) link.hidden = false;
+        } catch (e) {
+            link.hidden = true;
+        }
+    }));
+}
+
+async function loadMyPage() {
+    const token = await ensureAccessToken();
+    if (!token) return;
+    const message = document.getElementById('message');
+    try {
+        const response = await fetch('/api/product/join/my-subscriptions', {
+            headers: { 'Authorization': 'Bearer ' + token },
+            credentials: 'same-origin'
+        });
+        const body = await response.json();
+        if (!body.success) {
+            message.classList.add('error');
+            message.textContent = body.message || '마이페이지 정보를 조회하지 못했습니다.';
+            return;
+        }
+        const items = body.data || [];
+        message.hidden = true;
+        renderAccounts(items);
+        renderProducts(items);
+        await showReviewLinks(token);
+    } catch (e) {
+        message.classList.add('error');
+        message.textContent = '마이페이지 정보를 불러오지 못했습니다.';
+    }
+}
+
+const myLogoutButton = document.getElementById('myLogoutButton');
+if (myLogoutButton) {
+    myLogoutButton.addEventListener('click', async () => {
+        try {
+            const headers = { 'Content-Type': 'application/json' };
+            if (window.accessToken) headers.Authorization = 'Bearer ' + window.accessToken;
+            await fetch('/api/auth/logout', { method: 'POST', headers, credentials: 'same-origin' });
+        } catch (e) {
+            // 로그아웃 요청이 실패해도 모바일에서는 남은 토큰을 지우고 홈으로 보낸다.
+        }
+        window.accessToken = null;
+        location.href = '/';
+    });
+}
+
+loadMyPage();
+</script>
+</body>
+</html>
+

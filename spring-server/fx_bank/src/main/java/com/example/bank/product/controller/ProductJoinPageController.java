@@ -97,9 +97,14 @@ public class ProductJoinPageController {
         return "product/join/signature";
     }
 
+    @GetMapping("/my")
+    public String myPage() {
+        return "my";
+    }
+
     @GetMapping("/product/my-subscriptions")
     public String mySubscriptions() {
-        return "product/my-subscriptions";
+        return "redirect:/my";
     }
 
     @GetMapping("/product/join/{productNo}/complete")

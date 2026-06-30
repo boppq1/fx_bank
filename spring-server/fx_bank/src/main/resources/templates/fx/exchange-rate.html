@@ -3,9 +3,53 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>환율조회 | BNK 부산은행</title>
+<title>환율조회 | KLS은행</title>
 <link rel="stylesheet" th:href="@{/css/fx-home.css}">
 <link rel="stylesheet" th:href="@{/css/fx-guide.css}">
+
+<style>
+    .fx-rate-mobile-list { display: none; }
+    @media (max-width: 680px) {
+        .guide-rate-head { align-items: flex-start; }
+        .guide-rate-count { flex: 0 0 auto; padding: 6px 10px; border-radius: 999px; background: #F1EEFF; color: var(--violet); font-weight: 900; }
+        .guide-toolbar { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 14px; }
+        .guide-toolbar .guide-select,
+        .guide-toolbar .guide-search-input { max-width: none !important; width: 100%; height: 48px; border-radius: 16px; }
+        .guide-search-input { font-size: 13.5px; }
+        .guide-table-wrap { display: none; }
+        .fx-rate-mobile-list { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        .fx-rate-card {
+            position: relative; overflow: hidden; padding: 17px 16px 15px;
+            border: 1px solid var(--border); border-radius: 20px; background: #fff;
+            box-shadow: var(--shadow-sm);
+        }
+        .fx-rate-card::before {
+            content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+            background: var(--grad-cta);
+        }
+        .fx-rate-card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+        .fx-rate-currency { display: flex; align-items: center; gap: 10px; min-width: 0; }
+        .fx-rate-symbol {
+            flex: 0 0 auto; width: 38px; height: 38px; border-radius: 14px;
+            display: inline-flex; align-items: center; justify-content: center;
+            background: #F1EEFF; color: var(--violet); font-size: 12px; font-weight: 900;
+        }
+        .fx-rate-name { display: block; color: var(--text); font-size: 15px; font-weight: 900; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .fx-rate-code { display: block; margin-top: 2px; color: var(--text-sub); font-size: 12px; font-weight: 800; }
+        .fx-rate-date { flex: 0 0 auto; color: var(--text-sub); font-size: 11.5px; font-weight: 800; }
+        .fx-rate-base { padding: 13px 14px; border-radius: 16px; background: linear-gradient(135deg,#F4F1FF,#FFFFFF); border: 1px solid rgba(109,91,255,.14); }
+        .fx-rate-base span { display: block; color: var(--text-sub); font-size: 11.5px; font-weight: 900; }
+        .fx-rate-base strong { display: block; margin-top: 4px; color: var(--text); font-size: 24px; font-weight: 900; letter-spacing: 0; font-variant-numeric: tabular-nums; }
+        .fx-rate-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 10px; }
+        .fx-rate-mini { padding: 12px; border-radius: 15px; background: var(--bg); border: 1px solid var(--border); }
+        .fx-rate-mini span { display: block; margin-bottom: 4px; color: var(--text-sub); font-size: 11.5px; font-weight: 900; }
+        .fx-rate-mini strong { color: var(--text); font-size: 15px; font-weight: 900; font-variant-numeric: tabular-nums; }
+        .fx-rate-empty { padding: 28px 18px; border: 1px dashed var(--border); border-radius: 20px; background: #fff; color: var(--text-sub); text-align: center; font-size: 13.5px; font-weight: 800; }
+        .guide-pager { gap: 5px; margin-top: 16px; }
+        .guide-page { min-width: 32px; height: 32px; border-radius: 11px; font-size: 12.5px; }
+        .guide-foot-note { margin-top: 16px; font-size: 11.5px; }
+    }
+</style>
 </head>
 <body>
 
@@ -32,6 +76,8 @@
             </select>
             <input type="text" id="fxRateSearch" class="guide-search-input" placeholder="국가·통화명 또는 코드 검색 (예: 미국, 달러, USD)">
         </div>
+
+        <div id="fxRateCards" class="fx-rate-mobile-list" aria-live="polite"></div>
 
         <div class="guide-table-wrap">
             <table class="guide-table guide-rate-table">

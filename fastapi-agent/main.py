@@ -54,14 +54,14 @@ security = HTTPBearer()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8080"],
+    allow_origins=["https://klsbank.store"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 redis_client = redis.Redis(
-    host=os.getenv("REDIS_HOST"),
+    host=os.getenv("REDIS_HOST", "redis"),
     port=int(os.getenv("REDIS_PORT", 6379)),
     password=os.getenv("REDIS_PASSWORD") or None,
     decode_responses=True

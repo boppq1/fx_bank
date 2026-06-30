@@ -3,25 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FX Bank - 금융 MBTI</title>
+    <title>KLS은행 - 금융 MBTI</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
-            --bg: #0a0e1a;
-            --card: #111827;
-            --card2: #1a2235;
-            --accent: #3b82f6;
-            --accent2: #60a5fa;
-            --gold: #f59e0b;
-            --text: #f1f5f9;
-            --muted: #94a3b8;
-            --border: #1e2d45;
-            --success: #10b981;
-            --danger: #ef4444;
-            --warn-bg: rgba(245, 158, 11, 0.12);
-            --warn-border: rgba(245, 158, 11, 0.35);
-            --warn-text: #fbbf24;
+            --bg: #F6F4FF;
+            --card: #FFFFFF;
+            --card2: #F1EEFF;
+            --accent: #6D5BFF;
+            --accent2: #7C5CFF;
+            --gold: #C77700;
+            --text: #16162B;
+            --muted: #56566B;
+            --border: #E9E5FB;
+            --success: #16A34A;
+            --danger: #F23645;
+            --warn-bg: rgba(245, 158, 11, 0.14);
+            --warn-border: rgba(245, 158, 11, 0.4);
+            --warn-text: #B45309;
         }
 
         body {
@@ -39,7 +40,7 @@
             align-items: center;
             justify-content: center;
             padding: 40px 20px;
-            background: radial-gradient(ellipse at 50% 0%, #1e3a5f 0%, var(--bg) 60%);
+            background: radial-gradient(ellipse at 50% 0%, #E7E0FF 0%, var(--bg) 60%);
         }
 
         .main-inner { max-width: 480px; width: 100%; text-align: center; }
@@ -105,6 +106,14 @@
             cursor: pointer; transition: all .2s;
         }
         .btn-main:hover { background: var(--accent2); transform: translateY(-2px); }
+        .btn-secondary {
+            width: 100%; padding: 14px; margin-top: 10px;
+            background: #fff; color: var(--accent2);
+            border: 1px solid var(--border); border-radius: 14px;
+            font-size: 14px; font-weight: 700;
+            cursor: pointer; transition: all .2s;
+        }
+        .btn-secondary:hover { border-color: var(--accent); transform: translateY(-1px); }
 
         .err-box {
             background: rgba(239,68,68,.1);
@@ -146,8 +155,8 @@
         #s-result { background: var(--bg); }
 
         .hero {
-            background: linear-gradient(135deg, #1e3a5f 0%, #0f2040 100%);
-            padding: 44px 20px 36px;
+            background: linear-gradient(135deg, #6D5BFF 0%, #7C5CFF 50%, #9C6BFF 100%);
+            padding: 48px 20px 40px;
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -157,24 +166,24 @@
             position: absolute;
             top: -50%; left: -50%;
             width: 200%; height: 200%;
-            background: radial-gradient(circle at center, rgba(59,130,246,.1) 0%, transparent 60%);
+            background: radial-gradient(circle at center, rgba(255,255,255,.16) 0%, transparent 60%);
             pointer-events: none;
         }
 
-        .hero-logo { font-size: 11px; letter-spacing: 4px; color: var(--accent2); text-transform: uppercase; margin-bottom: 28px; }
+        .hero-logo { font-size: 11px; letter-spacing: 4px; color: rgba(255,255,255,.82); text-transform: uppercase; margin-bottom: 28px; }
 
         .mbti-badge { display: inline-flex; gap: 6px; margin-bottom: 16px; }
         .mbti-letter {
             width: 58px; height: 66px;
-            background: rgba(59,130,246,.15);
-            border: 1px solid rgba(59,130,246,.4);
+            background: rgba(255,255,255,.18);
+            border: 1px solid rgba(255,255,255,.42);
             border-radius: 13px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 26px; font-weight: 900; color: var(--accent2);
+            font-size: 26px; font-weight: 900; color: #fff;
         }
 
-        .mbti-type { font-size: 12px; color: var(--accent2); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
-        .mbti-desc { font-size: 15px; color: var(--text); line-height: 1.7; max-width: 340px; margin: 0 auto 20px; }
+        .mbti-type { font-size: 12px; color: rgba(255,255,255,.9); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+        .mbti-desc { font-size: 15px; color: #fff; line-height: 1.7; max-width: 340px; margin: 0 auto 20px; }
 
         /* 정보 부족 배너 */
         .info-banner {
@@ -228,9 +237,13 @@
             transition: border-color .2s;
         }
         .product-card:hover { border-color: var(--accent); }
+        .product-card[data-product-no] { cursor: pointer; }
+        .product-card[data-product-no]:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(34, 22, 86, .10); }
+        .product-card-action { margin-top: 10px; font-size: 12px; font-weight: 700; color: var(--accent2); }
         .product-card.main-card {
-            border-color: rgba(245,158,11,.3);
-            background: linear-gradient(135deg, #1a2235 0%, #1a1a2e 100%);
+            border-color: rgba(245,158,11,.45);
+            background: linear-gradient(150deg, #FFFBF2 0%, #FFFFFF 100%);
+            box-shadow: var(--shadow-sm, 0 4px 14px rgba(26,26,46,.07));
         }
 
         .product-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
@@ -276,6 +289,9 @@
             cursor: pointer; margin-top: 20px; transition: all .2s;
         }
         .btn-retry:hover { border-color: var(--accent); color: var(--accent2); }
+        .result-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .result-actions .btn-retry, .result-actions .btn-secondary { margin-top: 0; }
+        @media (max-width: 520px) { .result-actions { grid-template-columns: 1fr; } }
 
         .empty { color: var(--muted); font-size: 13px; padding: 8px 0; }
     </style>
@@ -285,7 +301,7 @@
 <!-- ① 메인 -->
 <div id="s-main" class="screen active">
     <div class="main-inner">
-        <div class="logo">FX Bank</div>
+        <div class="logo">KLS은행</div>
         <div class="mbti-preview">
             <div class="mbti-char">S</div>
             <div class="mbti-char">P</div>
@@ -313,6 +329,7 @@
             </div>
         </div>
         <button class="btn-main" onclick="startAnalysis()">내 금융 MBTI 분석하기 →</button>
+        <button class="btn-secondary" onclick="location.href='/'">메인화면으로</button>
         <div class="err-box" id="err-msg"></div>
     </div>
 </div>
@@ -324,10 +341,10 @@
         <div class="loading-title">분석 중이에요...</div>
         <p style="font-size:13px;color:var(--muted)">잠시만 기다려주세요</p>
         <ul class="steps">
-            <li id="step1"><span class="si">⏳</span> 행동 로그 수집 중</li>
-            <li id="step2"><span class="si">⏳</span> MBTI 성향 분석 중</li>
-            <li id="step3"><span class="si">⏳</span> 맞춤 상품 검색 중</li>
-            <li id="step4"><span class="si">⏳</span> 결과 생성 중</li>
+            <li id="step1"><span class="si"><i class="bi bi-hourglass-split"></i></span> 행동 로그 수집 중</li>
+            <li id="step2"><span class="si"><i class="bi bi-hourglass-split"></i></span> MBTI 성향 분석 중</li>
+            <li id="step3"><span class="si"><i class="bi bi-hourglass-split"></i></span> 맞춤 상품 검색 중</li>
+            <li id="step4"><span class="si"><i class="bi bi-hourglass-split"></i></span> 결과 생성 중</li>
         </ul>
     </div>
 </div>
@@ -335,7 +352,7 @@
 <!-- ③ 결과 -->
 <div id="s-result" class="screen">
     <div class="hero">
-        <div class="hero-logo">FX Bank · 금융 MBTI</div>
+        <div class="hero-logo">KLS은행 · 금융 MBTI</div>
         <div class="mbti-badge" id="r-badge"></div>
         <div class="mbti-type" id="r-code"></div>
         <p class="mbti-desc" id="r-desc"></p>
@@ -345,12 +362,12 @@
 
     <div class="result-body">
         <div class="sec-title">맞춤 상품 추천</div>
-        <div class="tag-main">🎯 딱 맞는 상품</div>
+        <div class="tag-main"><i class="bi bi-bullseye"></i> 딱 맞는 상품</div>
         <div id="r-main"></div>
 
         <div class="divider"></div>
 
-        <div class="tag-sub">💡 함께 보면 좋은 상품</div>
+        <div class="tag-sub"><i class="bi bi-lightbulb"></i> 함께 보면 좋은 상품</div>
         <div id="r-sub-visible"></div>
         <div class="more-wrap" id="r-sub-more"></div>
         <button class="btn-more" id="btn-more" onclick="toggleMore()" style="display:none">
@@ -358,7 +375,10 @@
             <span id="more-label">다른 상품 더 보기</span>
         </button>
 
-        <button class="btn-retry" onclick="show('s-main')">다시 분석하기</button>
+        <div class="result-actions">
+            <button class="btn-secondary" onclick="location.href='/'">메인화면으로</button>
+            <button class="btn-retry" onclick="show('s-main')">다시 분석하기</button>
+        </div>
     </div>
 </div>
 
@@ -385,15 +405,13 @@
     function setStep(n, s) {
         const el = document.getElementById('step' + n);
         el.className = s;
-        el.querySelector('.si').textContent = s === 'done' ? '✅' : '⏳';
+        el.querySelector('.si').innerHTML = s === 'done' ? '<i class="bi bi-check-circle-fill"></i>' : '<i class="bi bi-hourglass-split"></i>';
     }
 
     async function startAnalysis() {
         const token = await restoreToken();
         if (!token) {
-            const err = document.getElementById('err-msg');
-            err.style.display = 'block';
-            err.textContent = '로그인이 필요해요. 다시 로그인해주세요.';
+            location.href = '/login?returnUrl=' + encodeURIComponent('/mbti');
             return;
         }
 
@@ -405,20 +423,24 @@
         setStep(2, 'done'); setStep(3, 'active');
 
         try {
-            const res = await fetch('http://localhost:8000/analyze-user', {
+            const res = await fetch('/api/mbti/analyze-user', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
-
-            if (!res.ok) {
-                const e = await res.json();
-                throw new Error(e.detail || '분석 중 오류가 발생했어요');
+            const responseText = await res.text();
+            let data = {};
+            try {
+                data = responseText ? JSON.parse(responseText) : {};
+            } catch (parseError) {
+                data = { detail: responseText };
             }
 
-            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.detail || data.message || '분석 중 오류가 발생했어요. 잠시 후 다시 시도해주세요.');
+            }
 
             setStep(3, 'done'); setStep(4, 'active');
             await delay(600);
@@ -453,11 +475,11 @@
         const bannerEl = document.getElementById('r-banner');
         if (infoStatus.message) {
             const icons = {
-                NO_LOG_AGE_FALLBACK: '📊',
-                NO_LOG_NO_AGE_FALLBACK: '🙌',
-                NO_BIRTH_DATE: '📋'
+                NO_LOG_AGE_FALLBACK: '<i class="bi bi-bar-chart"></i>',
+                NO_LOG_NO_AGE_FALLBACK: '<i class="bi bi-hand-thumbs-up"></i>',
+                NO_BIRTH_DATE: '<i class="bi bi-clipboard"></i>'
             };
-            const icon = icons[infoStatus.code] || 'ℹ️';
+            const icon = icons[infoStatus.code] || '<i class="bi bi-info-circle"></i>';
             bannerEl.innerHTML = `
         <div class="info-banner">
           <span class="info-banner-icon">${icon}</span>
@@ -518,18 +540,52 @@
         document.getElementById('more-label').textContent = isOpen ? '접기' : `다른 상품 더 보기`;
     }
 
+    function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>"']/g, (m) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[m]));
+    }
+
+    function getRecommendedProductNo(p) {
+        return p.product_no ?? p.productNo ?? p.product_id ?? p.productId ?? p.no ?? null;
+    }
+
+    function goProductDetail(productNo) {
+        if (!productNo) return;
+        location.href = `/product/detail/${encodeURIComponent(productNo)}`;
+    }
+
+    document.addEventListener('click', (event) => {
+        const card = event.target.closest('.product-card[data-product-no]');
+        if (!card) return;
+        goProductDetail(card.dataset.productNo);
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        const card = event.target.closest('.product-card[data-product-no]');
+        if (!card) return;
+        event.preventDefault();
+        goProductDetail(card.dataset.productNo);
+    });
+
     function productCard(p, isMain) {
-        const sc = p.sentiment === '긍정' ? 'pos' : p.sentiment === '부정' ? 'neg' : 'neu';
-        const chip = p.sentiment_score >= 0
-            ? `<div class="score-chip">고객 만족도 <span>+${p.sentiment_score}</span></div>` : '';
-        return `<div class="product-card${isMain ? ' main-card' : ''}">
+        const productNo = getRecommendedProductNo(p);
+        const sentiment = p.sentiment || '중립';
+        const score = Number(p.sentiment_score || 0);
+        const sc = score > 0 ? 'pos' : score < 0 ? 'neg' : 'neu';
+        const chip = score >= 0
+            ? `<div class="score-chip">고객 만족도 <span>+${escapeHtml(score)}</span></div>` : '';
+        const attrs = productNo ? ` data-product-no="${escapeHtml(productNo)}" role="link" tabindex="0"` : '';
+        return `<div class="product-card${isMain ? ' main-card' : ''}"${attrs}>
       <div class="product-header">
-        <div class="product-name">${p.product_name}</div>
-        <div class="s-badge ${sc}">${p.sentiment || '중립'}</div>
+        <div class="product-name">${escapeHtml(p.product_name || p.productName || '추천 상품')}</div>
+        <div class="s-badge ${sc}">${escapeHtml(sentiment)}</div>
       </div>
-      <div class="product-tendency">${p.product_tendency || ''}</div>
-      <div class="product-review">"${p.review_text || ''}"</div>
+      <div class="product-tendency">${escapeHtml(p.product_tendency || p.productTendency || '')}</div>
+      <div class="product-review">"${escapeHtml(p.review_text || p.reviewText || '')}"</div>
       ${chip}
+      ${productNo ? '<div class="product-card-action">상품 상세 보기 →</div>' : ''}
     </div>`;
     }
 

@@ -9,105 +9,90 @@
 <main th:fragment="authBody" class="auth-main">
   <div class="auth-wrap">
 
-    <!-- 좌측 소개 -->
-    <aside class="auth-intro">
-      <div class="intro-mark">₩</div>
-      <span class="intro-logo">BNK 부산은행 외환</span>
+    <aside class="auth-intro" data-reveal="left">
+      <div class="intro-mark">K</div>
+      <span class="intro-logo">KLS은행 외환</span>
       <h1 class="intro-title">외환 거래,<br>더 쉽고 안전하게</h1>
-      <p class="intro-desc">실시간 환율 조회부터 환전 계산, 외화예금 가입까지<br>BNK 외환을 한 곳에서 안전하게 이용하세요.</p>
+      <p class="intro-desc">실시간 환율 조회부터 환전 계산, 외화예금 가입까지<br>KLS 외환을 한 곳에서 안전하게 이용하세요.</p>
       <ul class="intro-feature">
         <li>
-          <span class="feat-ico">🪪</span>
-          <div class="feat-text"><strong>신분증 OCR 인증</strong><span>주민번호는 AES 암호화로 안전하게 보관</span></div>
+          <span class="feat-ico"><i class="bi bi-person-vcard" aria-hidden="true"></i></span>
+          <div class="feat-text"><strong>신분증 OCR 인증</strong><span>신분증 정보를 인식해 회원가입 입력을 보조합니다.</span></div>
         </li>
         <li>
-          <span class="feat-ico">📈</span>
-          <div class="feat-text"><strong>실시간 환율·환전 계산</strong><span>최근 추세까지 한눈에 확인</span></div>
-        </li>
-        <li>
-          <span class="feat-ico">🌏</span>
-          <div class="feat-text"><strong>다국어 지원</strong><span>한국어 · English · 日本語 · 中文</span></div>
+          <span class="feat-ico"><i class="bi bi-graph-up-arrow" aria-hidden="true"></i></span>
+          <div class="feat-text"><strong>실시간 환율 조회</strong><span>외화 거래에 필요한 환율 정보를 빠르게 확인합니다.</span></div>
         </li>
       </ul>
     </aside>
 
-    <!-- 우측 카드 -->
-    <section class="auth-card">
-
-      <!-- 탭 -->
+    <section class="auth-card" data-reveal="scale">
       <div class="auth-tabs" data-active="login">
         <span class="tab-pill"></span>
         <button type="button" class="tab-btn is-active" data-tab="login">로그인</button>
         <button type="button" class="tab-btn" data-tab="register">회원가입</button>
       </div>
 
-      <!-- 패널 영역 -->
       <div class="panel-area">
-
-        <!-- ===== 로그인 패널 ===== -->
         <div class="panel panel-login is-active" data-panel="login">
           <div class="field">
-            <label for="loginId">아이디 (이메일)</label>
+            <label for="loginId">아이디</label>
             <div class="input-box">
-              <span class="in-ico">👤</span>
-              <input type="text" id="loginId" placeholder="user@example.com" autocomplete="username">
+              <span class="in-ico"><i class="bi bi-person" aria-hidden="true"></i></span>
+              <input type="text" id="loginId" placeholder="아이디 입력" autocomplete="username">
             </div>
           </div>
 
           <div class="field">
             <label for="loginPw">비밀번호</label>
             <div class="input-box">
-              <span class="in-ico">🔒</span>
-              <input type="password" id="loginPw" placeholder="••••••••" autocomplete="current-password">
-              <button type="button" class="pw-toggle" data-target="loginPw" aria-label="비밀번호 표시">👁</button>
+              <span class="in-ico"><i class="bi bi-lock" aria-hidden="true"></i></span>
+              <input type="password" id="loginPw" placeholder="비밀번호" autocomplete="current-password">
+              <button type="button" class="pw-toggle" data-target="loginPw" aria-label="비밀번호 표시"><i class="bi bi-eye" aria-hidden="true"></i></button>
             </div>
           </div>
 
-          <div class="login-meta">
-            <label class="checkbox">
-              <input type="checkbox" id="keepLogin">
-              <span>로그인 상태 유지</span>
-            </label>
-            <a href="#" class="link-find">비밀번호 찾기</a>
-          </div>
-
-          <button type="button" id="loginBtn" class="btn btn-primary btn-block">로그인</button>
-
-          <div class="divider"><span>간편 로그인</span></div>
-
-          <div class="social-row">
-            <button type="button" class="social social-kakao">카카오</button>
-            <button type="button" class="social social-naver">네이버</button>
-            <button type="button" class="social social-apple">애플</button>
-          </div>
+          <button type="button" id="loginBtn" class="btn btn-primary btn-block press" data-ripple>로그인</button>
 
           <p class="switch-line">
-            계정이 없으신가요? <button type="button" class="switch-link" data-tab="register">회원가입</button>
+            아직 계정이 없나요? <button type="button" class="switch-link" data-tab="register">회원가입</button>
           </p>
         </div>
 
-        <!-- ===== 회원가입 패널 ===== -->
         <div class="panel panel-register" data-panel="register">
           <form id="registerForm" class="reg-form" autocomplete="off">
 
-            <!-- ===== 신분증 OCR 인증 ===== -->
             <div class="field">
               <label>신분증 인증 <span class="req-tag">필수</span></label>
               <div class="idcard-uploader">
-                <input type="file" id="idCardFile" accept="image/*" capture="environment" hidden>
+                <input type="file" id="idCardFile" accept="image/*" capture="environment" style="position:fixed;left:-9999px;width:1px;height:1px;opacity:0;">
                 <button type="button" class="idcard-drop" id="idCardDrop">
-                  <span class="idcard-ico">🪪</span>
+                  <span class="idcard-ico"><i class="bi bi-person-vcard" aria-hidden="true"></i></span>
                   <span class="idcard-text" id="idCardText">신분증을 촬영하거나 이미지를 업로드하세요</span>
-                  <span class="idcard-hint">탭하여 카메라/파일 선택 · 이름·주소·주민번호가 자동 입력됩니다</span>
+                  <span class="idcard-hint">촬영 후 이름, 주소, 주민등록번호가 자동 입력됩니다.</span>
                 </button>
                 <div class="idcard-status" id="idCardStatus" hidden></div>
+                <div id="authCameraModal" class="auth-camera-modal" hidden>
+                  <div class="auth-camera-panel">
+                    <div class="auth-camera-stage">
+                      <video id="authCameraVideo" class="auth-camera-video" autoplay playsinline muted></video>
+                      <div class="auth-id-guide-frame" aria-hidden="true"></div>
+                    </div>
+                    <p class="auth-camera-help">신분증을 사각형 안에 맞추고 빛 반사가 없도록 촬영해 주세요.</p>
+                    <div class="auth-camera-actions">
+                      <button type="button" id="authCaptureButton" class="btn btn-primary">촬영</button>
+                      <button type="button" id="authCloseCameraButton" class="btn btn-light">닫기</button>
+                    </div>
+                  </div>
+                </div>
+                <canvas id="authCaptureCanvas" hidden></canvas>
               </div>
             </div>
 
             <div class="field">
               <label for="userId">아이디</label>
               <div class="input-box has-btn">
-                <span class="in-ico">👤</span>
+                <span class="in-ico"><i class="bi bi-person" aria-hidden="true"></i></span>
                 <input type="text" id="userId" placeholder="아이디 입력" required>
                 <button type="button" class="inline-btn" onclick="checkDuplicateId()">중복 확인</button>
               </div>
@@ -116,8 +101,8 @@
             <div class="field">
               <label for="secuPw">비밀번호</label>
               <div class="input-box">
-                <span class="in-ico">🔒</span>
-                <input type="password" id="secuPw" placeholder="영문·숫자·특수문자 포함 8자 이상" required>
+                <span class="in-ico"><i class="bi bi-lock" aria-hidden="true"></i></span>
+                <input type="password" id="secuPw" placeholder="영문, 숫자, 특수문자 포함 8자 이상" required>
               </div>
               <span class="field-hint">영문, 숫자, 특수문자를 모두 포함하여 8자 이상으로 입력해 주세요.</span>
             </div>
@@ -143,8 +128,7 @@
                 <div class="input-box">
                   <input type="text" id="rrn" placeholder="901122-1111111" required>
                 </div>
-                <!-- OCR 은 마스킹값(예: 030830-4******)만 내려주므로, 가려진 뒷자리를 사용자가 직접 보정 -->
-                <span class="field-hint">신분증 인식 후 가려진 뒷자리를 직접 입력해 주세요. (앞6 + 뒤7)</span>
+                <span class="field-hint">신분증 인식 후 가려진 뒷자리는 직접 입력해 주세요.</span>
                 <input type="hidden" id="rrnMasked">
               </div>
               <div class="field">
@@ -158,7 +142,7 @@
             <div class="field">
               <label for="email">이메일 주소</label>
               <div class="input-box">
-                <span class="in-ico">✉️</span>
+                <span class="in-ico"><i class="bi bi-envelope" aria-hidden="true"></i></span>
                 <input type="email" id="email" placeholder="hong@example.com" required>
               </div>
             </div>
@@ -168,13 +152,12 @@
               <div class="input-box">
                 <select id="gender" required>
                   <option value="">-- 선택 --</option>
-                  <option value="MALE">남성 (MALE)</option>
-                  <option value="FEMALE">여성 (FEMALE)</option>
+                  <option value="MALE">남성</option>
+                  <option value="FEMALE">여성</option>
                 </select>
               </div>
             </div>
 
-            <!-- 주소 -->
             <div class="field">
               <div class="addr-head">
                 <label>자택 주소</label>
@@ -212,52 +195,46 @@
               </div>
             </div>
 
-            <!-- ===== 개인정보 수집·이용 동의 (필수) ===== -->
             <div class="field">
               <label>개인정보 수집 및 이용 동의 <span class="req-tag">필수</span></label>
               <div class="terms-box" tabindex="0">
-<pre class="terms-text">[개인정보 수집 및 이용 동의 (필수)]
+<pre class="terms-text">[개인정보 수집 및 이용 동의]
 
 1. 수집하는 개인정보 항목
-   - 필수: 아이디, 비밀번호, 성명(한글/영문), 휴대전화번호, 이메일, 주소, 성별
-   - 민감정보: 주민등록번호(신분증 인증을 통해 수집)
+- 필수: 아이디, 비밀번호, 성명, 휴대전화번호, 이메일, 성별, 주소
+- 민감정보: 주민등록번호는 본인확인 및 금융거래 관련 법령 준수를 위해 필요한 범위에서 처리합니다.
 
-2. 개인정보의 수집 및 이용 목적
-   - 회원 식별 및 본인 확인
-   - 금융 서비스(외환 거래 등) 제공 및 관련 법령상 실명확인 의무 이행
-   - 부정 이용 방지 및 분쟁 처리
+2. 수집 및 이용 목적
+- 회원 가입 및 본인 확인
+- 금융 서비스 제공 및 거래 관리
+- 부정 이용 방지와 고객 문의 처리
 
-3. 개인정보의 보유 및 이용 기간
-   - 주민등록번호 등 민감정보는 신분증 인증 시점으로부터 3일간 보관 후 자동 파기합니다.
-   - 재이용 시 신분증 재인증을 통해 다시 수집합니다.
-   - 그 외 회원정보는 관련 법령 및 회원 탈퇴 시까지 보관합니다.
+3. 보유 및 이용 기간
+- 관련 법령 및 내부 기준에 따른 보관 기간 동안 보유합니다.
+- 보관 기간 종료 시 지체 없이 파기합니다.
 
-4. 동의를 거부할 권리 및 불이익
-   - 귀하는 위 개인정보 수집 및 이용에 동의를 거부할 권리가 있습니다.
-   - 다만, 필수 항목에 대한 동의를 거부하실 경우 회원가입 및 서비스 이용이 제한될 수 있습니다.</pre>
+4. 동의 거부 권리
+- 필수 항목에 동의하지 않을 경우 회원가입 및 서비스 이용이 제한될 수 있습니다.</pre>
               </div>
               <label class="checkbox terms-agree">
                 <input type="checkbox" id="privacyAgreed">
-                <span>위 개인정보 수집 및 이용에 동의합니다. (필수)</span>
+                <span>개인정보 수집 및 이용에 동의합니다. (필수)</span>
               </label>
             </div>
 
-            <button type="submit" id="registerSubmit" class="btn btn-primary btn-block" disabled>회원가입 완료</button>
+            <button type="submit" id="registerSubmit" class="btn btn-primary btn-block press" data-ripple disabled>회원가입 완료</button>
 
             <p class="switch-line">
-              이미 계정이 있으신가요? <button type="button" class="switch-link" data-tab="login">로그인</button>
+              이미 계정이 있나요? <button type="button" class="switch-link" data-tab="login">로그인</button>
             </p>
           </form>
         </div>
-
       </div>
     </section>
-
   </div>
 
-  <!-- 스크립트는 fragment(<main>) 안에 둬야 th:replace 시 함께 포함됨 -->
   <script src="//t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
-  <script th:src="@{/js/auth.js}"></script>
+  <script th:src="@{/js/auth.js(v=2026062902)}"></script>
 </main>
 </body>
 </html>

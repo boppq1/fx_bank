@@ -36,7 +36,7 @@ public class SecurityConfig {
         // 3. ?슚 URL蹂??묎렐 沅뚰븳 ?ㅼ젙 (?듭떖)
         http.authorizeHttpRequests(auth -> auth
                 // 濡쒓렇?? ?щ컻湲? 濡쒓렇?꾩썐 API? 湲곕낯 ?붾㈃(html, js ??? ?좏겙 ?놁씠??臾댁“嫄??듦낵 (?꾨━?⑥뒪)
-        		.requestMatchers("/a","/", "/login","/register","/reauth", "/api/auth/**","/products", "/product/**","/fx/**", "/api/fx/**","/css/**", "/js/**", "/admin/**", "/error", "/event/**", "/event-status", "/chatbot/**", "/mbti", "/api/product/terms/*/pdf", "/api/product/join/*/terms/*/pdf", "/api/product/join/*/terms/*/pdf/page/*").permitAll()
+        		.requestMatchers("/a","/", "/my", "/login","/register","/reauth", "/api/auth/**","/products", "/product/**","/fx/**", "/api/fx/**","/css/**", "/js/**", "/admin/**", "/error", "/event/**", "/event-status", "/chatbot/**", "/mbti", "/api/mbti/**", "/api/product/terms/*/pdf", "/api/product/join/*/terms/*/pdf", "/api/product/join/*/terms/*/pdf/page/*").permitAll()
 
                 // 2) 狩??異?API 沅뚰븳 紐낆떆 (諛섎뱶??anyRequest蹂대떎 ?꾩뿉 ?곸뼱????)
                 // .requestMatchers("/api/bank/loan").authenticated() // ?먮뒗 沅뚰븳 ?곸슜 ??.hasRole("USER")

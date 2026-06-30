@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>부산은행 외환 시스템 - 신분증 재인증</title>
+<title>KLS은행 외환 시스템 - 신분증 재인증</title>
 <link rel="stylesheet" th:href="@{/css/fx-home.css}">
 <link rel="stylesheet" th:href="@{/css/fx-auth.css}">
 </head>
@@ -12,7 +12,7 @@
 
   <main class="auth-main">
     <div class="auth-wrap" style="grid-template-columns:1fr;max-width:520px;">
-      <section class="auth-card">
+      <section class="auth-card" data-reveal="scale">
         <h1 class="intro-title" style="font-size:24px;margin-bottom:8px;">신분증 재인증</h1>
         <p class="field-hint" style="margin-bottom:20px;">
           개인정보 보관기한(3일)이 지나 주민등록번호가 자동 파기되었습니다.<br>
@@ -26,7 +26,7 @@
             <div class="idcard-uploader">
               <input type="file" id="idCardFile" accept="image/*" capture="environment" hidden>
               <button type="button" class="idcard-drop" id="idCardDrop">
-                <span class="idcard-ico">🪪</span>
+                <span class="idcard-ico"><i class="bi bi-person-vcard" aria-hidden="true"></i></span>
                 <span class="idcard-text" id="idCardText">신분증을 촬영하거나 이미지를 업로드하세요</span>
                 <span class="idcard-hint">탭하여 카메라/파일 선택 · 주민번호가 자동 입력됩니다</span>
               </button>
@@ -43,7 +43,7 @@
             <input type="hidden" id="rrnMasked">
           </div>
 
-          <button type="submit" class="btn btn-primary btn-block">재인증 완료</button>
+          <button type="submit" class="btn btn-primary btn-block press" data-ripple>재인증 완료</button>
         </form>
       </section>
     </div>

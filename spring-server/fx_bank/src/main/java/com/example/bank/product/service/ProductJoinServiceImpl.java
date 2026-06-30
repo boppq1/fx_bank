@@ -132,6 +132,18 @@ public class ProductJoinServiceImpl implements ProductJoinService {
             throw new IllegalArgumentException("가입 가능한 상품이 아닙니다.");
         }
 
+        // 이미 가입 완료된 상품은 약관 화면으로 들어가기 전에 막는다.
+        // 최종 저장 단계에도 같은 검증이 있지만, 사용자가 절차를 끝까지 진행한 뒤 막히지 않도록
+        // 가입 버튼 클릭 시점의 join-eligibility API에서 먼저 alert 메시지를 내려준다.
+        if (productJoinDao.countActiveProductSubscription(userNo, productNo) > 0) {
+            return new ProductJoinEligibilityDto(false,
+                    "이미 가입한 상품입니다. MY 또는 내 가입 상품에서 가입 내역을 확인해주세요.");
+        }
+
+        if (productJoinDao.countActiveProductSubscriptionBySameRrn(userNo, productNo) > 0) {
+            return new ProductJoinEligibilityDto(false,
+                    "동일한 주민등록번호로 이미 가입된 상품입니다. 중복 가입은 불가능합니다.");
+        }
         if (isDemandDepositProduct(product)) {
             return new ProductJoinEligibilityDto(true, "입출금식 외화예금은 바로 가입할 수 있습니다.");
         }
@@ -1007,3 +1019,4 @@ public class ProductJoinServiceImpl implements ProductJoinService {
         }
     }
 }
+

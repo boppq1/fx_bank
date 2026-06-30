@@ -161,7 +161,7 @@
     </div>
     <div class="api-base">
         서버 주소
-        <input id="apiBase" value="http://localhost:8080" />
+        <input id="apiBase" value="" placeholder="same origin" />
     </div>
 </header>
 
@@ -186,15 +186,22 @@
 <script>
     const $ = (sel) => document.querySelector(sel);
 
+    function normalizeApiBase(value) {
+        const base = String(value || '').trim().replace(/\/$/, '');
+        if (!base || base.includes('localhost') || base.includes('127.0.0.1')) return '';
+        return base;
+    }
+
     function getApiBase() {
-        const v = $('#apiBase').value.trim();
+        const v = normalizeApiBase($('#apiBase').value);
         localStorage.setItem('apiBase', v);
-        return v.replace(/\/$/, '');
+        $('#apiBase').value = v;
+        return v;
     }
 
     (function restoreApiBase() {
         const saved = localStorage.getItem('apiBase');
-        if (saved) $('#apiBase').value = saved;
+        $('#apiBase').value = normalizeApiBase(saved);
     })();
 
     function statusBadge(state) {

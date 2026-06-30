@@ -1,16 +1,17 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>부산은행 외환 시스템 - 메인</title>
+    <title>KLS은행 외환 시스템 - 메인</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 <body>
 
-    <h2>🏦 부산은행 외환 시스템 - 메인 페이지</h2>
+    <h2><i class="bi bi-bank"></i> KLS은행 외환 시스템 - 메인 페이지</h2>
     <p id="welcomeMessage">토큰을 복구하는 중입니다...</p>
 
     <button onclick="handleLogout()" style="margin-top: 20px; padding: 10px; background-color: #ff4d4d; color: white; border: none; cursor: pointer; border-radius: 5px;">
-        🔒 안전하게 로그아웃
+        <i class="bi bi-lock"></i> 안전하게 로그아웃
     </button>
 	<a href='/a'>a페이지로</a>
     <script>
@@ -36,10 +37,10 @@
                     console.log("발급받은 토큰:", window.accessToken);
                     
                     // 화면 글씨 변경
-                    document.getElementById('welcomeMessage').innerText = "✅ 토큰 복구 완료! 정상적으로 로그인 유지 중입니다.";
+                    document.getElementById('welcomeMessage').innerHTML = '<i class="bi bi-check-circle-fill"></i> 토큰 복구 완료! 정상적으로 로그인 유지 중입니다.';
                 } else {
                     console.warn("쿠키가 만료되었거나 로그인이 안 된 상태입니다.");
-                    document.getElementById('welcomeMessage').innerText = "❌ 로그인 정보가 없습니다. 다시 로그인해주세요.";
+                    document.getElementById('welcomeMessage').innerHTML = '<i class="bi bi-x-circle-fill"></i> 로그인 정보가 없습니다. 다시 로그인해주세요.';
                 }
             } catch (error) {
                 console.error("재발급 통신 에러: ", error);
