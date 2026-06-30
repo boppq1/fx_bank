@@ -94,3 +94,100 @@
   .ev-steps{grid-template-columns:1fr;gap:16px;}
   .ev-wrap{padding:40px 18px 64px;}
 }
+/* ---------- 이벤트 커스텀 알림 ---------- */
+.event-dialog-lock{
+  overflow:hidden;
+}
+.event-dialog-overlay{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+  background:rgba(20,18,40,.46);
+  backdrop-filter:blur(10px);
+  opacity:0;
+  visibility:hidden;
+  transition:opacity var(--dur-base) var(--ease-out-quart), visibility var(--dur-base) var(--ease-out-quart);
+}
+.event-dialog-overlay.is-open{
+  opacity:1;
+  visibility:visible;
+}
+.event-dialog{
+  width:min(360px,100%);
+  text-align:center;
+  border-radius:28px;
+  padding:30px 24px 22px;
+  background:linear-gradient(180deg,#fff 0%,#F8F5FF 100%);
+  border:1px solid rgba(124,92,255,.18);
+  box-shadow:0 26px 70px rgba(50,38,120,.26);
+  transform:translateY(18px) scale(.96);
+  transition:transform var(--dur-base) var(--ease-out-expo);
+}
+.event-dialog-overlay.is-open .event-dialog{
+  transform:translateY(0) scale(1);
+}
+.event-dialog-icon{
+  width:64px;
+  height:64px;
+  margin:0 auto 16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:22px;
+  color:#fff;
+  font-size:32px;
+  font-weight:900;
+  background:var(--grad-cta);
+  box-shadow:0 14px 32px rgba(109,91,255,.32);
+}
+.event-dialog.is-error .event-dialog-icon{
+  background:linear-gradient(135deg,#FF5F7E,#EC4899);
+  box-shadow:0 14px 32px rgba(236,72,153,.26);
+}
+.event-dialog h3{
+  margin:0;
+  color:var(--text);
+  font-size:21px;
+  font-weight:800;
+  letter-spacing:-.4px;
+}
+.event-dialog p{
+  margin:10px 0 22px;
+  color:var(--text-body);
+  font-size:14.5px;
+  line-height:1.65;
+  word-break:keep-all;
+}
+.event-dialog-button{
+  width:100%;
+  min-height:52px;
+  border:0;
+  border-radius:16px;
+  cursor:pointer;
+  color:#fff;
+  font-family:inherit;
+  font-size:15px;
+  font-weight:800;
+  background:var(--grad-cta);
+  box-shadow:0 12px 28px rgba(109,91,255,.24);
+}
+.event-dialog-button:focus-visible{
+  outline:3px solid rgba(124,92,255,.28);
+  outline-offset:3px;
+}
+
+@media (max-width:680px){
+  .event-dialog-overlay{
+    align-items:flex-end;
+    padding:18px 16px max(18px, env(safe-area-inset-bottom));
+  }
+  .event-dialog{
+    width:100%;
+    border-radius:24px;
+    padding:26px 20px 18px;
+  }
+}

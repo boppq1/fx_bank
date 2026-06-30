@@ -65,8 +65,9 @@ class _WebScreenState extends State<WebScreen> {
       })
       ..setNavigationDelegate(
         NavigationDelegate(
-          onPageFinished: (String url) {
+          onPageFinished: (String url) async {
             debugPrint('Loaded: $url');
+            await _applyAppChrome();
             _pageLoaded = true;
             _hideSplashIfReady();
           },
@@ -91,6 +92,42 @@ class _WebScreenState extends State<WebScreen> {
     }
   }
 
+  Future<void> _applyAppChrome() async {
+    await _controller.runJavaScript(r'''
+      (function () {
+        document.documentElement.classList.add('flutter-app');
+        document.body.classList.add('flutter-app');
+
+        if (document.getElementById('flutter-app-chrome-style')) return;
+
+        var style = document.createElement('style');
+        style.id = 'flutter-app-chrome-style';
+        style.textContent = `
+          html.flutter-app body { padding-top: 0 !important; }
+          html.flutter-app .site-header .util-bar,
+          html.flutter-app .site-header .gnb-bar,
+          html.flutter-app .site-header .gnb,
+          html.flutter-app .site-header .gnb-tools {
+            display: none !important;
+          }
+          html.flutter-app .site-header {
+            height: 0 !important;
+            min-height: 0 !important;
+            overflow: visible !important;
+          }
+          html.flutter-app footer,
+          html.flutter-app .site-footer {
+            display: none !important;
+          }
+          @media (max-width: 680px) {
+            html.flutter-app body { padding-bottom: 88px !important; }
+            html.flutter-app .mobile-bottom-nav { display: grid !important; }
+          }
+        `;
+        document.head.appendChild(style);
+      })();
+    ''');
+  }
   void _hideSplashIfReady() {
     if (!mounted || !_pageLoaded || !_minimumSplashElapsed || !_showSplash) return;
     setState(() => _showSplash = false);
@@ -130,7 +167,35 @@ class _WebScreenState extends State<WebScreen> {
         fit: StackFit.expand,
         children: [
           SafeArea(
-            child: WebViewWidget(controller: _controller),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final bool usePhoneFrame = constraints.maxWidth >= 700;
+
+                if (!usePhoneFrame) {
+                  return WebViewWidget(controller: _controller);
+                }
+
+                return Center(
+                  child: Container(
+                    width: 430,
+                    height: constraints.maxHeight,
+                    clipBehavior: Clip.antiAlias,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.16),
+                          blurRadius: 36,
+                          offset: const Offset(0, 18),
+                        ),
+                      ],
+                    ),
+                    child: WebViewWidget(controller: _controller),
+                  ),
+                );
+              },
+            ),
           ),
           IgnorePointer(
             ignoring: !_showSplash,
@@ -206,7 +271,7 @@ class _SplashView extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              '?명솚?????쎄퀬 ?묐삊?섍쾶',
+              '외환을 더 쉽고 똑똑하게',
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.82),
                 fontSize: 14,

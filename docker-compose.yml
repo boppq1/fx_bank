@@ -8,6 +8,7 @@ services:
     volumes:
       - /home/kim2sin/application.properties:/config/application.properties
       - /home/kim2sin/Wallet_ATQGGWDFRRT7KEMU:/wallet
+      - /home/kim2sin/fx_bank/spring-server/fx_bank/uploads:/app/uploads
     restart: always
 
   fastapi-agent:
