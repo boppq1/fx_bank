@@ -96,19 +96,55 @@
         .muted { color: var(--text-sub); }
         .error { margin-top: 14px; color: var(--up); font-size: 13.5px; font-weight: 600; }
         @media (max-width: 700px) {
+            .guide-wrap { padding-inline: 14px; }
+            .guide-section { padding: 20px 14px 24px; border-radius: 22px; }
             .term-row {
-                grid-template-columns: 22px minmax(0, 1fr) 36px;
+                grid-template-columns: 22px minmax(0, 1fr) 40px;
                 grid-template-areas:
                     'check title arrow'
-                    'check meta arrow';
-                gap: 5px 10px;
-                padding: 13px 12px;
+                    'check meta meta';
+                gap: 8px 10px;
+                min-height: 76px;
+                padding: 14px 12px;
+                border-radius: 18px;
             }
             .term-row input[type=checkbox] { grid-area: check; }
-            .term-row label { grid-area: title; font-size: 14px; }
+            .term-row label {
+                grid-area: title;
+                font-size: 14px;
+                line-height: 1.35;
+                white-space: normal;
+                overflow: visible;
+                text-overflow: clip;
+            }
             .term-row .badge { grid-area: meta; justify-self: start; }
-            .term-row .read-state { grid-area: meta; justify-self: end; margin-right: 46px; }
-            .term-row .arrow { grid-area: arrow; min-width: 62px; height: 34px; font-size: 12px; }
+            .term-row .read-state {
+                grid-area: meta;
+                justify-self: end;
+                min-width: 0;
+                margin-right: 0;
+                font-size: 12px;
+            }
+            .term-row .arrow {
+                grid-area: arrow;
+                width: 38px;
+                min-width: 38px;
+                height: 38px;
+                padding: 0;
+                justify-self: end;
+                font-size: 0;
+            }
+            .term-row .arrow::before { content: ''; }
+            .term-row .arrow::after { font-size: 22px; }
+            .guide-actions {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            .guide-actions .btn {
+                min-width: 0;
+                width: 100%;
+            }
         }
     </style>
 </head>

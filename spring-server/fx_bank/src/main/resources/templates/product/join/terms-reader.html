@@ -28,7 +28,7 @@
             padding: 0;
             background: #f6f7f9;
         }
-                .pdf-pages {
+        .pdf-pages {
             display: grid;
             gap: 18px;
             padding: 18px;
@@ -41,13 +41,45 @@
             border-radius: var(--radius-sm);
             background: #fff;
             box-shadow: 0 8px 24px rgba(15, 23, 42, .10);
-        }        .pdf-bottom {
+        }
+        .pdf-bottom {
             padding: 16px 18px 20px;
             color: var(--text-sub);
             font-size: 13.5px;
             text-align: center;
         }
         .hint { margin-top: 14px; color: var(--text-sub); font-size: 13.5px; }
+        @media (max-width: 640px) {
+            .guide-wrap { padding-inline: 14px; }
+            .guide-section { padding: 18px 14px 22px; border-radius: 22px; }
+            .reader {
+                height: min(62vh, 560px);
+                border-radius: 16px;
+            }
+            .pdf-pages {
+                gap: 12px;
+                padding: 10px;
+            }
+            .pdf-page {
+                width: 100%;
+                border-radius: 12px;
+                box-shadow: 0 6px 18px rgba(15, 23, 42, .08);
+            }
+            .content {
+                padding: 18px 16px;
+                font-size: 13.5px;
+                line-height: 1.75;
+            }
+            .guide-actions {
+                display: grid;
+                grid-template-columns: 1fr 1.2fr;
+                gap: 10px;
+            }
+            .guide-actions .btn {
+                min-width: 0;
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -102,16 +134,20 @@
 
     const isPdfReader = reader.classList.contains('pdf-reader');
     let userScrolled = false;
+    let readerContentReady = !isPdfReader;
 
     function isAtBottom() {
         return reader.scrollTop + reader.clientHeight >= reader.scrollHeight - 5;
     }
 
     function canConfirm() {
+        if (readerContentReady && reader.scrollHeight <= reader.clientHeight + 5) {
+            return true;
+        }
         if (isPdfReader) {
             return userScrolled && isAtBottom();
         }
-        return reader.scrollHeight <= reader.clientHeight || isAtBottom();
+        return isAtBottom();
     }
 
     function enableConfirm() {
@@ -119,11 +155,37 @@
         hint.textContent = '약관을 모두 확인했습니다.';
     }
 
-    if (!isPdfReader && canConfirm()) enableConfirm();
+    function evaluateConfirm() {
+        if (canConfirm()) enableConfirm();
+    }
+
+    function waitForReaderContent() {
+        if (!isPdfReader) {
+            requestAnimationFrame(evaluateConfirm);
+            return;
+        }
+
+        const images = Array.from(reader.querySelectorAll('img'));
+        const waitImages = images.map(image => {
+            if (image.complete) return Promise.resolve();
+            return new Promise(resolve => {
+                image.addEventListener('load', resolve, { once: true });
+                image.addEventListener('error', resolve, { once: true });
+            });
+        });
+
+        Promise.all(waitImages).then(() => {
+            readerContentReady = true;
+            requestAnimationFrame(evaluateConfirm);
+        });
+    }
+
+    waitForReaderContent();
     reader.addEventListener('scroll', () => {
         userScrolled = true;
-        if (canConfirm()) enableConfirm();
+        evaluateConfirm();
     });
+    window.addEventListener('resize', evaluateConfirm);
     button.addEventListener('click', () => {
         sessionStorage.setItem(`product-terms-read:${productNo}:${termsCode}`, 'Y');
         location.href = `/product/join/${productNo}/terms`;
