@@ -6,6 +6,7 @@ import com.example.bank.product.dto.ProductDetailDto;
 import com.example.bank.product.dto.ProductTermDto;
 import com.example.bank.product.service.ProductJoinService;
 import com.example.bank.product.service.ProductService;
+import com.example.bank.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.springframework.stereotype.Controller;
@@ -25,6 +26,7 @@ public class ProductJoinPageController {
 
     private final ProductService productService;
     private final ProductJoinService productJoinService;
+    private final JwtUtil jwtUtil;
 
     @GetMapping("/product/join/{productNo}/terms")
     public String terms(@PathVariable("productNo") Long productNo, Model model) {
@@ -101,7 +103,7 @@ public class ProductJoinPageController {
 
     @GetMapping("/my")
     public String myPage(HttpServletRequest request) {
-        if (!hasCookie(request, "refreshToken")) {
+        if (!hasValidRefreshToken(request)) {
             return "redirect:/login?returnUrl=/my";
         }
         return "my";
@@ -130,6 +132,20 @@ public class ProductJoinPageController {
         for (Cookie cookie : request.getCookies()) {
             if (cookieName.equals(cookie.getName()) && cookie.getValue() != null && !cookie.getValue().isBlank()) {
                 return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean hasValidRefreshToken(HttpServletRequest request) {
+        if (request == null || request.getCookies() == null) {
+            return false;
+        }
+        for (Cookie cookie : request.getCookies()) {
+            if ("refreshToken".equals(cookie.getName())
+                    && cookie.getValue() != null
+                    && !cookie.getValue().isBlank()) {
+                return jwtUtil.isValid(cookie.getValue());
             }
         }
         return false;

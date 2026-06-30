@@ -15,28 +15,28 @@ function joinEvent() {
         method: 'POST',
         credentials: 'same-origin'
     })
-    .then(async res => {
-        if (isUnauthorizedResponse(res)) {
-            redirectToLogin('/event');
-            throw new Error('__LOGIN_REDIRECT__');
-        }
-        if (!res.ok) {
-            const message = await readErrorMessage(res);
-            throw new Error(message || '이벤트 참여 처리에 실패했습니다.');
-        }
-        return res.text();
-    })
-    .then(() => {
-        window.location.href = '/event/status';
-    })
-    .catch(err => {
-        if (err && err.message === '__LOGIN_REDIRECT__') return;
-        showEventDialog({
-            title: '이벤트 참여 실패',
-            message: getReadableError(err),
-            type: 'error'
+        .then(async res => {
+            if (isUnauthorizedResponse(res)) {
+                redirectToLogin('/event');
+                throw new Error('__LOGIN_REDIRECT__');
+            }
+            if (!res.ok) {
+                const message = await readErrorMessage(res);
+                throw new Error(message || '이벤트 참여 처리에 실패했습니다.');
+            }
+            return res.text();
+        })
+        .then(() => {
+            window.location.href = '/event/status';
+        })
+        .catch(err => {
+            if (err && err.message === '__LOGIN_REDIRECT__') return;
+            showEventDialog({
+                title: '이벤트 참여 실패',
+                message: getReadableError(err),
+                type: 'error'
+            });
         });
-    });
 }
 
 function openCamera(letter) {
@@ -77,7 +77,7 @@ function openBrowserCamera(letter) {
     input.click();
 }
 
-window.onCameraResult = function(letter, base64Image) {
+window.onCameraResult = function (letter, base64Image) {
     try {
         const byteString = atob(base64Image);
         const ab = new ArrayBuffer(byteString.length);
@@ -106,28 +106,28 @@ function uploadEventImage(letter, fileOrBlob, fileName) {
         body: formData,
         credentials: 'same-origin'
     })
-    .then(async res => {
-        if (isUnauthorizedResponse(res)) {
-            redirectToLogin('/event/status');
-            throw new Error('__LOGIN_REDIRECT__');
-        }
-        if (!res.ok) {
-            const message = await readErrorMessage(res);
-            throw new Error(message || `${letter} 글자를 찾지 못했습니다. 다시 촬영해주세요.`);
-        }
-        return res.json();
-    })
-    .then(result => {
-        showEventResult(result);
-    })
-    .catch(err => {
-        if (err && err.message === '__LOGIN_REDIRECT__') return;
-        showEventDialog({
-            title: '인증 실패',
-            message: getReadableError(err),
-            type: 'error'
+        .then(async res => {
+            if (isUnauthorizedResponse(res)) {
+                redirectToLogin('/event/status');
+                throw new Error('__LOGIN_REDIRECT__');
+            }
+            if (!res.ok) {
+                const message = await readErrorMessage(res);
+                throw new Error(message || `${letter} 글자를 찾지 못했습니다. 다시 촬영해주세요.`);
+            }
+            return res.json();
+        })
+        .then(result => {
+            showEventResult(result);
+        })
+        .catch(err => {
+            if (err && err.message === '__LOGIN_REDIRECT__') return;
+            showEventDialog({
+                title: '인증 실패',
+                message: getReadableError(err),
+                type: 'error'
+            });
         });
-    });
 }
 
 function updateResult(resultJson) {

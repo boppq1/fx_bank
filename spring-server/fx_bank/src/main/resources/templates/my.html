@@ -8,6 +8,10 @@
     <link rel="stylesheet" th:href="@{/css/fx-guide.css}">
     <style>
         .my-page { padding-bottom: 96px; }
+        body.my-auth-pending .guide-hero,
+        body.my-auth-pending .my-page {
+            visibility: hidden;
+        }
         .my-summary-grid { display: grid; grid-template-columns: 1.2fr .8fr .8fr; gap: 18px; margin: 28px 0 32px; }
         .my-summary-card { position: relative; overflow: hidden; min-height: 120px; padding: 20px; border-radius: 22px; background: #fff; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
         .my-summary-card.primary { background: var(--grad-cta); color: #fff; border: 0; box-shadow: var(--shadow); }
@@ -63,7 +67,7 @@
         }
     </style>
 </head>
-<body>
+<body class="my-auth-pending">
 <div th:replace="~{header :: header}"></div>
 
 <section class="guide-hero">
@@ -120,6 +124,7 @@ async function ensureAccessToken() {
         window.redirectToLogin('/my');
         return null;
     }
+    document.body.classList.remove('my-auth-pending');
     return token;
 }
 
