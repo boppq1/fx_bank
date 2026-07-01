@@ -5,12 +5,10 @@
 
 <mapper namespace="com.example.bank.fx.dao.FxDataDao">
 
-    <!-- exchange_rates 컬럼 (map-underscore-to-camel-case 로 FxDataDto 자동 매핑) -->
     <sql id="rateColumns">
         fx_rate_no, currency_code, buy_rate, sell_rate, base_rate, announced_at
     </sql>
 
-    <!-- 환율 적재 (스케줄러) : buy_rate=ttb, sell_rate=tts, base_rate=deal_bas_r -->
     <insert id="insertRate">
         INSERT INTO exchange_rates (
             fx_rate_no, currency_code, buy_rate, sell_rate, base_rate, announced_at
@@ -20,11 +18,16 @@
             #{buy_rate},
             #{sell_rate},
             #{base_rate},
-            SYSTIMESTAMP
+            TO_TIMESTAMP(#{announced_at}, 'YYYYMMDDHH24MISS')
         )
     </insert>
 
-    <!-- 대표 통화들의 최신 환율 (메인 페이지) -->
+    <select id="countRatesByDate" resultType="int">
+        SELECT COUNT(*)
+        FROM exchange_rates
+        WHERE TRUNC(announced_at) = TO_DATE(#{announced_date}, 'YYYYMMDD')
+    </select>
+
     <select id="selectLatestRatesByCurrencies" resultType="com.example.bank.fx.dto.FxDataDto">
         SELECT <include refid="rateColumns"/>
         FROM (
@@ -39,7 +42,6 @@
         WHERE rn = 1
     </select>
 
-    <!-- 전체 통화별 최신 환율 (메인/요약) -->
     <select id="selectAllLatestRates" resultType="com.example.bank.fx.dto.FxDataDto">
         SELECT <include refid="rateColumns"/>
         FROM (
@@ -51,14 +53,12 @@
         ORDER BY currency_code
     </select>
 
-    <!-- 전체 환율 이력 (환율조회 페이지, 클라이언트 페이지네이션) -->
     <select id="selectAll" resultType="com.example.bank.fx.dto.FxDataDto">
         SELECT <include refid="rateColumns"/>
         FROM exchange_rates
         ORDER BY announced_at DESC, currency_code
     </select>
 
-    <!-- 특정 통화 환율 이력 (환율조회 상세/차트) -->
     <select id="selectRateHistory" resultType="com.example.bank.fx.dto.FxDataDto">
         SELECT <include refid="rateColumns"/>
         FROM exchange_rates
@@ -66,7 +66,6 @@
         ORDER BY announced_at DESC
     </select>
 
-    <!-- 기준일(date) 이전 최신 환율 1건 (환전계산기) -->
     <select id="selectLatestRate" resultType="com.example.bank.fx.dto.FxDataDto">
         SELECT <include refid="rateColumns"/>
         FROM exchange_rates
