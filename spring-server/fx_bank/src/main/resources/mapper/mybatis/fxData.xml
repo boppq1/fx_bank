@@ -28,6 +28,11 @@
         WHERE TRUNC(announced_at) = TO_DATE(#{announced_date}, 'YYYYMMDD')
     </select>
 
+    <delete id="deleteRatesByDate">
+        DELETE FROM exchange_rates
+        WHERE TRUNC(announced_at) = TO_DATE(#{announced_date}, 'YYYYMMDD')
+    </delete>
+
     <select id="selectLatestRatesByCurrencies" resultType="com.example.bank.fx.dto.FxDataDto">
         SELECT <include refid="rateColumns"/>
         FROM (
