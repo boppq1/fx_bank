@@ -65,8 +65,24 @@ class _WebScreenState extends State<WebScreen> {
       })
       ..setNavigationDelegate(
         NavigationDelegate(
+          onNavigationRequest: (NavigationRequest request) {
+            final Uri? secureUri = _toSecureKlsUri(request.url);
+            if (secureUri != null) {
+              debugPrint('Redirecting to HTTPS: $secureUri');
+              _controller.loadRequest(secureUri);
+              return NavigationDecision.prevent;
+            }
+
+            return NavigationDecision.navigate;
+          },
           onPageFinished: (String url) async {
             debugPrint('Loaded: $url');
+            final Uri? secureUri = _toSecureKlsUri(url);
+            if (secureUri != null) {
+              await _controller.loadRequest(secureUri);
+              return;
+            }
+
             await _applyAppChrome();
             _pageLoaded = true;
             _hideSplashIfReady();
@@ -79,6 +95,15 @@ class _WebScreenState extends State<WebScreen> {
           final Map<String, dynamic> data = jsonDecode(message.message);
           if (data['action'] == 'openCamera') {
             _takePictureAndUpload(data['letter']?.toString() ?? '');
+          }
+        },
+      )
+      ..addJavaScriptChannel(
+        'FlutterIdCardBridge',
+        onMessageReceived: (JavaScriptMessage message) {
+          final Map<String, dynamic> data = jsonDecode(message.message);
+          if (data['action'] == 'openIdCardCamera') {
+            _takeIdCardPicture();
           }
         },
       )
@@ -128,8 +153,10 @@ class _WebScreenState extends State<WebScreen> {
       })();
     ''');
   }
+
   void _hideSplashIfReady() {
-    if (!mounted || !_pageLoaded || !_minimumSplashElapsed || !_showSplash) return;
+    if (!mounted || !_pageLoaded || !_minimumSplashElapsed || !_showSplash)
+      return;
     setState(() => _showSplash = false);
   }
 
@@ -150,6 +177,35 @@ class _WebScreenState extends State<WebScreen> {
     } catch (e) {
       debugPrint('Camera error: $e');
     }
+  }
+
+  Future<void> _takeIdCardPicture() async {
+    try {
+      final XFile? photo = await _picker.pickImage(source: ImageSource.camera);
+      if (photo == null) return;
+
+      final File imageFile = File(photo.path);
+      final List<int> imageBytes = await imageFile.readAsBytes();
+      final String base64Image = base64Encode(imageBytes);
+      final String encodedImage = jsonEncode(base64Image);
+
+      await _controller.runJavaScript(
+        'window.onIdCardCameraResult($encodedImage);',
+      );
+    } catch (e) {
+      debugPrint('ID card camera error: $e');
+    }
+  }
+
+  Uri? _toSecureKlsUri(String url) {
+    final Uri? uri = Uri.tryParse(url);
+    if (uri == null) return null;
+
+    final bool isKlsDomain =
+        uri.host == 'klsbank.store' || uri.host == 'www.klsbank.store';
+    if (!isKlsDomain || uri.scheme != 'http') return null;
+
+    return uri.replace(scheme: 'https', port: null);
   }
 
   @override

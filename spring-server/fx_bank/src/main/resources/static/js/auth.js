@@ -247,7 +247,26 @@ function initIdCardOcr() {
     if (modal) modal.hidden = true;
   }
 
+  function base64ToImageFile(base64Image) {
+    const binary = atob(base64Image);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return new File([bytes], "id-card-" + Date.now() + ".jpg", { type: "image/jpeg" });
+  }
+
+  window.onIdCardCameraResult = function (base64Image) {
+    if (!base64Image) return;
+    uploadIdCard(base64ToImageFile(base64Image));
+  };
+
   function openCameraGuide() {
+    if (window.FlutterIdCardBridge && typeof window.FlutterIdCardBridge.postMessage === "function") {
+      window.FlutterIdCardBridge.postMessage(JSON.stringify({ action: "openIdCardCamera" }));
+      return;
+    }
+
     fileInput.click();
   }
 

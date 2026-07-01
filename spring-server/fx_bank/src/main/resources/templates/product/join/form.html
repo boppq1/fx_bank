@@ -303,6 +303,20 @@ function setSelectedIdFile(file) {
     setOcrStatus('신분증 이미지가 준비되었습니다. 인증하기를 눌러 주세요.', '');
 }
 
+function base64ToIdCardFile(base64Image) {
+    const binary = atob(base64Image);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) {
+        bytes[i] = binary.charCodeAt(i);
+    }
+    return new File([bytes], `id-card-${Date.now()}.jpg`, { type: 'image/jpeg' });
+}
+
+window.onIdCardCameraResult = function(base64Image) {
+    if (!base64Image) return;
+    setSelectedIdFile(base64ToIdCardFile(base64Image));
+};
+
 async function stopCamera() {
     if (cameraStream) {
         cameraStream.getTracks().forEach(track => track.stop());
@@ -313,6 +327,11 @@ async function stopCamera() {
 }
 
 async function openCameraGuide() {
+    if (window.FlutterIdCardBridge && typeof window.FlutterIdCardBridge.postMessage === 'function') {
+        window.FlutterIdCardBridge.postMessage(JSON.stringify({ action: 'openIdCardCamera' }));
+        return;
+    }
+
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         idCardFileInput.click();
         return;
