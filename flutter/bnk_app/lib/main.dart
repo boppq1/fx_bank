@@ -60,6 +60,15 @@ class _WebScreenState extends State<WebScreen> {
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setUserAgent('Flutter/fx_bank')
+      ..setOnJavaScriptAlertDialog(
+          (JavaScriptAlertDialogRequest request) async {
+        await _showAppDialog(message: request.message);
+      })
+      ..setOnJavaScriptConfirmDialog(
+        (JavaScriptConfirmDialogRequest request) async {
+          return _showAppDialog(message: request.message, showCancel: true);
+        },
+      )
       ..setOnConsoleMessage((JavaScriptConsoleMessage message) {
         debugPrint('WebView console: ${message.message}');
       })
@@ -114,6 +123,7 @@ class _WebScreenState extends State<WebScreen> {
       platformController.setOnPlatformPermissionRequest((request) {
         request.grant();
       });
+      platformController.setOnShowFileSelector(_handleAndroidFileSelection);
     }
   }
 
@@ -180,7 +190,32 @@ class _WebScreenState extends State<WebScreen> {
       );
     } catch (e) {
       debugPrint('Camera error: $e');
-      await _showCameraError();
+      await _showAppDialog(
+        title: '카메라 권한 확인',
+        message: '카메라를 열 수 없어요. 앱 설정에서 KLS Bank의 카메라 권한을 허용한 뒤 다시 시도해 주세요.',
+      );
+    }
+  }
+
+  Future<List<String>> _handleAndroidFileSelection(
+    FileSelectorParams params,
+  ) async {
+    try {
+      final XFile? photo = await _picker.pickImage(
+        source:
+            params.isCaptureEnabled ? ImageSource.camera : ImageSource.gallery,
+        preferredCameraDevice: CameraDevice.rear,
+      );
+
+      if (photo == null) return <String>[];
+      return <String>[photo.path];
+    } catch (e) {
+      debugPrint('File selector camera error: $e');
+      await _showAppDialog(
+        title: '카메라 권한 확인',
+        message: '카메라를 열 수 없어요. 앱 설정에서 KLS Bank의 카메라 권한을 허용한 뒤 다시 시도해 주세요.',
+      );
+      return <String>[];
     }
   }
 
@@ -202,14 +237,123 @@ class _WebScreenState extends State<WebScreen> {
       );
     } catch (e) {
       debugPrint('ID card camera error: $e');
-      await _showCameraError();
+      await _showAppDialog(
+        title: '카메라 권한 확인',
+        message: '카메라를 열 수 없어요. 앱 설정에서 KLS Bank의 카메라 권한을 허용한 뒤 다시 시도해 주세요.',
+      );
     }
   }
 
-  Future<void> _showCameraError() async {
-    await _controller.runJavaScript(
-      "alert('카메라를 열 수 없습니다. 앱 설정에서 KLS Bank의 카메라 권한을 허용한 뒤 다시 시도해 주세요.');",
+  Future<bool> _showAppDialog({
+    String title = 'KLS Bank',
+    required String message,
+    bool showCancel = false,
+  }) async {
+    if (!mounted) return false;
+
+    final bool? result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: showCancel,
+      builder: (context) {
+        return Dialog(
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(22, 22, 22, 18),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF6F4CFF).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      alignment: Alignment.center,
+                      child: const Text(
+                        'K',
+                        style: TextStyle(
+                          color: Color(0xFF6F4CFF),
+                          fontSize: 19,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: const TextStyle(
+                          color: Color(0xFF17142A),
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  message,
+                  style: const TextStyle(
+                    color: Color(0xFF4B465F),
+                    fontSize: 15,
+                    height: 1.45,
+                    letterSpacing: 0,
+                  ),
+                ),
+                const SizedBox(height: 22),
+                Row(
+                  children: [
+                    if (showCancel) ...[
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF6F4CFF),
+                            side: const BorderSide(color: Color(0xFFE3DEFF)),
+                            minimumSize: const Size.fromHeight(48),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: const Text('취소'),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                    ],
+                    Expanded(
+                      child: FilledButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFF6F4CFF),
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size.fromHeight(48),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        child: const Text('확인'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
+
+    return result ?? false;
   }
 
   Uri? _toSecureKlsUri(String url) {
