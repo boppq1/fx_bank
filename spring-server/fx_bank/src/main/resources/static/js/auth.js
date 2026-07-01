@@ -261,10 +261,25 @@ function initIdCardOcr() {
     uploadIdCard(base64ToImageFile(base64Image));
   };
 
-  function openCameraGuide() {
+  async function openCameraGuide() {
     if (window.FlutterIdCardBridge && typeof window.FlutterIdCardBridge.postMessage === "function") {
       window.FlutterIdCardBridge.postMessage(JSON.stringify({ action: "openIdCardCamera" }));
       return;
+    }
+
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia && modal && video) {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: "environment" } },
+          audio: false,
+        });
+        video.srcObject = stream;
+        modal.hidden = false;
+        await video.play();
+        return;
+      } catch (error) {
+        console.warn("Browser camera failed. Falling back to file input.", error);
+      }
     }
 
     fileInput.click();

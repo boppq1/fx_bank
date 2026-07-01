@@ -155,14 +155,18 @@ class _WebScreenState extends State<WebScreen> {
   }
 
   void _hideSplashIfReady() {
-    if (!mounted || !_pageLoaded || !_minimumSplashElapsed || !_showSplash)
+    if (!mounted || !_pageLoaded || !_minimumSplashElapsed || !_showSplash) {
       return;
+    }
     setState(() => _showSplash = false);
   }
 
   Future<void> _takePictureAndUpload(String letter) async {
     try {
-      final XFile? photo = await _picker.pickImage(source: ImageSource.camera);
+      final XFile? photo = await _picker.pickImage(
+        source: ImageSource.camera,
+        preferredCameraDevice: CameraDevice.rear,
+      );
       if (photo == null) return;
 
       final File imageFile = File(photo.path);
@@ -176,12 +180,16 @@ class _WebScreenState extends State<WebScreen> {
       );
     } catch (e) {
       debugPrint('Camera error: $e');
+      await _showCameraError();
     }
   }
 
   Future<void> _takeIdCardPicture() async {
     try {
-      final XFile? photo = await _picker.pickImage(source: ImageSource.camera);
+      final XFile? photo = await _picker.pickImage(
+        source: ImageSource.camera,
+        preferredCameraDevice: CameraDevice.rear,
+      );
       if (photo == null) return;
 
       final File imageFile = File(photo.path);
@@ -194,7 +202,14 @@ class _WebScreenState extends State<WebScreen> {
       );
     } catch (e) {
       debugPrint('ID card camera error: $e');
+      await _showCameraError();
     }
+  }
+
+  Future<void> _showCameraError() async {
+    await _controller.runJavaScript(
+      "alert('카메라를 열 수 없습니다. 앱 설정에서 KLS Bank의 카메라 권한을 허용한 뒤 다시 시도해 주세요.');",
+    );
   }
 
   Uri? _toSecureKlsUri(String url) {
