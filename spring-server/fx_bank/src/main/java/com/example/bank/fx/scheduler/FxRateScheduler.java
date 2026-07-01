@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -27,6 +28,7 @@ public class FxRateScheduler {
     private static final Logger log = LoggerFactory.getLogger(FxRateScheduler.class);
     private static final DateTimeFormatter YMD = DateTimeFormatter.ofPattern("yyyyMMdd");
     private static final ZoneId SEOUL = ZoneId.of("Asia/Seoul");
+    private static final int MIN_EXPECTED_RATE_COUNT = 10;
 
     private final RestTemplate restTemplate;
     private final FxDataDao fxDataDao;
@@ -39,11 +41,13 @@ public class FxRateScheduler {
     private String baseUrl;
 
     @Scheduled(cron = "${fx.exim.cron}", zone = "Asia/Seoul")
+    @Transactional
     public void insertRate() {
         loadTodayRates("daily");
     }
 
     @Scheduled(cron = "${fx.exim.retry-cron:0 10 12-18 * * MON-FRI}", zone = "Asia/Seoul")
+    @Transactional
     public void retryInsertRate() {
         loadTodayRates("retry");
     }
@@ -53,12 +57,16 @@ public class FxRateScheduler {
         String searchdate = today.format(YMD);
 
         int alreadyLoaded = fxDataDao.countRatesByDate(searchdate);
-        if (alreadyLoaded > 0) {
+        if (alreadyLoaded >= MIN_EXPECTED_RATE_COUNT) {
             log.info("[FX] {} skip. exchange rates already loaded for {}. count={}", trigger, searchdate, alreadyLoaded);
             return;
         }
 
-        boolean stored = fetchAndStore(searchdate);
+        if (alreadyLoaded > 0) {
+            log.warn("[FX] {} found partial exchange rates for {}. count={}", trigger, searchdate, alreadyLoaded);
+        }
+
+        boolean stored = fetchAndStore(searchdate, alreadyLoaded > 0);
         if (stored) {
             log.info("[FX] {} load success. searchdate={}", trigger, searchdate);
         } else {
@@ -66,7 +74,7 @@ public class FxRateScheduler {
         }
     }
 
-    private boolean fetchAndStore(String searchdate) {
+    private boolean fetchAndStore(String searchdate, boolean replaceExisting) {
         String url = UriComponentsBuilder
                 .fromHttpUrl(baseUrl)
                 .queryParam("authkey", authKey)
@@ -97,7 +105,7 @@ public class FxRateScheduler {
             }
 
             String announcedAt = searchdate + "120000";
-            int inserted = 0;
+            List<RateRow> rates = new java.util.ArrayList<>();
             for (Map<String, Object> item : list) {
                 String currencyCode = asText(item.get("cur_unit"));
                 Double ttb = parseRate(item.get("ttb"));
@@ -108,15 +116,28 @@ public class FxRateScheduler {
                     continue;
                 }
 
-                fxDataDao.insertRate(currencyCode, ttb, tts, dealBasR, announcedAt);
-                inserted++;
+                rates.add(new RateRow(currencyCode, ttb, tts, dealBasR));
             }
 
-            log.info("[FX] inserted exchange rates. searchdate={}, count={}", searchdate, inserted);
-            return inserted > 0;
+            if (rates.size() < MIN_EXPECTED_RATE_COUNT) {
+                log.warn("[FX] too few valid exchange rates. searchdate={}, count={}", searchdate, rates.size());
+                return false;
+            }
+
+            if (replaceExisting) {
+                fxDataDao.deleteRatesByDate(searchdate);
+                log.info("[FX] deleted partial exchange rates before reload. searchdate={}", searchdate);
+            }
+
+            for (RateRow rate : rates) {
+                fxDataDao.insertRate(rate.currencyCode, rate.buyRate, rate.sellRate, rate.baseRate, announcedAt);
+            }
+
+            log.info("[FX] inserted exchange rates. searchdate={}, count={}", searchdate, rates.size());
+            return true;
         } catch (Exception e) {
             log.error("[FX] failed to load exchange rates. searchdate={}", searchdate, e);
-            return false;
+            throw new IllegalStateException("Failed to load exchange rates for " + searchdate, e);
         }
     }
 
@@ -135,6 +156,20 @@ public class FxRateScheduler {
             return parsed == 0 ? null : parsed;
         } catch (NumberFormatException e) {
             return null;
+        }
+    }
+
+    private static class RateRow {
+        private final String currencyCode;
+        private final Double buyRate;
+        private final Double sellRate;
+        private final Double baseRate;
+
+        private RateRow(String currencyCode, Double buyRate, Double sellRate, Double baseRate) {
+            this.currencyCode = currencyCode;
+            this.buyRate = buyRate;
+            this.sellRate = sellRate;
+            this.baseRate = baseRate;
         }
     }
 }

@@ -20,6 +20,8 @@ public interface FxDataDao {
 
     int countRatesByDate(@Param("announced_date") String announcedDate);
 
+    void deleteRatesByDate(@Param("announced_date") String announcedDate);
+
     List<FxDataDto> selectLatestRatesByCurrencies(@Param("currencyCodes") List<String> currencyCodes);
 
     List<FxDataDto> selectAllLatestRates();
